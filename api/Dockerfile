@@ -15,6 +15,7 @@ RUN pip install fastapi-camelcase
 RUN pip install requests==2.24.0
 RUN pip install pandas==1.1.3
 RUN pip install aiofiles
+RUN pip install Pillow
 
 RUN mkdir -p /opt/app
 RUN mkdir -p /opt/data
