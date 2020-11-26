@@ -74,7 +74,7 @@ async def main(
     if page == None:
         try:
             some_file_path = f"{DATA_ROOT}book_library/{uuid}.jpg"
-            file_like = open(some_file_path, mode="rb")
+            return FileResponse(some_file_path)
         except:
             raise HTTPException(
                 status_code=404,
@@ -83,15 +83,7 @@ async def main(
     else:
         some_file_path = f"{DATA_ROOT}book_cache/{uuid}/{str(page).zfill(4)}.jpg"
         logger.info(some_file_path)
-        try:
-            file_like = open(some_file_path, mode="rb")
-        except:
-            raise HTTPException(
-                status_code=404,
-                detail="ファイルが存在しません",
-            )
-    
-    return StreamingResponse(file_like)
+        return FileResponse(some_file_path)
 
 
 

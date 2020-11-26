@@ -2,7 +2,7 @@
   <div class="books">
     <v-row>
       <v-col lg=1 sm=2 v-for="item in booksList" :key="item.uuid">
-        <v-card :to="{ name: 'BookReader', params: { uuid: item.uuid } }">
+        <v-card @click="toReaderPage(item)">
           <v-img
             aspect-ratio="0.7"
             :src="getCoverURL(item.uuid)"
@@ -22,6 +22,7 @@
 
 <script>
 import axios from '@/axios/index'
+import router from '../router';
 
 export default {
   name: 'Books',
@@ -31,6 +32,16 @@ export default {
     }
   },
   methods: {
+    toReaderPage(item) {
+      if (item.state!="cached"){
+        axios.request({
+          method: 'put',
+          url: '/api/books',
+          data: { uuid:item.uuid }
+        })
+      }
+      router.push({ name: 'BookReader', params: { uuid: item.uuid } })
+    },
     getCoverURL (uuid) {
       return process.env.VUE_APP_API_HOST + '/media/books/' + uuid
     }
