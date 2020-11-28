@@ -20,19 +20,67 @@ exception_notfund = HTTPException(
 
 @app.get("/api/books", tags=["book"],response_model=List[BookBase])
 async def get_api_books(
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_db),
+        uuid: str = None,
+        author_like: str = None,
+        title_like: str = None,
+        rate: str = None,
+        series: str = None,
+        state: str = None,
+        file_name_like: str = None
     ):
 
-    return db.query(BookModel).all()
+    query = db.query(BookModel)
+
+    if uuid != None:
+        query = query.filter(BookModel.uuid==uuid)
+
+    if author_like != None:
+        query = query.filter(BookModel.author.like(f'%{author_like}%'))
+    
+    if title_like != None:
+        query = query.filter(BookModel.title.like(f'%{title_like}%'))
+    
+    if file_name_like != None:
+        query = query.filter(BookModel.import_file_name.like(f'%{file_name_like}%'))
+
+    return query.all()
 
 
 @app.put("/api/books", tags=["book"])
 async def put_api_books(
         db: Session = Depends(get_db),
-        model: BookSelect = None
+        model: BookPut = None
     ):
-    # タスクを追加
-    book: BookModel = db.query(BookModel).filter(BookModel.uuid==model.uuid).one()
-    book.state = "request"
+    for book_uuid in model.uuids:
+        try:
+            book: BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
+        except:
+            raise HTTPException(
+                status_code=404,
+                detail=f"本が存在しません,操作は全て取り消されました: {book_uuid}",
+            )
+
+        if model.rate != None:
+            book.rate = model.rate
+        
+        if model.state != None:
+            book.state = model.state
+        
+        if model.series != None:
+            book.series = model.series
+
+        if model.series_no != None:
+            book.series_no = model.series_no
+
+        if model.author != None:
+            book.author = model.author
+
+        if model.title != None:
+            book.title = model.title
+        
+        if model.genre != None:
+            book.genre = model.genre
+    
     db.commit()
     return book

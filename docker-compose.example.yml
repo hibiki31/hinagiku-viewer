@@ -1,0 +1,20 @@
+version: "3"
+services:
+  api:
+    build: ./api
+    volumes:
+      - ./data/book_cache:/opt/data/book_cache/
+      - ./data/book_library:/opt/data/book_library/
+      - ./data/book_send:/opt/data/book_send
+      - ./data/app_data:/opt/data/app_data/
+    environment:
+      APP_ROOT: "/opt/app/"
+      DATA_ROOT: "/opt/data/"
+    restart: always
+  web:
+    build: ./web
+    volumes:
+      - ./data/nginx:/var/log/nginx/
+    ports:
+      - 0.0.0.0:80:80
+    restart: always

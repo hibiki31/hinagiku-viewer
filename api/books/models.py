@@ -12,6 +12,7 @@ class BookModel(Base):
     series = Column(String)
     series_no = Column(Integer)
     rate = Column(Integer)
+    genre = Column(String)
     # ハードメタデータ
     size = Column(Integer)
     page = Column(Integer)

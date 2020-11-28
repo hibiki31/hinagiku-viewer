@@ -19,7 +19,14 @@ class BookBase(CamelModel):
         orm_mode  =  True
     
 
-class BookSelect(CamelModel):
-    uuid: str
+class BookPut(CamelModel):
+    uuids: List[str]
+    state: str = None
+    rate: int = None
+    series_no: int = None
+    series: str = None
+    author: str = None
+    title: str = None
+    genre: str = None
     class Config:
         orm_mode  =  True

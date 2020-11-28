@@ -43,13 +43,13 @@
             aspect-ratio="0.7"
             :src="getCoverURL(item.uuid)"
           ></v-img>
-          <v-card-title>
+          <!-- <v-card-title>
             {{ item.title }}
           </v-card-title>
           <v-card-text>
             <v-icon v-if="item.state=='cached'" color="primary">mdi-checkbox-marked-circle-outline</v-icon>
             <v-icon v-else >mdi-checkbox-marked-circle-outline</v-icon>
-          </v-card-text>
+          </v-card-text> -->
         </v-card>
       </v-col>
     </v-row>
@@ -74,7 +74,7 @@ export default {
         axios.request({
           method: 'put',
           url: '/api/books',
-          data: { uuid: item.uuid }
+          data: { uuids: [item.uuid], state: 'request' }
         })
         await this.$_sleep(5000)
       }

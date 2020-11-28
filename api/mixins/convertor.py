@@ -35,7 +35,7 @@ def main():
 
 def task_library():
     db = SessionLocal()
-    send_books_list = glob.glob(f"{DATA_ROOT}send_books/**", recursive=True)
+    send_books_list = glob.glob(f"{DATA_ROOT}book_send/**", recursive=True)
     send_books_list = [p for p in send_books_list if os.path.splitext(p)[1] in [".zip"]]
 
     # ディレクトリ作成
@@ -45,12 +45,15 @@ def task_library():
         book_uuid = uuid.uuid4()
         page_len = 0
 
-        with zipfile.ZipFile(send_book) as existing_zip:
-            zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1] in [".png", ".jpeg", ".jpg"]]
-            page_len = len(zip_content)
-            cover_path = zip_content[0]
-            existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
-            image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',height=320,quality=85)
+        try:
+            with zipfile.ZipFile(send_book) as existing_zip:
+                zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1] in [".png", ".jpeg", ".jpg"]]
+                page_len = len(zip_content)
+                cover_path = zip_content[0]
+                existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
+                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',height=320,quality=85)
+        except:
+            continue
             
         model = BookModel(
             uuid = str(book_uuid),

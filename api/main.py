@@ -24,23 +24,15 @@ worker_pool = []
 
 tags_metadata = [
     {
-        "name": "node",
+        "name": "book",
         "description": "",
-    },
-    {
-        "name": "user",
-        "description": "ユーザ",
-    },
-    {
-        "name": "auth",
-        "description": "認証",
     }
 ]
 
 app = FastAPI(
-    title="VirtyAPI",
+    title="Hinagiku-Viewer",
     description="",
-    version="1.5.0",
+    version="0.0.1",
     openapi_tags=tags_metadata,
     docs_url="/api",
     redoc_url="/api/redoc",
@@ -60,7 +52,7 @@ app.include_router(books_router)
 Base.metadata.create_all(bind=Engine)
 
 
-@app.get("/media/books/{uuid}")
+@app.get("/media/books/{uuid}/{page}")
 async def main(
         uuid: str = None,
         page: int = None,
@@ -70,23 +62,39 @@ async def main(
             status_code=404,
             detail="BOOK_IDを指定してください",
         )
-
+    
     if page == None:
-        try:
-            some_file_path = f"{DATA_ROOT}book_library/{uuid}.jpg"
-            return FileResponse(some_file_path)
-        except:
-            raise HTTPException(
-                status_code=404,
-                detail="ファイルが存在しません",
-            )
+        some_file_path = f"{DATA_ROOT}book_library/{uuid}.jpg"
     else:
         some_file_path = f"{DATA_ROOT}book_cache/{uuid}/{str(page).zfill(4)}.jpg"
-        logger.info(some_file_path)
+
+    try:
         return FileResponse(some_file_path)
+    except:
+        raise HTTPException(
+            status_code=404,
+            detail="ファイルが存在しません",
+        )
 
+@app.get("/media/books/{uuid}")
+async def get_media_books_uuid(
+        uuid: str = None
+    ):
+    if uuid == None:
+        raise HTTPException(
+            status_code=404,
+            detail="BOOK_IDを指定してください",
+        )
+    
+    some_file_path = f"{DATA_ROOT}book_library/{uuid}.jpg"
 
-
+    try:
+        return FileResponse(some_file_path)
+    except:
+        raise HTTPException(
+            status_code=404,
+            detail="ファイルが存在しません",
+        )
 
 def worker_up():
     worker_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py"]))

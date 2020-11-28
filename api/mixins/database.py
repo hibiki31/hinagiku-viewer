@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from mixins.settings import DATA_ROOT
 
-DATABASE_PATH = DATA_ROOT + "app.db"
+DATABASE_PATH = DATA_ROOT + "app_data/api.db"
 SQLALCHEMY_DATABASE_URL = "sqlite:///" + DATABASE_PATH
 
 

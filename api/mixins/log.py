@@ -1,7 +1,10 @@
 import logging
+import os
+from mixins.settings import DATA_ROOT
 
 
-def setup_logger(name, logfile='data/api.log'):
+def setup_logger(name, logfile=f'{DATA_ROOT}app_data/api.log'):
+    os.makedirs(f"{DATA_ROOT}app_data/", exist_ok=True)
     logger = logging.getLogger(name)
 
     # ファイル出力設定
