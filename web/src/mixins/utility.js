@@ -1,0 +1,64 @@
+import Vue from 'vue'
+import { mapState } from 'vuex'
+
+Vue.mixin({
+  computed: {
+    $_isFullscreen () {
+      return window.innerWidth < 600
+    },
+    ...mapState({
+      $_userData: state => state.userData
+    })
+  },
+  methods: {
+    $_sleep (msec) {
+      return new Promise(resolve => setTimeout(resolve, msec))
+    },
+    $_convertNumFormat (num) {
+      if (!num) {
+        return 0
+      } else if (num < 10000) {
+        return num.toLocaleString()
+      }
+      const formatNum = String(num).slice(0, -3)
+      return formatNum[0] + '.' + formatNum[1] + '万'
+    },
+    $_convertDateFormat (date, time = false) {
+      if (!date) {
+        return undefined
+      } else if (typeof date !== 'object') {
+        date = new Date(date)
+      }
+      const dateFormat = date.getFullYear() + '/' +
+             ('0' + (date.getMonth() + 1)).slice(-2) + '/' +
+             ('0' + date.getDate()).slice(-2)
+      if (time) {
+        const timeFormat = ('0' + date.getHours()).slice(-2) + ':' +
+               ('0' + date.getMinutes()).slice(-2)
+        return dateFormat + ' ' + timeFormat
+      } else {
+        return dateFormat
+      }
+    },
+    $_pushNotice (text, type, color, icon, group = 'default') {
+      this.$notify({
+        group,
+        text,
+        type,
+        duration: 5000,
+        data: { icon, color }
+      })
+    },
+    // バリデータ
+    required: (value) => !!value || 'Required.',
+    limitLength64: (value) => value.length <= 64 || '64 characters maximum.',
+    characterRestrictions (value) {
+      const regex = new RegExp(/^[A-Za-z0-9-_]*$/)
+      return regex.test(value) || 'Can use character A-Z, a-z, 0-9, -, _'
+    },
+    firstCharacterRestrictions (value) {
+      const regex = new RegExp(/^[A-Za-z].*/)
+      return regex.test(value) || 'Can use first character A-Z, a-z'
+    }
+  }
+})

@@ -38,25 +38,48 @@ def task_library():
     send_books_list = glob.glob(f"{DATA_ROOT}send_books/**", recursive=True)
     send_books_list = [p for p in send_books_list if os.path.splitext(p)[1] in [".zip"]]
 
+    # ディレクトリ作成
+    os.makedirs(f"{DATA_ROOT}book_library/", exist_ok=True)
+
     for send_book in send_books_list:
         book_uuid = uuid.uuid4()
+        page_len = 0
+
         with zipfile.ZipFile(send_book) as existing_zip:
             zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1] in [".png", ".jpeg", ".jpg"]]
+            page_len = len(zip_content)
             cover_path = zip_content[0]
             existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
             image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',height=320,quality=85)
             
-        
-        
         model = BookModel(
             uuid = str(book_uuid),
+            # ソフトメタデータ
+            title = None,
+            author = None,
+            series = None,
+            series_no = None,
+            rate = None,
+            # ハードメタデータ
+            size = os.path.getsize(send_book),
+            page = page_len,
             add_date = datetime.datetime.now(),
-            import_file_name = os.path.basename(send_book)
+            file_date = datetime.datetime.fromtimestamp(os.path.getmtime(send_book)),
+            import_file_name = os.path.basename(send_book),
+            # アクティブメタデータ
+            cache_date = None,
+            open_count = 0,
+            open_date = None,
+            state = "imported",
         )
+
         db.add(model)
         db.commit()
         shutil.move(send_book, f'{DATA_ROOT}book_library/{book_uuid}.zip')
         logger.info(f'ライブラリに追加: {DATA_ROOT}book_library/{book_uuid}.zip')
+    
+        shutil.rmtree(f"{APP_ROOT}temp/")
+        os.mkdir(f"{APP_ROOT}temp/")
 
 
     return
@@ -74,6 +97,9 @@ def task_convert(book_uuid):
     for index, image_path in enumerate(new_list):
         logger.debug(image_path)
         image_convertor(image_path,f"{DATA_ROOT}book_cache/{book_uuid}/{str(index+1).zfill(4)}.jpg",height=1080,quality=90)
+    
+    shutil.rmtree(f"{APP_ROOT}temp/")
+    os.mkdir(f"{APP_ROOT}temp/")
 
 
 

@@ -1,5 +1,41 @@
 <template>
   <div class="books">
+      <v-dialog
+      v-model="menuDialog"
+      scrollable
+      max-width="500px"
+    >
+      <v-card>
+        <v-card-text class="pt-6">
+          <v-btn @click="index+=1">
+            ページ調整
+          </v-btn>
+          <v-btn :to="{ name: 'Books'}" class="ml-3">
+            戻る
+          </v-btn>
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-text style="height: 300px;">
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-btn
+            color="blue darken-1"
+            text
+            @click="dialog = false"
+          >
+            Close
+          </v-btn>
+          <v-btn
+            color="blue darken-1"
+            text
+            @click="dialog = false"
+          >
+            Save
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-row>
       <v-col lg=1 sm=2 v-for="item in booksList" :key="item.uuid">
         <v-card @click="toReaderPage(item)">
@@ -22,23 +58,25 @@
 
 <script>
 import axios from '@/axios/index'
-import router from '../router';
+import router from '../router'
 
 export default {
   name: 'Books',
   data: function () {
     return {
+      menuDialog: false,
       booksList: []
     }
   },
   methods: {
-    toReaderPage(item) {
-      if (item.state!="cached"){
+    async toReaderPage (item) {
+      if (item.state !== 'cached') {
         axios.request({
           method: 'put',
           url: '/api/books',
-          data: { uuid:item.uuid }
+          data: { uuid: item.uuid }
         })
+        await this.$_sleep(5000)
       }
       router.push({ name: 'BookReader', params: { uuid: item.uuid } })
     },

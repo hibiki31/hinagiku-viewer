@@ -18,7 +18,6 @@ def endless_eight():
     logger.info("Worker起動")
     db = SessionLocal()
     while True:
-        sleep(3)
         task_library()
 
         for request in db.query(BookModel).filter(BookModel.state=="request").all():
@@ -29,6 +28,8 @@ def endless_eight():
             request.state = "cached"
             db.commit()
             logger.info("キャッシュを作成終了: "+request.uuid)
+        
+        sleep(3)
 
 
 

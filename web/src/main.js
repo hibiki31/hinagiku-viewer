@@ -7,9 +7,14 @@ import vuetify from './plugins/vuetify'
 
 import Notifications from 'vue-notification'
 import velocity from 'velocity-animate'
+import { VueHammer } from 'vue2-hammer'
+
+import './mixins/utility'
+import './mixins/rules'
 
 Vue.config.productionTip = false
 Vue.use(Notifications, { velocity })
+Vue.use(VueHammer)
 
 new Vue({
   router,
