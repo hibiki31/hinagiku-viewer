@@ -95,6 +95,8 @@ def task_convert(book_uuid):
     file_list =  glob.glob(f'{APP_ROOT}temp/{book_uuid}/**', recursive=True)
     new_list = [p for p in file_list if os.path.splitext(p)[1] in [".png", ".jpeg", ".jpg"]]
 
+    new_list.sort()
+
     os.makedirs(f"{DATA_ROOT}book_cache/{book_uuid}/", exist_ok=True)
 
     for index, image_path in enumerate(new_list):

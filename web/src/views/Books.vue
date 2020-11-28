@@ -70,7 +70,7 @@ export default {
   },
   methods: {
     async toReaderPage (item) {
-      if (item.state !== 'cached') {
+      if (item.state !== '') {
         axios.request({
           method: 'put',
           url: '/api/books',
