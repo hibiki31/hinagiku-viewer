@@ -81,7 +81,12 @@ export default {
       router.push({ name: 'BookReader', params: { uuid: item.uuid } })
     },
     getCoverURL (uuid) {
-      return process.env.VUE_APP_API_HOST + '/media/books/' + uuid
+      const api = process.env.VUE_APP_API_HOST
+      if (api) {
+        return process.env.VUE_APP_API_HOST + '/media/books/' + uuid
+      } else {
+        return '/media/books/' + uuid
+      }
     }
   },
   mounted: async function () {

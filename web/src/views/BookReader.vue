@@ -110,7 +110,12 @@ export default {
       this.menuDialog = true
     },
     getPageUrl (index) {
-      return process.env.VUE_APP_API_HOST + '/media/books/' + this.uuid + '/' + index
+      const api = process.env.VUE_APP_API_HOST
+      if (api) {
+        return api + '/media/books/' + this.uuid + '/' + index
+      } else {
+        return '/media/books/' + this.uuid + '/' + index
+      }
     },
     handleResize: function () {
       // resizeのたびにこいつが発火するので、ここでやりたいことをやる
