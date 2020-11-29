@@ -14,10 +14,7 @@
         </v-alert>
       </template>
     </notifications>
-    <v-app-bar color="primary" dark dense flat app clipped-left v-if="this.$store.state.showMenuBer">
-      <v-toolbar-title>Hinagiku Viewer</v-toolbar-title>
-    </v-app-bar>
-    <v-main class="ma-3">
+    <v-main>
       <router-view />
     </v-main>
   </v-app>

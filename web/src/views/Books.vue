@@ -36,23 +36,36 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-row v-hammer:press="openMenu" >
-      <v-col :cols="4" :xs="4" :sm="3" :md="2" :lg="1" v-for="item in booksList" :key="item.uuid">
-        <v-card @click="toReaderPage(item)">
-          <v-img
-            aspect-ratio="0.7"
-            :src="getCoverURL(item.uuid)"
-          ></v-img>
-          <!-- <v-card-title>
-            {{ item.title }}
-          </v-card-title>
-          <v-card-text>
-            <v-icon v-if="item.state=='cached'" color="primary">mdi-checkbox-marked-circle-outline</v-icon>
-            <v-icon v-else >mdi-checkbox-marked-circle-outline</v-icon>
-          </v-card-text> -->
-        </v-card>
-      </v-col>
-    </v-row>
+     <v-app-bar color="primary" dark dense flat app clipped-left v-if="this.$store.state.showMenuBer">
+      <v-toolbar-title>Hinagiku Viewer</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-text-field
+        v-model="searchTitle"
+        hide-details
+        single-line
+      ></v-text-field>
+      <v-btn icon @click="search()"><v-icon>mdi-magnify</v-icon></v-btn>
+      <v-btn icon @click="reload()"><v-icon>mdi-reload</v-icon></v-btn>
+    </v-app-bar>
+    <v-container>
+      <v-row v-hammer:press="openMenu" >
+        <v-col :cols="4" :xs="4" :sm="3" :md="2" :lg="2" v-for="item in booksList" :key="item.uuid">
+          <v-card @click="toReaderPage(item)">
+            <v-img
+              aspect-ratio="0.7"
+              :src="getCoverURL(item.uuid)"
+            ></v-img>
+            <!-- <v-card-title>
+              {{ item.title }}
+            </v-card-title>
+            <v-card-text>
+              <v-icon v-if="item.state=='cached'" color="primary">mdi-checkbox-marked-circle-outline</v-icon>
+              <v-icon v-else >mdi-checkbox-marked-circle-outline</v-icon>
+            </v-card-text> -->
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
   </div>
 </template>
 
@@ -65,10 +78,17 @@ export default {
   data: function () {
     return {
       menuDialog: false,
-      booksList: []
+      booksList: [],
+      searchTitle: ''
     }
   },
   methods: {
+    reload () {
+      axios.get('/api/books').then((response) => (this.booksList = response.data))
+    },
+    search () {
+      axios.get('/api/books', { params: { file_name_like: this.searchTitle } }).then((response) => (this.booksList = response.data))
+    },
     openMenu () {
       this.menuDialog = true
     },
