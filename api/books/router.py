@@ -44,7 +44,7 @@ async def get_api_books(
     if file_name_like != None:
         query = query.filter(BookModel.import_file_name.like(f'%{file_name_like}%'))
 
-    return query.all()
+    return query.order_by(BookModel.import_file_name).all()
 
 
 @app.put("/api/books", tags=["book"])
