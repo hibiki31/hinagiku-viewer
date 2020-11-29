@@ -35,11 +35,12 @@ def main():
 
 def task_library():
     db = SessionLocal()
-    send_books_list = glob.glob(f"{DATA_ROOT}book_send/**", recursive=True)
-    send_books_list = [p for p in send_books_list if os.path.splitext(p)[1] in [".zip"]]
-
     # ディレクトリ作成
     os.makedirs(f"{DATA_ROOT}book_library/", exist_ok=True)
+    os.makedirs(f"{DATA_ROOT}book_send/", exist_ok=True)
+    
+    send_books_list = glob.glob(f"{DATA_ROOT}book_send/**", recursive=True)
+    send_books_list = [p for p in send_books_list if os.path.splitext(p)[1] in [".zip"]]
 
     for send_book in send_books_list:
         book_uuid = uuid.uuid4()

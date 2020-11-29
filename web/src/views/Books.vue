@@ -37,7 +37,7 @@
       </v-card>
     </v-dialog>
     <v-row>
-      <v-col lg=1 sm=2 v-for="item in booksList" :key="item.uuid">
+      <v-col :cols="4" :xs="4" :sm="3" :md="2" :lg="1" v-for="item in booksList" :key="item.uuid">
         <v-card @click="toReaderPage(item)">
           <v-img
             aspect-ratio="0.7"
@@ -70,7 +70,7 @@ export default {
   },
   methods: {
     async toReaderPage (item) {
-      if (item.state !== '') {
+      if (item.state !== 'cached') {
         axios.request({
           method: 'put',
           url: '/api/books',
