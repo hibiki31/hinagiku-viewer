@@ -38,9 +38,9 @@ def task_library():
     # ディレクトリ作成
     os.makedirs(f"{DATA_ROOT}book_library/", exist_ok=True)
     os.makedirs(f"{DATA_ROOT}book_send/", exist_ok=True)
-    
+
     send_books_list = glob.glob(f"{DATA_ROOT}book_send/**", recursive=True)
-    send_books_list = [p for p in send_books_list if os.path.splitext(p)[1] in [".zip"]]
+    send_books_list = [p for p in send_books_list if os.path.splitext(p)[1].lower() in [".zip"]]
 
     for send_book in send_books_list:
         book_uuid = uuid.uuid4()
@@ -48,7 +48,7 @@ def task_library():
 
         try:
             with zipfile.ZipFile(send_book) as existing_zip:
-                zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1] in [".png", ".jpeg", ".jpg"]]
+                zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
                 page_len = len(zip_content)
                 cover_path = zip_content[0]
                 existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
@@ -94,7 +94,7 @@ def task_convert(book_uuid):
         existing_zip.extractall(f'{APP_ROOT}temp/{book_uuid}/')
 
     file_list =  glob.glob(f'{APP_ROOT}temp/{book_uuid}/**', recursive=True)
-    new_list = [p for p in file_list if os.path.splitext(p)[1] in [".png", ".jpeg", ".jpg"]]
+    new_list = [p for p in file_list if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
 
     new_list.sort()
 

@@ -36,7 +36,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-row>
+    <v-row v-hammer:press="openMenu" >
       <v-col :cols="4" :xs="4" :sm="3" :md="2" :lg="1" v-for="item in booksList" :key="item.uuid">
         <v-card @click="toReaderPage(item)">
           <v-img
@@ -69,6 +69,9 @@ export default {
     }
   },
   methods: {
+    openMenu () {
+      this.menuDialog = true
+    },
     async toReaderPage (item) {
       if (item.state !== 'cached') {
         axios.request({

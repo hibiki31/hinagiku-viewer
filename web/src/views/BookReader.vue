@@ -13,6 +13,9 @@
           <v-btn :to="{ name: 'Books'}" class="ml-3">
             戻る
           </v-btn>
+          <v-btn @click="reCache()" class="ml-3">
+            キャッシュ再生成
+          </v-btn>
           <v-switch
               v-model="showTowPage"
               label="見開き表示"
@@ -51,7 +54,7 @@
     </v-dialog>
     <v-row justify="center" v-hammer:press="openMenu" v-hammer:swipe="onSwipe">
       <!-- 先読みキャッシュ -->
-      <v-col lg="6" hidden>
+      <v-col :cols="6" hidden>
         <v-img v-if="this.index > 2" :src="getPageUrl(this.index-2)" v-on:error="onImgError"></v-img>
         <v-img v-if="this.index > 1" :src="getPageUrl(this.index-1)" v-on:error="onImgError"></v-img>
         <v-img v-if="this.index + 0 <= this.bookInfo.page" :src="getPageUrl(this.index+0)" v-on:error="onImgError"></v-img>
@@ -62,7 +65,7 @@
         <v-img v-if="this.index + 5 <= this.bookInfo.page" :src="getPageUrl(this.index+5)" v-on:error="onImgError"></v-img>
       </v-col>
       <!-- メイン -->
-      <v-col lg="6" @click="pageNext()" v-if="this.showTowPage">
+      <v-col :cols="6" @click="pageNext()" v-if="this.showTowPage">
         <v-img
         :height="this.height - this.heightOffcet"
         :src="getPageUrl(this.index+1)"
@@ -70,7 +73,7 @@
         ></v-img>
       </v-col>
       <!-- メイン -->
-      <v-col lg="6" @click="pageBack()" v-if="this.showTowPage">
+      <v-col :cols="6" @click="pageBack()" v-if="this.showTowPage">
           <v-img
           :height="this.height - this.heightOffcet"
           :src="getPageUrl(this.index+0)"
@@ -78,7 +81,7 @@
           ></v-img>
       </v-col>
       <!-- スマホ用 -->
-      <v-col lg="6" @click="pageNext()" v-if="!this.showTowPage">
+      <v-col :cols="12" @click="pageNext()" v-if="!this.showTowPage">
           <v-img
           :height="this.height - this.heightOffcet"
           :src="getPageUrl(this.index+0)"
@@ -161,6 +164,13 @@ export default {
     },
     onImgError: function (event) {
       console.log(event)
+    },
+    reCache () {
+      axios.request({
+        method: 'put',
+        url: '/api/books',
+        data: { uuids: [this.uuid], state: 'request' }
+      })
     }
   },
   mounted: function () {
