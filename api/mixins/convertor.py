@@ -52,7 +52,7 @@ def task_library():
                 page_len = len(zip_content)
                 cover_path = zip_content[0]
                 existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
-                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',height=320,quality=85)
+                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',height=320,quality=70)
         except:
             continue
             
@@ -102,7 +102,7 @@ def task_convert(book_uuid):
 
     for index, image_path in enumerate(new_list):
         logger.debug(image_path)
-        image_convertor(image_path,f"{DATA_ROOT}book_cache/{book_uuid}/{str(index+1).zfill(4)}.jpg",height=1080,quality=90)
+        image_convertor(image_path,f"{DATA_ROOT}book_cache/{book_uuid}/{str(index+1).zfill(4)}.jpg",height=1080,quality=70)
     
     shutil.rmtree(f"{APP_ROOT}temp/")
     os.mkdir(f"{APP_ROOT}temp/")

@@ -7,7 +7,7 @@
     >
       <v-card>
         <v-card-text class="pt-6">
-          <v-btn @click="index+=1">
+          <v-btn @click="nowPage+=1">
             ページ調整
           </v-btn>
           <v-btn :to="{ name: 'Books'}" class="ml-3">
@@ -22,7 +22,7 @@
               hide-details
           ></v-switch>
           <v-slider
-            v-model="index"
+            v-model="nowPage"
             label="ページ"
             :min="0"
             :max="this.bookInfo.page"
@@ -52,43 +52,67 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-row justify="center" v-hammer:press="openMenu" v-hammer:swipe="onSwipe">
-      <!-- 先読みキャッシュ -->
-      <v-col :cols="6" hidden>
-        <v-img v-if="this.index > 2" :src="getPageUrl(this.index-2)" v-on:error="onImgError"></v-img>
-        <v-img v-if="this.index > 1" :src="getPageUrl(this.index-1)" v-on:error="onImgError"></v-img>
-        <v-img v-if="this.index + 0 <= this.bookInfo.page" :src="getPageUrl(this.index+0)" v-on:error="onImgError"></v-img>
-        <v-img v-if="this.index + 1 <= this.bookInfo.page" :src="getPageUrl(this.index+1)" v-on:error="onImgError"></v-img>
-        <v-img v-if="this.index + 2 <= this.bookInfo.page" :src="getPageUrl(this.index+2)" v-on:error="onImgError"></v-img>
-        <v-img v-if="this.index + 3 <= this.bookInfo.page" :src="getPageUrl(this.index+3)" v-on:error="onImgError"></v-img>
-        <v-img v-if="this.index + 4 <= this.bookInfo.page" :src="getPageUrl(this.index+4)" v-on:error="onImgError"></v-img>
-        <v-img v-if="this.index + 5 <= this.bookInfo.page" :src="getPageUrl(this.index+5)" v-on:error="onImgError"></v-img>
-      </v-col>
-      <!-- メイン -->
-      <v-col :cols="6" @click="pageNext()" v-if="this.showTowPage">
-        <v-img
-        :height="this.height - this.heightOffcet"
-        :src="getPageUrl(this.index+1)"
-        contain
-        ></v-img>
-      </v-col>
-      <!-- メイン -->
-      <v-col :cols="6" @click="pageBack()" v-if="this.showTowPage">
-          <v-img
+    <!-- 画像表示ぶ-->
+    <div class="text-center" v-if="reShowFlag">
+      <!-- 見開き表示 -->
+      <template v-if="this.showTowPage" >
+        <img
+          v-hammer:swipe="onSwipe"
+          v-hammer:press="openSubMenu"
+          v-hammer:tap="pageNext"
           :height="this.height - this.heightOffcet"
-          :src="getPageUrl(this.index+0)"
-          contain
-          ></v-img>
-      </v-col>
-      <!-- スマホ用 -->
-      <v-col :cols="12" @click="pageNext()" v-if="!this.showTowPage">
-          <v-img
+          :src="this.pageBlob[this.nowPage+0]"
+        />
+        <img
+          v-hammer:swipe="onSwipe"
+          v-hammer:press="openSubMenu"
+          v-hammer:tap="pageNext"
           :height="this.height - this.heightOffcet"
-          :src="getPageUrl(this.index+0)"
-          contain
-          ></v-img>
-      </v-col>
-    </v-row>
+          :src="this.pageBlob[this.nowPage-1]"
+        />
+      </template>
+      <!-- スマホ用片面 -->
+      <template v-else>
+        <img
+          v-hammer:swipe="onSwipe"
+          v-hammer:press="openSubMenu"
+          v-hammer:tap="pageNext"
+          :height="this.height - this.heightOffcet"
+          :src="this.pageBlob[this.nowPage-1]"
+        />
+      </template>
+    </div>
+    <!-- 下部メニュ -->
+    <div fluid class="text-center" style="position: fixed; bottom: 10px; z-index: 10; width: 100%" v-show="subMenu">
+      <v-container>
+        <v-switch
+          v-model="showTowPage"
+          label="見開き表示"
+          hide-details
+        ></v-switch>
+        <v-slider
+          v-model="nowPage"
+          :min="1"
+          :max="this.bookInfo.page"
+          thumb-label
+        ></v-slider>
+      </v-container>
+    </div>
+
+    <div fluid class="text-center" style="position: fixed; top: 10px; z-index: 10; width: 100%" v-show="subMenu">
+      <v-container>
+        <v-btn @click="nowPage+=1">
+          ページ調整
+        </v-btn>
+        <v-btn :to="{ name: 'Books'}" class="ml-3">
+          閉じる
+        </v-btn>
+        <v-btn @click="reCache()" class="ml-3">
+          キャッシュ再生成
+        </v-btn>
+      </v-container>
+    </div>
+
   </div>
 </template>
 
@@ -106,36 +130,74 @@ export default {
         16: 'bottom'
       },
       menuDialog: false,
-      heightOffcet: 50,
+      reShowFlag: true,
+      subMenu: false,
+      heightOffcet: 0,
       showTowPage: true,
       uuid: '',
-      index: 1,
+      nowPage: 1,
       booksList: [],
       width: window.innerWidth,
       height: window.innerHeight,
-      bookInfo: {}
+      bookInfo: {},
+      pageBlob: []
+    }
+  },
+  watch: {
+    nowPage: function (newPage, oldIndex) {
+      this.getDLoadingPage(newPage + 0)
+      this.getDLoadingPage(newPage + 1)
+      this.getDLoadingPage(newPage + 2)
+      this.getDLoadingPage(newPage + 3)
+      this.getDLoadingPage(newPage + 4)
+      this.getDLoadingPage(newPage + 5)
+      this.getDLoadingPage(newPage - 2)
+      this.getDLoadingPage(newPage - 1)
     }
   },
   methods: {
+    getDLoadingPage (page) {
+      if (typeof this.pageBlob[page - 1] === 'undefined') {
+        this.pageBlob[page - 1] = 'https://i.imgur.com/WAsKmUy.gif'
+        this.getImageBlob(this.uuid, page)
+      }
+    },
+    getImageBlob (uuid, page) {
+      axios
+        .get('/media/books/' + uuid + '/' + page, {
+          responseType: 'blob'
+        })
+        .then(response => {
+          console.log(page + 'ページの取得完了')
+          this.pageBlob[page - 1] = window.URL.createObjectURL(response.data)
+        })
+    },
+    openSubMenu () {
+      if (this.subMenu) {
+        this.subMenu = false
+      } else {
+        this.subMenu = true
+      }
+    },
     pageNext () {
       if (this.showTowPage) {
-        this.index += 2
+        this.nowPage += 2
       } else {
-        this.index += 1
+        this.nowPage += 1
       }
-      if (this.bookInfo.page <= this.index) {
-        this.index = this.bookInfo.page
+      if (this.bookInfo.page <= this.nowPage) {
+        this.nowPage = this.bookInfo.page
         this.menuDialog = true
       }
     },
     pageBack () {
       if (this.showTowPage) {
-        this.index -= 2
+        this.nowPage -= 2
       } else {
-        this.index -= 1
+        this.nowPage -= 1
       }
-      if (this.index <= 0) {
-        this.index = 1
+      if (this.nowPage <= 0) {
+        this.nowPage = 1
       }
     },
     onSwipe (e) {
@@ -144,6 +206,9 @@ export default {
         this.pageBack()
       } else if (swipe === 'right') {
         this.pageNext()
+      } else if (swipe === 'up') {
+        alert('aaa')
+        this.menuDialog = true
       }
     },
     openMenu () {
@@ -175,10 +240,26 @@ export default {
   },
   mounted: function () {
     this.uuid = this.$route.params.uuid
+
+    this.pageBlob = Array(4)
+    this.getImageBlob(this.uuid, 1, 0)
+
+    axios.get('/api/books', {
+      params: { uuid: this.uuid }
+    })
+      .then((response) => {
+        this.bookInfo = response.data[0]
+        Array.prototype.push.apply(this.pageBlob, Array(this.bookInfo.page - 4))
+      })
+
     this.showTowPage = !this.$vuetify.breakpoint.mobile
     this.$store.dispatch('hideMenuBer')
-    axios.get('/api/books', { params: { uuid: this.uuid } }).then((response) => (this.bookInfo = response.data[0]))
     window.addEventListener('resize', this.handleResize)
+
+    this.getImageBlob(this.uuid, 1, 0)
+    this.getImageBlob(this.uuid, 2, 1)
+    this.getImageBlob(this.uuid, 3, 2)
+    this.getImageBlob(this.uuid, 4, 3)
   },
   beforeDestroy: function () {
     this.$store.dispatch('showMenuBer')
@@ -186,3 +267,20 @@ export default {
   }
 }
 </script>
+
+<style scoped lang="scss">
+.body {
+  buser-select: none;
+}
+#contextmenu{
+  display:none;
+  position:fixed;
+  left:0px;
+  top:0px;
+  width:100px;
+  height:100px;
+}
+#contextmenu li{
+  cursor:pointer;
+}
+</style>
