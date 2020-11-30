@@ -169,7 +169,7 @@ export default {
         })
         .then(response => {
           console.log(page + 'ページの取得完了')
-          this.pageBlob[page - 1] = window.URL.createObjectURL(response.data)
+          this.pageBlob.splice(page - 1, 1, window.URL.createObjectURL(response.data))
         })
     },
     openSubMenu () {
