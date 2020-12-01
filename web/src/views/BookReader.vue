@@ -53,21 +53,19 @@
       </v-card>
     </v-dialog>
     <!-- 画像表示ぶ-->
-    <div class="text-center" v-if="reShowFlag">
+    <div class="image-wrapper text-center" v-if="reShowFlag">
       <!-- 見開き表示 -->
       <template v-if="this.showTowPage" >
         <img
           v-hammer:swipe="onSwipe"
           v-hammer:press="openSubMenu"
           v-hammer:tap="pageNext"
-          :height="this.height - this.heightOffcet"
           :src="this.pageBlob[this.nowPage+0]"
         />
         <img
           v-hammer:swipe="onSwipe"
           v-hammer:press="openSubMenu"
           v-hammer:tap="pageNext"
-          :height="this.height - this.heightOffcet"
           :src="this.pageBlob[this.nowPage-1]"
         />
       </template>
@@ -252,7 +250,7 @@ export default {
         Array.prototype.push.apply(this.pageBlob, Array(this.bookInfo.page - 4))
       })
 
-    this.showTowPage = !this.$vuetify.breakpoint.mobile
+    this.showTowPage = !this.$vuetify.breakpoint.md
     this.$store.dispatch('hideMenuBer')
     window.addEventListener('resize', this.handleResize)
 
@@ -269,18 +267,14 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.body {
-  buser-select: none;
+@media (max-width: 960px) {
+  .image-wrapper > img {
+    width: 100vw;
+  }
 }
-#contextmenu{
-  display:none;
-  position:fixed;
-  left:0px;
-  top:0px;
-  width:100px;
-  height:100px;
-}
-#contextmenu li{
-  cursor:pointer;
+.image-wrapper > img {
+  max-height: 100vh;
+  height: auto;
+  width: auto;
 }
 </style>
