@@ -53,7 +53,10 @@
       </v-card>
     </v-dialog>
     <!-- 画像表示ぶ-->
-    <div class="image-wrapper text-center" v-if="reShowFlag">
+    <div
+      v-bind:class="{ 'image-base-width': baseWidth, 'image-base-height': !baseWidth }"
+      class="text-center"
+    >
       <!-- 見開き表示 -->
       <template v-if="this.showTowPage" >
         <img
@@ -75,7 +78,6 @@
           v-hammer:swipe="onSwipe"
           v-hammer:press="openSubMenu"
           v-hammer:tap="pageNext"
-          :height="this.height - this.heightOffcet"
           :src="this.pageBlob[this.nowPage-1]"
         />
       </template>
@@ -128,7 +130,7 @@ export default {
         16: 'bottom'
       },
       menuDialog: false,
-      reShowFlag: true,
+      baseWidth: false,
       subMenu: false,
       heightOffcet: 0,
       showTowPage: true,
@@ -267,12 +269,12 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@media (max-width: 960px) {
-  .image-wrapper > img {
-    width: 100vw;
-  }
+.image-base-width > img {
+  max-width: 100vh;
+  height: auto;
+  width: auto;
 }
-.image-wrapper > img {
+.image-base-height > img {
   max-height: 100vh;
   height: auto;
   width: auto;
