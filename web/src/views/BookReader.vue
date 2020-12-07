@@ -83,11 +83,16 @@
       </template>
     </div>
     <!-- 下部メニュ -->
-    <div fluid class="text-center" style="position: fixed; bottom: 10px; z-index: 10; width: 100%" v-show="subMenu">
+    <div fluid class="text-center" style="position: fixed; bottom: 5px; z-index: 10; width: 100%" v-show="subMenu">
       <v-container>
         <v-switch
           v-model="showTowPage"
           label="見開き表示"
+          hide-details
+        ></v-switch>
+        <v-switch
+          v-model="baseWidth"
+          label="横幅に合わせる"
           hide-details
         ></v-switch>
         <v-slider
@@ -252,7 +257,9 @@ export default {
         Array.prototype.push.apply(this.pageBlob, Array(this.bookInfo.page - 4))
       })
 
-    this.showTowPage = !this.$vuetify.breakpoint.md
+    this.showTowPage = !this.$vuetify.breakpoint.md && !this.$vuetify.breakpoint.sm && !this.$vuetify.breakpoint.mobile
+    this.baseWidth = !this.showTowPage
+
     this.$store.dispatch('hideMenuBer')
     window.addEventListener('resize', this.handleResize)
 
@@ -270,7 +277,7 @@ export default {
 
 <style scoped lang="scss">
 .image-base-width > img {
-  max-width: 100vh;
+  max-width: 100%;
   height: auto;
   width: auto;
 }
