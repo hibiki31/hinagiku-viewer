@@ -123,6 +123,7 @@
 
 <script>
 import axios from '@/axios/index'
+import LoadingImage from '@/assets/loading.gif'
 
 export default {
   name: 'Books',
@@ -163,7 +164,7 @@ export default {
   methods: {
     getDLoadingPage (page) {
       if (typeof this.pageBlob[page - 1] === 'undefined') {
-        this.pageBlob[page - 1] = 'https://i.imgur.com/WAsKmUy.gif'
+        this.pageBlob[page - 1] = LoadingImage
         this.getImageBlob(this.uuid, page)
       }
     },
@@ -263,10 +264,10 @@ export default {
     this.$store.dispatch('hideMenuBer')
     window.addEventListener('resize', this.handleResize)
 
-    this.getImageBlob(this.uuid, 1, 0)
-    this.getImageBlob(this.uuid, 2, 1)
-    this.getImageBlob(this.uuid, 3, 2)
-    this.getImageBlob(this.uuid, 4, 3)
+    this.getDLoadingPage(1)
+    this.getDLoadingPage(2)
+    this.getDLoadingPage(3)
+    this.getDLoadingPage(4)
   },
   beforeDestroy: function () {
     this.$store.dispatch('showMenuBer')
