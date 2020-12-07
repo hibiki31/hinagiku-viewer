@@ -5,6 +5,36 @@ module.exports = {
   pwa: {
     workboxOptions: {
       skipWaiting: true
-    }
+    },
+    runtimeCaching: [
+      {
+        urlPattern: /.*\/api\/.*/,
+        handler: 'staleWhileRevalidatet',
+        options: {
+          cacheName: 'api-cache',
+          expiration: {
+            maxEntries: 10,
+            maxAgeSeconds: 300
+          },
+          cacheableResponse: {
+            statuses: [0, 200]
+          }
+        }
+      },
+      {
+        urlPattern: /.*\/media\/.*/,
+        handler: 'cacheFirst',
+        options: {
+          cacheName: 'media-cache',
+          expiration: {
+            maxEntries: 10,
+            maxAgeSeconds: 300
+          },
+          cacheableResponse: {
+            statuses: [0, 200]
+          }
+        }
+      }
+    ]
   }
 }
