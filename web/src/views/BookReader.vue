@@ -109,7 +109,7 @@
         <v-btn @click="nowPage+=1">
           ページ調整
         </v-btn>
-        <v-btn :to="{ name: 'Books'}" class="ml-3">
+        <v-btn @click="goLibrary()" class="ml-3">
           閉じる
         </v-btn>
         <v-btn @click="reCache()" class="ml-3">
@@ -124,6 +124,8 @@
 <script>
 import axios from '@/axios/index'
 import LoadingImage from '@/assets/loading.gif'
+import Cookies from 'js-cookie'
+import router from '../router'
 
 export default {
   name: 'Books',
@@ -159,9 +161,15 @@ export default {
       this.getDLoadingPage(newPage + 5)
       this.getDLoadingPage(newPage - 2)
       this.getDLoadingPage(newPage - 1)
+      Cookies.set('page', newPage)
     }
   },
   methods: {
+    goLibrary () {
+      Cookies.remove('uuid')
+      Cookies.remove('page')
+      router.push({ name: 'Books' })
+    },
     getDLoadingPage (page) {
       if (typeof this.pageBlob[page - 1] === 'undefined') {
         this.pageBlob[page - 1] = LoadingImage
@@ -246,6 +254,13 @@ export default {
   },
   mounted: function () {
     this.uuid = this.$route.params.uuid
+    Cookies.set('uuid', this.uuid)
+
+    if (this.$route.query.page) {
+      this.nowPage = Number(this.$route.query.page)
+    }
+
+    console.log(this.nowPage)
 
     this.pageBlob = Array(4)
     this.getImageBlob(this.uuid, 1, 0)
@@ -264,10 +279,10 @@ export default {
     this.$store.dispatch('hideMenuBer')
     window.addEventListener('resize', this.handleResize)
 
-    this.getDLoadingPage(1)
-    this.getDLoadingPage(2)
-    this.getDLoadingPage(3)
-    this.getDLoadingPage(4)
+    this.getDLoadingPage(this.nowPage + 0)
+    this.getDLoadingPage(this.nowPage + 1)
+    this.getDLoadingPage(this.nowPage + 2)
+    this.getDLoadingPage(this.nowPage + 3)
   },
   beforeDestroy: function () {
     this.$store.dispatch('showMenuBer')

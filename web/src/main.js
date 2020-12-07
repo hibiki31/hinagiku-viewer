@@ -5,6 +5,8 @@ import router from './router'
 import store from './store'
 import vuetify from './plugins/vuetify'
 
+import VueCookies from 'vue-cookies'
+
 import Notifications from 'vue-notification'
 import velocity from 'velocity-animate'
 import { VueHammer } from 'vue2-hammer'
@@ -15,6 +17,7 @@ import './mixins/rules'
 Vue.config.productionTip = false
 Vue.use(Notifications, { velocity })
 Vue.use(VueHammer)
+Vue.use(VueCookies)
 
 new Vue({
   router,
