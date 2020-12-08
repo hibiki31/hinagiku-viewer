@@ -113,9 +113,10 @@ export default {
       }
     }
   },
-  mounted: async function () {
+  mounted: function () {
     const uuid = Cookies.get('uuid')
     const page = Cookies.get('page')
+    this.$_pushNotice('データ' + uuid + ' ' + page, 'success')
 
     if (uuid && page) {
       router.push({ name: 'BookReader', params: { uuid: uuid }, query: { page: page } })
