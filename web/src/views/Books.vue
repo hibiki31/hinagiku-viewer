@@ -72,7 +72,6 @@
 <script>
 import axios from '@/axios/index'
 import router from '../router'
-import Cookies from 'js-cookie'
 
 export default {
   name: 'Books',
@@ -114,17 +113,16 @@ export default {
     }
   },
   mounted: function () {
-    const uuid = Cookies.get('uuid')
-    const page = Cookies.get('page')
+    const uuid = localStorage.uuid
+    const page = localStorage.page
     this.$_pushNotice('データ' + uuid + ' ' + page, 'success')
 
     if (uuid && page) {
       router.push({ name: 'BookReader', params: { uuid: uuid }, query: { page: page } })
     } else {
-      Cookies.remove('uuid')
-      Cookies.remove('page')
+      localStorage.removeItem('uuid')
+      localStorage.removeItem('page')
     }
-
     axios.get('/api/books').then((response) => (this.booksList = response.data))
   }
 }

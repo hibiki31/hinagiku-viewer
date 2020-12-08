@@ -124,7 +124,6 @@
 <script>
 import axios from '@/axios/index'
 import LoadingImage from '@/assets/loading.gif'
-import Cookies from 'js-cookie'
 import router from '../router'
 
 export default {
@@ -161,13 +160,13 @@ export default {
       this.getDLoadingPage(newPage + 5)
       this.getDLoadingPage(newPage - 2)
       this.getDLoadingPage(newPage - 1)
-      Cookies.set('page', newPage)
+      localStorage.page = newPage
     }
   },
   methods: {
     goLibrary () {
-      Cookies.remove('uuid')
-      Cookies.remove('page')
+      localStorage.removeItem('uuid')
+      localStorage.removeItem('page')
       router.push({ name: 'Books' })
     },
     getDLoadingPage (page) {
@@ -254,7 +253,7 @@ export default {
   },
   mounted: function () {
     this.uuid = this.$route.params.uuid
-    Cookies.set('uuid', this.uuid)
+    localStorage.uuid = this.uuid
 
     if (this.$route.query.page) {
       this.nowPage = Number(this.$route.query.page)
