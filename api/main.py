@@ -70,9 +70,9 @@ async def main(
     else:
         some_file_path = f"{DATA_ROOT}book_cache/{uuid}/{str(page).zfill(4)}.jpg"
     
-    for i in range(0,120):
+    for i in range(0,300):
         if not os.path.exists(some_file_path):
-            await sleep(0.5)
+            await sleep(0.1)
             continue
         try:
             return FileResponse(some_file_path)

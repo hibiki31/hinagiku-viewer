@@ -34,7 +34,7 @@ def endless_eight():
 
         db.commit()
         
-        sleep(3)
+        sleep(0.1)
 
 
 
