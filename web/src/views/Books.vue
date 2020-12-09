@@ -95,7 +95,15 @@
       </v-list>
       <v-divider class="pb-2"></v-divider>
       <span class="subtitle-2 ml-3">Develop by <a href="https://github.com/hibiki31" class="blue--text">@hibiki31</a></span>
-      <span class="subtitle-2 ml-1">v{{this.version}}</span>
+      <span class="subtitle-2 ml-3">v{{this.version}}</span>
+      <div class="subtitle-2 ml-3">
+        Icons made by
+        <a href="https://www.flaticon.com/authors/icon-pond" title="Icon Pond" class="blue--text">Icon Pond</a>
+      </div>
+      <div class="subtitle-2 ml-3">
+        from
+        <a href="https://www.flaticon.com/" title="Flaticon" class="blue--text">www.flaticon.com</a>
+      </div>
     </v-navigation-drawer>
     <v-container>
       <v-row>
