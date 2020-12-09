@@ -3,6 +3,11 @@ module.exports = {
     'vuetify'
   ],
   pwa: {
+    iconPaths: {
+      favicon32: 'favicon.ico',
+      favicon16: 'favicon.ico',
+      appleTouchIcon: 'icon-192x192.png'
+    },
     workboxOptions: {
       skipWaiting: true
     },
