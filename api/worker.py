@@ -6,7 +6,7 @@ from mixins.settings import APP_ROOT, DATA_ROOT
 from mixins.log import setup_logger
 from mixins.database import SessionLocal
 
-from mixins.convertor import task_library, task_convert, book_icon
+from mixins.convertor import task_library, task_convert, task_export
 
 from books.models import BookModel 
 
@@ -26,8 +26,13 @@ def endless_eight():
             task_convert(book_uuid=request.uuid)
             
             request.state = "cached"
-            db.commit()
             logger.info("キャッシュを作成終了: "+request.uuid)
+        
+        for request in db.query(BookModel).filter(BookModel.state=="export").all():
+            request: BookModel
+            task_export(request)
+
+        db.commit()
         
         sleep(3)
 

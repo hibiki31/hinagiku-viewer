@@ -1,5 +1,36 @@
 <template>
   <div class="books">
+    <!-- エクスポート確認 -->
+    <v-dialog
+      v-model="exportDialog"
+      persistent
+      max-width="290"
+    >
+      <v-card>
+        <v-card-title class="headline">
+          本をエクスポート
+        </v-card-title>
+        <v-card-text>検索結果の本を全てエクスポートします</v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="success"
+            text
+            @click="exportDialog = false"
+          >
+            キャンセル
+          </v-btn>
+          <v-btn
+            :loading="this.loading"
+            color="error"
+            text
+            @click="searchBooksPut()"
+          >
+            OK
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <!-- ダイアログ -->
     <v-dialog v-model="menuDialog" scrollable max-width="500px">
       <v-card>
@@ -54,6 +85,7 @@
             small
           ></v-rating>
           <v-btn icon small @click="searchRate = null"><v-icon>mdi-reload</v-icon></v-btn>
+          <v-btn icon small @click="exportDialog = true"><v-icon>mdi-pen</v-icon></v-btn>
           <v-select
           :items="libraryList"
           v-model="searchLibrary"
@@ -97,6 +129,7 @@ export default {
   name: 'Books',
   data: function () {
     return {
+      exportDialog: false,
       version: require('../../package.json').version,
       drawer: false,
       menuDialog: false,
@@ -118,6 +151,15 @@ export default {
     }
   },
   methods: {
+    searchBooksPut () {
+      const uuids = this.booksList.map(x => x.uuid)
+      axios.request({
+        method: 'put',
+        url: '/api/books',
+        data: { uuids: uuids, state: 'export' }
+      })
+        .then((response) => (this.$_pushNotice('検索範囲のエクスポートを依頼しました', 'success')))
+    },
     bookInfoSubmit () {
       this.menuDialog = false
       axios.request({

@@ -133,6 +133,15 @@ def task_convert(book_uuid):
     shutil.rmtree(f"{APP_ROOT}temp/")
     os.mkdir(f"{APP_ROOT}temp/")
 
+def task_export(book_model):
+    book_uuid = book_model.uuid
+    file_name = book_model.import_file_name
+    logger.info(f'{book_uuid}をエクスポートします')
+    export_file = f'{DATA_ROOT}book_library/{book_uuid}.zip'
+    export_dir = f"{DATA_ROOT}book_export/"
+
+    os.makedirs(export_dir, exist_ok=True)
+    shutil.move(export_file, export_dir+file_name)
 
 
 def image_convertor(src_path, dst_path, to_height, quality):
