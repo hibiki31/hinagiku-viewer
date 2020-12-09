@@ -117,7 +117,7 @@ export default {
       baseWidth: false,
       subMenu: false,
       heightOffcet: 0,
-      showTowPage: true,
+      showTowPage: false,
       uuid: '',
       nowPage: 1,
       booksList: [],
@@ -258,18 +258,14 @@ export default {
         Array.prototype.push.apply(this.pageBlob, Array(this.bookInfo.page - 4))
       })
 
-    const showTowPage = localStorage.showTowPage
-    if (showTowPage === null) {
-      this.showTowPage = showTowPage
+    const towPageTemp = localStorage.showTowPage
+    if (towPageTemp !== null) {
+      this.showTowPage = towPageTemp
     } else {
       this.showTowPage = !(this.$vuetify.breakpoint.md || this.$vuetify.breakpoint.sm)
       localStorage.setItem('showTowPage', this.showTowPage)
     }
     this.baseWidth = !this.showTowPage
-
-
-
-    
 
     this.$store.dispatch('hideMenuBer')
     window.addEventListener('resize', this.handleResize)
