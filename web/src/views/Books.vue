@@ -154,8 +154,11 @@ export default {
     }
   },
   watch: {
-    searchQuery: function (newValue, oldValue) {
-      this.search()
+    searchQuery: {
+      handler: function (newValue, oldValue) {
+        this.search()
+      },
+      deep: true
     }
   },
   methods: {
