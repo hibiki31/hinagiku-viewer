@@ -70,12 +70,17 @@ def task_library():
         book_uuid = uuid.uuid4()
         page_len = 0
 
-        with zipfile.ZipFile(send_book) as existing_zip:
-            zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
-            page_len = len(zip_content)
-            cover_path = zip_content[0]
-            existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
-            image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',to_height=640,quality=85)
+        try:
+            with zipfile.ZipFile(send_book) as existing_zip:
+                zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
+                page_len = len(zip_content)
+                cover_path = zip_content[0]
+                existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
+                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',to_height=640,quality=85)
+        except:
+            import traceback
+            traceback.print_exc()
+            continue
 
 
         get_genre = os.path.basename(os.path.dirname(send_book))
