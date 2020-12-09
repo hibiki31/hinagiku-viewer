@@ -64,19 +64,19 @@ def task_library():
     send_books_list = glob.glob(f"{DATA_ROOT}book_send/**", recursive=True)
     send_books_list = [p for p in send_books_list if os.path.splitext(p)[1].lower() in [".zip"]]
 
+
+
     for send_book in send_books_list:
         book_uuid = uuid.uuid4()
         page_len = 0
 
-        try:
-            with zipfile.ZipFile(send_book) as existing_zip:
-                zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
-                page_len = len(zip_content)
-                cover_path = zip_content[0]
-                existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
-                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',to_height=640,quality=85)
-        except:
-            continue
+        with zipfile.ZipFile(send_book) as existing_zip:
+            zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
+            page_len = len(zip_content)
+            cover_path = zip_content[0]
+            existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
+            image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',to_height=640,quality=85)
+
 
         get_genre = os.path.basename(os.path.dirname(send_book))
         if get_genre == "book_send":
@@ -145,20 +145,14 @@ def task_export(book_model):
 
 
 def image_convertor(src_path, dst_path, to_height, quality):
-    im = Image.open(src_path)
+    img = Image.open(src_path).convert('RGB')
 
-    # print(im.format, im.size, im.mode)
-
-    width, height = im.size
-
+    width, height = img.size
     new_height = int(to_height)
     new_width = int(to_height / height * width)
-    
-    new_im: Image = im.resize((new_width, new_height), Image.LANCZOS)
 
-
-
-    new_im.save(dst_path, quality=quality)
+    new_img = img.resize((new_width, new_height), Image.LANCZOS)
+    new_img.save(dst_path, quality=quality)
 
 
 
