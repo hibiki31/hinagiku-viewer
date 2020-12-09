@@ -255,7 +255,7 @@ export default {
         Array.prototype.push.apply(this.pageBlob, Array(this.bookInfo.page - 4))
       })
 
-    this.showTowPage = !this.$vuetify.breakpoint.md && !this.$vuetify.breakpoint.sm && !this.$vuetify.breakpoint.mobile
+    this.showTowPage = !this.$vuetify.breakpoint.md && !this.$vuetify.breakpoint.sm
     this.baseWidth = !this.showTowPage
 
     this.$store.dispatch('hideMenuBer')
