@@ -1,12 +1,14 @@
 import subprocess
 import time
 import uvicorn
+import os
 
 from fastapi import status, FastAPI, Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.requests import Request
 from typing import List, Optional
+from asyncio import sleep
 
 from fastapi.responses import FileResponse
 from fastapi.responses import StreamingResponse
@@ -67,14 +69,20 @@ async def main(
         some_file_path = f"{DATA_ROOT}book_library/{uuid}.jpg"
     else:
         some_file_path = f"{DATA_ROOT}book_cache/{uuid}/{str(page).zfill(4)}.jpg"
-
-    try:
-        return FileResponse(some_file_path)
-    except:
-        raise HTTPException(
-            status_code=404,
-            detail="ファイルが存在しません",
-        )
+    
+    for i in range(0,30):
+        if not os.path.exists(some_file_path):
+            await sleep(0.5)
+            continue
+        try:
+            return FileResponse(some_file_path)
+        except:
+            await sleep(0.5)
+            continue
+    raise HTTPException(
+        status_code=404,
+        detail="ファイルが存在しません",
+    )
 
 @app.get("/media/books/{uuid}")
 async def get_media_books_uuid(

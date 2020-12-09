@@ -15,6 +15,9 @@ class BookBase(CamelModel):
     file_date: datetime = None
     import_file_name: str
     state: str = None
+    rate: int = None
+    genre: str = None
+    library: str = None
     class Config:
         orm_mode  =  True
     
@@ -28,5 +31,6 @@ class BookPut(CamelModel):
     author: str = None
     title: str = None
     genre: str = None
+    library: str = None
     class Config:
         orm_mode  =  True

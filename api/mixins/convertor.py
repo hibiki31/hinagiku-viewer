@@ -30,7 +30,29 @@ def main():
     new_list = [p for p in file_list if os.path.splitext(p)[1] in [".png", ".jpeg", ".jpg"]]
 
     for index, image_path in enumerate(new_list):
-        image_convertor(image_path,f"temp/aaa_con/{str(index+1).zfill(4)}.jpg",height=1080,quality=90)
+        image_convertor(image_path,f"temp/aaa_con/{str(index+1).zfill(4)}.jpg",to_height=1080,quality=90)
+
+
+def book_icon():
+    send_books_list = glob.glob(f"{DATA_ROOT}book_library/**", recursive=True)
+    send_books_list = [p for p in send_books_list if os.path.splitext(p)[1].lower() in [".zip"]]
+
+    for send_book in send_books_list:
+        book_uuid = os.path.splitext(os.path.basename(send_book))[0]
+        print(send_book)
+        try:
+            with zipfile.ZipFile(send_book) as existing_zip:
+                zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
+                page_len = len(zip_content)
+                cover_path = zip_content[0]
+                existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
+                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',to_height=320,quality=85)
+        except:
+            import traceback
+            traceback.print_exc()
+            continue
+    return
+
 
 
 def task_library():
@@ -52,9 +74,13 @@ def task_library():
                 page_len = len(zip_content)
                 cover_path = zip_content[0]
                 existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
-                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',height=320,quality=70)
+                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',to_height=640,quality=85)
         except:
             continue
+
+        get_genre = os.path.basename(os.path.dirname(send_book))
+        if get_genre == "book_send":
+            get_genre = "default"
             
         model = BookModel(
             uuid = str(book_uuid),
@@ -64,6 +90,8 @@ def task_library():
             series = None,
             series_no = None,
             rate = None,
+            genre = None,
+            library = get_genre,
             # ハードメタデータ
             size = os.path.getsize(send_book),
             page = page_len,
@@ -84,8 +112,6 @@ def task_library():
     
         shutil.rmtree(f"{APP_ROOT}temp/")
         os.mkdir(f"{APP_ROOT}temp/")
-
-
     return
 
 def task_convert(book_uuid):
@@ -102,22 +128,22 @@ def task_convert(book_uuid):
 
     for index, image_path in enumerate(new_list):
         logger.debug(image_path)
-        image_convertor(image_path,f"{DATA_ROOT}book_cache/{book_uuid}/{str(index+1).zfill(4)}.jpg",height=1080,quality=70)
+        image_convertor(image_path,f"{DATA_ROOT}book_cache/{book_uuid}/{str(index+1).zfill(4)}.jpg",to_height=1080,quality=85)
     
     shutil.rmtree(f"{APP_ROOT}temp/")
     os.mkdir(f"{APP_ROOT}temp/")
 
 
 
-def image_convertor(src_path, dst_path, height, quality):
+def image_convertor(src_path, dst_path, to_height, quality):
     im = Image.open(src_path)
 
     # print(im.format, im.size, im.mode)
 
     width, height = im.size
 
-    new_height = int(height)
-    new_width = int(width / height * new_height)
+    new_height = int(to_height)
+    new_width = int(to_height / height * width)
     
     new_im: Image = im.resize((new_width, new_height), Image.LANCZOS)
 

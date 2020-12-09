@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from .models import *
 from .schemas import *
@@ -17,6 +18,13 @@ exception_notfund = HTTPException(
     detail="Object not fund."
 )
 
+@app.get("/api/library", tags=["book"])
+async def get_api_library(
+        db: Session = Depends(get_db),
+    ):
+    query = db.query(BookModel.library, func.count(BookModel.library)).group_by(BookModel.library)
+    return query.all()
+
 
 @app.get("/api/books", tags=["book"],response_model=List[BookBase])
 async def get_api_books(
@@ -27,6 +35,8 @@ async def get_api_books(
         rate: str = None,
         series: str = None,
         state: str = None,
+        genre: str = None,
+        library: str = None,
         file_name_like: str = None
     ):
 
@@ -40,6 +50,15 @@ async def get_api_books(
     
     if title_like != None:
         query = query.filter(BookModel.title.like(f'%{title_like}%'))
+    
+    if rate != None:
+        query = query.filter(BookModel.rate == rate)
+
+    if genre != None:
+        query = query.filter(BookModel.genre == genre)
+    
+    if library != None:
+        query = query.filter(BookModel.library == library)
     
     if file_name_like != None:
         query = query.filter(BookModel.import_file_name.like(f'%{file_name_like}%'))

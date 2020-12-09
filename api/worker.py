@@ -6,7 +6,7 @@ from mixins.settings import APP_ROOT, DATA_ROOT
 from mixins.log import setup_logger
 from mixins.database import SessionLocal
 
-from mixins.convertor import task_library, task_convert
+from mixins.convertor import task_library, task_convert, book_icon
 
 from books.models import BookModel 
 

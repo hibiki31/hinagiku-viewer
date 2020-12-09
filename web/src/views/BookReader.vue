@@ -1,25 +1,16 @@
 <template>
   <div class="books">
-    <v-dialog
-      v-model="menuDialog"
-      scrollable
-      max-width="500px"
-    >
+    <!-- ダイアログ -->
+    <v-dialog v-model="menuDialog" scrollable max-width="500px">
       <v-card>
         <v-card-text class="pt-6">
-          <v-btn @click="nowPage+=1">
-            ページ調整
-          </v-btn>
-          <v-btn :to="{ name: 'Books'}" class="ml-3">
-            戻る
-          </v-btn>
-          <v-btn @click="reCache()" class="ml-3">
-            キャッシュ再生成
-          </v-btn>
+          <v-btn @click="nowPage += 1"> ページ調整 </v-btn>
+          <v-btn @click="goLibrary()" class="ml-3">ライブラリへ戻る</v-btn>
+          <v-btn @click="reCache()" class="ml-3">キャッシュ再生成</v-btn>
           <v-switch
-              v-model="showTowPage"
-              label="見開き表示"
-              hide-details
+            v-model="showTowPage"
+            label="見開き表示"
+            hide-details
           ></v-switch>
           <v-slider
             v-model="nowPage"
@@ -30,25 +21,12 @@
           ></v-slider>
         </v-card-text>
         <v-divider></v-divider>
-        <v-card-text style="height: 300px;">
-          {{bookInfo}}
+        <v-card-text style="height: 300px">
+          {{ bookInfo }}
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions>
-          <v-btn
-            color="blue darken-1"
-            text
-            @click="dialog = false"
-          >
-            Close
-          </v-btn>
-          <v-btn
-            color="blue darken-1"
-            text
-            @click="dialog = false"
-          >
-            Save
-          </v-btn>
+          <v-btn color="blue darken-1" text @click="menuDialog = false">Close</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -106,18 +84,17 @@
 
     <div fluid class="text-center" style="position: fixed; top: 10px; z-index: 10; width: 100%" v-show="subMenu">
       <v-container>
-        <v-btn @click="nowPage+=1">
-          ページ調整
+        <v-btn icon @click="nowPage+=1">
+          <v-icon>mdi-book-open-page-variant</v-icon>
         </v-btn>
-        <v-btn @click="goLibrary()" class="ml-3">
-          閉じる
+        <v-btn icon @click="goLibrary()" class="ml-3">
+          <v-icon>mdi-close-circle</v-icon>
         </v-btn>
-        <v-btn @click="reCache()" class="ml-3">
-          キャッシュ再生成
+        <v-btn icon @click="menuDialog=true" class="ml-3">
+          <v-icon>mdi-dots-horizontal-circle</v-icon>
         </v-btn>
       </v-container>
     </div>
-
   </div>
 </template>
 
@@ -170,6 +147,10 @@ export default {
       router.push({ name: 'Books' })
     },
     getDLoadingPage (page) {
+      // 指定ページが0以下 or ページ数より大きかったら終了
+      if ((page <= 0) || (page > this.bookInfo.page)) {
+        return
+      }
       if (typeof this.pageBlob[page - 1] === 'undefined') {
         this.pageBlob[page - 1] = LoadingImage
         this.getImageBlob(this.uuid, page)
@@ -181,7 +162,6 @@ export default {
           responseType: 'blob'
         })
         .then(response => {
-          console.log(page + 'ページの取得完了')
           this.pageBlob.splice(page - 1, 1, window.URL.createObjectURL(response.data))
         })
     },
@@ -258,8 +238,6 @@ export default {
     if (this.$route.query.page) {
       this.nowPage = Number(this.$route.query.page)
     }
-
-    console.log(this.nowPage)
 
     this.pageBlob = Array(4)
     this.getImageBlob(this.uuid, 1, 0)
