@@ -138,6 +138,9 @@ export default {
       this.getDLoadingPage(newPage - 2)
       this.getDLoadingPage(newPage - 1)
       localStorage.page = newPage
+    },
+    showTowPage: function (newValue, oldValue) {
+      localStorage.showTowPage = newValue
     }
   },
   methods: {
@@ -255,8 +258,18 @@ export default {
         Array.prototype.push.apply(this.pageBlob, Array(this.bookInfo.page - 4))
       })
 
-    this.showTowPage = !this.$vuetify.breakpoint.md && !this.$vuetify.breakpoint.sm
+    const showTowPage = localStorage.showTowPage
+    if (showTowPage === null) {
+      this.showTowPage = showTowPage
+    } else {
+      this.showTowPage = !(this.$vuetify.breakpoint.md || this.$vuetify.breakpoint.sm)
+      localStorage.setItem('showTowPage', this.showTowPage)
+    }
     this.baseWidth = !this.showTowPage
+
+
+
+    
 
     this.$store.dispatch('hideMenuBer')
     window.addEventListener('resize', this.handleResize)
