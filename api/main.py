@@ -74,6 +74,14 @@ async def main(
         if not os.path.exists(some_file_path):
             await sleep(0.1)
             continue
+        seize_point1 = os.path.getsize(some_file_path)
+        await sleep(0.3)
+        seize_point2 = os.path.getsize(some_file_path)
+
+        if seize_point1 != seize_point2:
+            logger.error("サイズが変わったため読み直します")
+            continue
+
         try:
             return FileResponse(some_file_path)
         except:
