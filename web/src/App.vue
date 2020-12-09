@@ -15,7 +15,9 @@
       </template>
     </notifications>
     <v-main>
+      <transition name="fade">
       <router-view />
+      </transition>
     </v-main>
   </v-app>
 </template>

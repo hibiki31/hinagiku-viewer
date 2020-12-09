@@ -57,7 +57,7 @@
       <v-toolbar-title>HinaV</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-text-field
-        v-model="searchTitle"
+        v-model="searchQuery.title"
         hide-details
         single-line
       ></v-text-field>
@@ -80,14 +80,14 @@
       <v-list nav dense>
         <v-list-item-group>
           <v-rating
-            v-model="searchRate"
+            v-model="searchQuery.rate"
             small
           ></v-rating>
-          <v-btn icon small @click="searchRate = null"><v-icon>mdi-reload</v-icon></v-btn>
+          <v-btn icon small @click="searchQuery.rate = null"><v-icon>mdi-reload</v-icon></v-btn>
           <v-btn icon small @click="exportDialog = true"><v-icon>mdi-pen</v-icon></v-btn>
           <v-select
           :items="libraryList"
-          v-model="searchLibrary"
+          v-model="searchQuery.library"
           label="ライブラリー"
           dense
         ></v-select>
@@ -99,7 +99,7 @@
     </v-navigation-drawer>
     <v-container>
       <v-row>
-        <v-col :cols="4" :xs="4" :sm="3" :md="2" :lg="2" v-for="item in booksList" :key="item.uuid">
+        <v-col :cols="4" :xs="4" :sm="3" :md="2" :lg="2" v-for="item in booksList" :key="item.uuid" :id="item.uuid">
           <v-card @click="toReaderPage(item)">
             <v-img
               aspect-ratio="0.7"
@@ -123,6 +123,7 @@
 <script>
 import axios from '@/axios/index'
 import router from '../router'
+import VueScrollTo from 'vue-scrollto'
 
 export default {
   name: 'Books',
@@ -133,19 +134,19 @@ export default {
       drawer: false,
       menuDialog: false,
       booksList: [],
-      searchTitle: '',
-      searchRate: null,
-      searchGenre: null,
-      searchLibrary: ['default', 0],
+      searchQuery: {
+        openUUID: null,
+        title: '',
+        rate: null,
+        genre: null,
+        library: ['default', 0]
+      },
       openItem: {},
       libraryList: []
     }
   },
   watch: {
-    searchRate: function (newValue, oldValue) {
-      this.search()
-    },
-    searchLibrary: function (newValue, oldValue) {
+    searchQuery: function (newValue, oldValue) {
       this.search()
     }
   },
@@ -169,17 +170,17 @@ export default {
         .then((response) => (this.$_pushNotice('書籍情報を更新しました', 'success')))
     },
     reload () {
-      this.searchTitle = null
-      this.searchRate = null
-      this.searchGenre = null
+      this.searchQuery.title = null
+      this.searchQuery.rate = null
+      this.searchQuery.genre = null
       this.search()
     },
     search () {
       axios.get('/api/books', {
         params: {
-          file_name_like: this.searchTitle,
-          rate: this.searchRate,
-          library: this.searchLibrary[0]
+          file_name_like: this.searchQuery.title,
+          rate: this.searchQuery.rate,
+          library: this.searchQuery.library[0]
         }
       })
         .then((response) => (this.booksList = response.data))
@@ -196,6 +197,11 @@ export default {
           data: { uuids: [item.uuid], state: 'request' }
         })
       }
+      // ローカルストレージにパラメータ格納
+      this.searchQuery.openUUID = item.uuid
+      const parsed = JSON.stringify(this.searchQuery)
+      localStorage.setItem('searchQuery', parsed)
+
       router.push({ name: 'BookReader', params: { uuid: item.uuid } })
     },
     getCoverURL (uuid) {
@@ -207,18 +213,42 @@ export default {
       }
     }
   },
-  mounted: function () {
+  mounted: async function () {
+    // 前回開いていた本がある場合再開
     const uuid = localStorage.uuid
     const page = localStorage.page
-    // this.$_pushNotice('データ' + uuid + ' ' + page, 'success')
 
     if (uuid && page) {
       router.push({ name: 'BookReader', params: { uuid: uuid }, query: { page: page } })
+      return
     } else {
       localStorage.removeItem('uuid')
       localStorage.removeItem('page')
     }
-    this.search()
+
+    // 検索パラメータを復元
+    try {
+      const getParam = JSON.parse(localStorage.getItem('searchQuery'))
+      if (('title' in getParam) && ('rate' in getParam) && ('genre' in getParam) && ('library' in getParam) && ('openUUID' in getParam)) {
+        this.searchQuery = getParam
+      }
+    } catch (e) {
+      localStorage.removeItem('searchQuery')
+    }
+
+    this.booksList = (await axios.get('/api/books', {
+      params: {
+        file_name_like: this.searchQuery.title,
+        rate: this.searchQuery.rate,
+        library: this.searchQuery.library[0]
+      }
+    })).data
+
+    this.$forceNextTick(() => {
+      if (this.searchQuery.openUUID) {
+        VueScrollTo.scrollTo(document.getElementById(this.searchQuery.openUUID), 200)
+      }
+    })
     axios.get('/api/library').then((response) => (this.libraryList = response.data))
   }
 }
