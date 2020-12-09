@@ -3,9 +3,17 @@ services:
   api:
     build: ./api
     volumes:
+      # キャッシュの作成場所
       - ./data/book_cache:/opt/data/book_cache/
+      # ライブラリ
       - ./data/book_library:/opt/data/book_library/
-      - ./data/book_send:/opt/data/book_send
+      # ZIPのインポート監視フォルダ
+      - ./data/book_send:/opt/data/book_send/
+      # ZIPのエクスポート先
+      - ./data/book_export:/opt/data/book_export/
+      # 失敗したZIP
+      - ./data/book_fail:/opt/data/book_fail/
+      # データベースやログファイル
       - ./data/app_data:/opt/data/app_data/
     environment:
       APP_ROOT: "/opt/app/"

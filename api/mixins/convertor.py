@@ -81,6 +81,7 @@ def task_library():
         except:
             import traceback
             traceback.print_exc()
+            logger.error(f'{send_book}はエラーが発生したため除外されました')
             shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
             continue
 

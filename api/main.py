@@ -75,7 +75,7 @@ async def main(
             await sleep(0.1)
             continue
         seize_point1 = os.path.getsize(some_file_path)
-        await sleep(0.3)
+        await sleep(0.1)
         seize_point2 = os.path.getsize(some_file_path)
 
         if seize_point1 != seize_point2:
