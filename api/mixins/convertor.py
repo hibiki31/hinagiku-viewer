@@ -60,6 +60,7 @@ def task_library():
     # ディレクトリ作成
     os.makedirs(f"{DATA_ROOT}book_library/", exist_ok=True)
     os.makedirs(f"{DATA_ROOT}book_send/", exist_ok=True)
+    os.makedirs(f"{DATA_ROOT}book_fail/", exist_ok=True)
 
     send_books_list = glob.glob(f"{DATA_ROOT}book_send/**", recursive=True)
     send_books_list = [p for p in send_books_list if os.path.splitext(p)[1].lower() in [".zip"]]
@@ -80,6 +81,7 @@ def task_library():
         except:
             import traceback
             traceback.print_exc()
+            shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
             continue
 
 
@@ -112,7 +114,6 @@ def task_library():
 
         db.add(model)
         db.commit()
-        shutil.move(send_book, f'{DATA_ROOT}book_library/{book_uuid}.zip')
         logger.info(f'ライブラリに追加: {DATA_ROOT}book_library/{book_uuid}.zip')
     
         shutil.rmtree(f"{APP_ROOT}temp/")
