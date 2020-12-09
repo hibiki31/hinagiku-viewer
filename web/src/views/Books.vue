@@ -21,7 +21,6 @@
             キャンセル
           </v-btn>
           <v-btn
-            :loading="this.loading"
             color="error"
             text
             @click="searchBooksPut()"

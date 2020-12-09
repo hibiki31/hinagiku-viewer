@@ -70,14 +70,14 @@ async def main(
     else:
         some_file_path = f"{DATA_ROOT}book_cache/{uuid}/{str(page).zfill(4)}.jpg"
     
-    for i in range(0,30):
+    for i in range(0,60):
         if not os.path.exists(some_file_path):
-            await sleep(0.5)
+            await sleep(0.1)
             continue
         try:
             return FileResponse(some_file_path)
         except:
-            await sleep(0.5)
+            await sleep(0.1)
             continue
     raise HTTPException(
         status_code=404,

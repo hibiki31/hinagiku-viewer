@@ -164,6 +164,11 @@ export default {
         .then(response => {
           this.pageBlob.splice(page - 1, 1, window.URL.createObjectURL(response.data))
         })
+        .catch(error => {
+          console.log(error)
+          this.$_pushNotice('ページが見つかりませんでした', 'error')
+          this.menuDialog = true
+        })
     },
     openSubMenu () {
       if (this.subMenu) {
