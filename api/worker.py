@@ -28,9 +28,11 @@ def endless_eight():
             request.state = "cached"
             logger.info("キャッシュを作成終了: "+request.uuid)
         
-        for request in db.query(BookModel).filter(BookModel.state=="export").all():
+        for request in db.query(BookModel).filter(BookModel.state=="export"):
             request: BookModel
             task_export(request)
+        
+        db.query(BookModel).filter(BookModel.state=="export").delete()
 
         db.commit()
         

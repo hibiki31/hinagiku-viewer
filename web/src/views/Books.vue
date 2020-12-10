@@ -34,7 +34,7 @@
     <v-dialog v-model="menuDialog" scrollable max-width="500px">
       <v-card>
         <v-card-text class="pt-6">
-          <v-btn @click="goLibrary()" class="ml-3">ライブラリへ戻る</v-btn>
+          <v-btn @click="bookExport" class="ml-3">エクスポート</v-btn>
         </v-card-text>
         <v-divider></v-divider>
         <v-card-text style="height: 300px">
@@ -90,6 +90,7 @@
           v-model="searchQuery.library"
           label="ライブラリー"
           dense
+          class="pt-5"
         ></v-select>
         </v-list-item-group>
       </v-list>
@@ -99,10 +100,6 @@
       <div class="subtitle-2 ml-3">
         Icons made by
         <a href="https://www.flaticon.com/authors/icon-pond" title="Icon Pond" class="blue--text">Icon Pond</a>
-      </div>
-      <div class="subtitle-2 ml-3">
-        from
-        <a href="https://www.flaticon.com/" title="Flaticon" class="blue--text">www.flaticon.com</a>
       </div>
     </v-navigation-drawer>
     <v-container>
@@ -179,6 +176,19 @@ export default {
         data: { uuids: [this.openItem.uuid], rate: this.openItem.rate }
       })
         .then((response) => (this.$_pushNotice('書籍情報を更新しました', 'success')))
+    },
+    async bookExport () {
+      this.menuDialog = false
+      axios.request({
+        method: 'put',
+        url: '/api/books',
+        data: { uuids: [this.openItem.uuid], state: 'export' }
+      })
+        .then((response) => {
+          this.$_pushNotice('書籍をエクスポートしました', 'success')
+        })
+      await this.$_sleep(2)
+      this.reload()
     },
     reload () {
       this.searchQuery.title = null
