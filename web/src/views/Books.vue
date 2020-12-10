@@ -51,6 +51,25 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <!-- 複数選択ダイアログ -->
+    <v-dialog v-model="mulchBooksDialog" scrollable max-width="500px">
+      <v-card>
+        <v-card-text class="pt-6">
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-text style="height: 300px">
+          <v-rating
+            v-model="openItem.rate"
+            small
+          ></v-rating>
+        </v-card-text>
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-btn color="blue darken-1" text @click="mulchBooksDialog = false">閉じる</v-btn>
+          <v-btn color="blue darken-1" text @click="searchBooksRate">保存</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <!-- トップバー -->
     <v-app-bar color="primary" dark dense flat app clipped-left v-if="this.$store.state.showMenuBer">
       <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
@@ -84,7 +103,8 @@
             small
           ></v-rating>
           <v-btn icon small @click="searchQuery.rate = null"><v-icon>mdi-reload</v-icon></v-btn>
-          <v-btn icon small @click="exportDialog = true"><v-icon>mdi-pen</v-icon></v-btn>
+          <v-btn icon small @click="exportDialog = true"><v-icon>mdi-export</v-icon></v-btn>
+          <v-btn icon small @click="mulchBooksDialog = true"><v-icon>mdi-pen</v-icon></v-btn>
           <v-select
           :items="libraryList"
           v-model="searchQuery.library"
@@ -138,6 +158,7 @@ export default {
       version: require('../../package.json').version,
       drawer: false,
       menuDialog: false,
+      mulchBooksDialog: false,
       booksList: [],
       searchQuery: {
         openUUID: null,
@@ -168,6 +189,16 @@ export default {
       })
         .then((response) => (this.$_pushNotice('検索範囲のエクスポートを依頼しました', 'success')))
     },
+    searchBooksRate () {
+      this.mulchBooksDialog = false
+      const uuids = this.booksList.map(x => x.uuid)
+      axios.request({
+        method: 'put',
+        url: '/api/books',
+        data: { uuids: uuids, rate: this.openItem.rate }
+      })
+        .then((response) => (this.$_pushNotice('検索範囲の本の評価を変更', 'success')))
+    },
     bookInfoSubmit () {
       this.menuDialog = false
       axios.request({
@@ -177,7 +208,7 @@ export default {
       })
         .then((response) => (this.$_pushNotice('書籍情報を更新しました', 'success')))
     },
-    async bookExport () {
+    bookExport () {
       this.menuDialog = false
       axios.request({
         method: 'put',
@@ -187,8 +218,6 @@ export default {
         .then((response) => {
           this.$_pushNotice('書籍をエクスポートしました', 'success')
         })
-      await this.$_sleep(2)
-      this.reload()
     },
     reload () {
       this.searchQuery.title = null
