@@ -33,7 +33,7 @@ async def get_api_books(
         uuid: str = None,
         author_like: str = None,
         title_like: str = None,
-        rate: str = None,
+        rate: int = None,
         series: str = None,
         state: str = None,
         genre: str = None,
@@ -54,8 +54,7 @@ async def get_api_books(
     
     if rate != None:
         if rate == 0:
-            query = query.filter(or_(BookModel.rate == rate, BookModel.rate == None))
-
+            query = query.filter(or_(BookModel.rate == 0, BookModel.rate == None))
         else:
             query = query.filter(BookModel.rate == rate)
 
