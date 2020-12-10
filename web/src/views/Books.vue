@@ -95,6 +95,21 @@
           <v-list-item-subtitle></v-list-item-subtitle>
         </v-list-item-content>
       </v-list-item>
+
+      <v-divider></v-divider>
+      <v-list nav dense>
+        <v-list-item-group>
+          <v-select
+              :items="libraryList"
+              v-model="searchQuery.library"
+              label="ライブラリー"
+              dense
+              class="pt-2"
+            ></v-select>
+        </v-list-item-group>
+      </v-list>
+
+      <!-- 評価するところ -->
       <v-divider></v-divider>
       <v-list nav dense>
         <v-list-item-group>
@@ -103,16 +118,14 @@
             small
           ></v-rating>
           <v-btn icon small @click="searchQuery.rate = null"><v-icon>mdi-reload</v-icon></v-btn>
+          <v-btn icon small @click="searchQuery.rate = 0"><v-icon>mdi-star</v-icon></v-btn>
+        </v-list-item-group>
+      </v-list>
+      <v-divider></v-divider>
+      <v-list nav dense>
+        <v-list-item-group>
           <v-btn icon small @click="exportDialog = true"><v-icon>mdi-export</v-icon></v-btn>
           <v-btn icon small @click="mulchBooksDialog = true"><v-icon>mdi-pen</v-icon></v-btn>
-          <v-btn icon small @click="searchQuery.rate = 0"><v-icon>mdi-star</v-icon></v-btn>
-          <v-select
-          :items="libraryList"
-          v-model="searchQuery.library"
-          label="ライブラリー"
-          dense
-          class="pt-5"
-        ></v-select>
         </v-list-item-group>
       </v-list>
       <v-divider class="pb-2"></v-divider>
