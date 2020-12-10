@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from sqlalchemy import or_
 
 from .models import *
 from .schemas import *
@@ -52,7 +53,11 @@ async def get_api_books(
         query = query.filter(BookModel.title.like(f'%{title_like}%'))
     
     if rate != None:
-        query = query.filter(BookModel.rate == rate)
+        if rate == 0:
+            query = query.filter(or_(BookModel.rate == rate, BookModel.rate == None))
+
+        else:
+            query = query.filter(BookModel.rate == rate)
 
     if genre != None:
         query = query.filter(BookModel.genre == genre)

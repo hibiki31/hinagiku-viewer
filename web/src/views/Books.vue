@@ -105,6 +105,7 @@
           <v-btn icon small @click="searchQuery.rate = null"><v-icon>mdi-reload</v-icon></v-btn>
           <v-btn icon small @click="exportDialog = true"><v-icon>mdi-export</v-icon></v-btn>
           <v-btn icon small @click="mulchBooksDialog = true"><v-icon>mdi-pen</v-icon></v-btn>
+          <v-btn icon small @click="searchQuery.rate = 0"><v-icon>mdi-star</v-icon></v-btn>
           <v-select
           :items="libraryList"
           v-model="searchQuery.library"
