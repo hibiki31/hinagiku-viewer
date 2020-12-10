@@ -121,6 +121,7 @@ def task_library():
     
         shutil.rmtree(f"{APP_ROOT}temp/")
         os.mkdir(f"{APP_ROOT}temp/")
+        break
     return
 
 def task_convert(book_uuid):
