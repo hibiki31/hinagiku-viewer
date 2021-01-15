@@ -1,4 +1,5 @@
 import subprocess
+import sys
 from time import time, sleep
 from sqlalchemy import desc
 
@@ -41,7 +42,18 @@ def endless_eight():
         sleep(0.1)
 
 
+def one_shot_convert(uuid):
+    db = SessionLocal()
+    logger.info("単体変換起動")
+    task_convert(book_uuid=uuid)
+
 
 
 if __name__ == "__main__":
-    endless_eight()
+    args = sys.argv
+
+    if len(args) == 1:
+        endless_eight()
+    elif len(args) == 3:
+        if args[2] == "convert":
+            one_shot_convert(args[3])    

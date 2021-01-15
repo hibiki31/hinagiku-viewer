@@ -15,6 +15,7 @@ import shutil
 from mixins.settings import APP_ROOT, DATA_ROOT
 from mixins.log import setup_logger
 from mixins.database import SessionLocal
+from mixins.purser import PurseResult, base_purser
 
 from books.models import BookModel
 
@@ -31,6 +32,7 @@ def main():
 
     for index, image_path in enumerate(new_list):
         image_convertor(image_path,f"temp/aaa_con/{str(index+1).zfill(4)}.jpg",to_height=1080,quality=90)
+
 
 
 def book_icon():
@@ -65,8 +67,6 @@ def task_library():
     send_books_list = glob.glob(f"{DATA_ROOT}book_send/**", recursive=True)
     send_books_list = [p for p in send_books_list if os.path.splitext(p)[1].lower() in [".zip"]]
 
-
-
     for send_book in send_books_list:
         book_uuid = uuid.uuid4()
         page_len = 0
@@ -90,12 +90,15 @@ def task_library():
         get_genre = os.path.basename(os.path.dirname(send_book))
         if get_genre == "book_send":
             get_genre = "default"
+        
+        file_name_purse:PurseResult = base_purser(os.path.basename(send_book))
             
         model = BookModel(
             uuid = str(book_uuid),
             # ソフトメタデータ
-            title = None,
-            author = None,
+            title = file_name_purse.title,
+            author = file_name_purse.author,
+            publisher = file_name_purse.publisher,
             series = None,
             series_no = None,
             rate = None,
@@ -124,6 +127,8 @@ def task_library():
         break
     return
 
+
+
 def task_convert(book_uuid):
     logger.info(book_uuid)
     # キャッシュ先にフォルダ作成
@@ -143,6 +148,8 @@ def task_convert(book_uuid):
     shutil.rmtree(f"{APP_ROOT}temp/")
     os.mkdir(f"{APP_ROOT}temp/")
 
+
+
 def task_export(book_model):
     book_uuid = book_model.uuid
     file_name = book_model.import_file_name
@@ -158,6 +165,7 @@ def task_export(book_model):
         logger.error(f'{export_file}は存在しなかったためレコードの削除のみを行いました')
 
 
+
 def image_convertor(src_path, dst_path, to_height, quality):
     img = Image.open(src_path).convert('RGB')
 
@@ -170,14 +178,9 @@ def image_convertor(src_path, dst_path, to_height, quality):
 
 
 
-
-
-
 def list_dir_files(search_dir):
 
     return glob.glob(f"./temp/{search_dir}/**", recursive=True)
-
-
 
 
 
@@ -200,9 +203,12 @@ def hash():
     print("SHA1: {0}".format(sha1.hexdigest()))
 
 
+
 def unzip(unzip_file, to_dir):
     with zipfile.ZipFile(f'send_books/{unzip_file}') as existing_zip:
         existing_zip.extractall(f'temp/{to_dir}')
+
+
 
 if __name__ == "__main__":
     main()

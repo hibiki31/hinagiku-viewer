@@ -23,11 +23,17 @@ exception_notfund = HTTPException(
 async def get_api_library(
         db: Session = Depends(get_db),
     ):
-    query = db.query(BookModel.library, func.count(BookModel.library)).group_by(BookModel.library)
+    query = db.query(
+        BookModel.library.label("library"), 
+        func.count(BookModel.library).label("count")
+    )
+
+    query = query.group_by(BookModel.library)
+    
     return query.all()
 
 
-@app.get("/api/books", tags=["book"],response_model=List[BookBase])
+@app.get("/api/books", tags=["book"])
 async def get_api_books(
         db: Session = Depends(get_db),
         uuid: str = None,
@@ -38,7 +44,10 @@ async def get_api_books(
         state: str = None,
         genre: str = None,
         library: str = None,
-        file_name_like: str = None
+        file_name_like: str = None,
+        limit:int = 50,
+        offset:int = 0,
+        sort_key:str = "file",
     ):
 
     query = db.query(BookModel)
@@ -67,8 +76,24 @@ async def get_api_books(
     if file_name_like != None:
         query = query.filter(BookModel.import_file_name.like(f'%{file_name_like}%'))
 
-    return query.order_by(BookModel.import_file_name).all()
+    if sort_key == "file":
+        query = query.order_by(BookModel.import_file_name)
+    elif sort_key == "author":
+        query = query.order_by(BookModel.author)
+    elif sort_key == "title":
+        query = query.order_by(BookModel.title)
+    elif sort_key == "date":
+        query = query.order_by(BookModel.add_date)
+    
+    count = query.count()
 
+    query = query.limit(limit).offset(offset)
+
+    rows = query.all()
+    
+    # print(query.statement.compile())
+
+    return {"count": count, "limit": limit, "offset": offset, "rows": rows}
 
 @app.put("/api/books", tags=["book"])
 async def put_api_books(

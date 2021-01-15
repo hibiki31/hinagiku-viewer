@@ -34,7 +34,7 @@ tags_metadata = [
 app = FastAPI(
     title="Hinagiku-Viewer",
     description="",
-    version="0.0.1",
+    version="1.1.0",
     openapi_tags=tags_metadata,
     docs_url="/api",
     redoc_url="/api/redoc",
@@ -104,13 +104,13 @@ async def get_media_books_uuid(
     
     some_file_path = f"{DATA_ROOT}book_library/{uuid}.jpg"
 
-    try:
-        return FileResponse(some_file_path)
-    except:
+    if not os.path.exists(some_file_path):
         raise HTTPException(
             status_code=404,
             detail="ファイルが存在しません",
         )
+
+    return FileResponse(some_file_path)
 
 def worker_up():
     worker_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py"]))
