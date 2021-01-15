@@ -2,6 +2,7 @@ version: "3"
 services:
   api:
     build: ./api
+    user: "${UID}:${GID}"
     volumes:
       # キャッシュの作成場所
       - ./data/book_cache:/opt/data/book_cache/
@@ -21,6 +22,7 @@ services:
     restart: always
   web:
     build: ./web
+    user: "${UID}:${GID}"
     volumes:
       - ./data/nginx:/var/log/nginx/
     ports:
