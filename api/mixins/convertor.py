@@ -126,20 +126,20 @@ def task_library():
 
 def task_convert(book_uuid):
     logger.info(book_uuid)
-    with zipfile.ZipFile(f'{DATA_ROOT}book_library/{book_uuid}.zip') as existing_zip:
-        existing_zip.extractall(f'{APP_ROOT}temp/{book_uuid}/')
-
-    file_list =  glob.glob(f'{APP_ROOT}temp/{book_uuid}/**', recursive=True)
-    new_list = [p for p in file_list if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
-
-    new_list.sort()
-
+    # キャッシュ先にフォルダ作成
     os.makedirs(f"{DATA_ROOT}book_cache/{book_uuid}/", exist_ok=True)
+    # 解凍
+    with zipfile.ZipFile(f'{DATA_ROOT}book_library/{book_uuid}.zip') as existing_zip:
+        file_list_in_zip = existing_zip.namelist()
+        file_list_in_zip = [p for p in file_list_in_zip if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
+        file_list_in_zip.sort()
 
-    for index, image_path in enumerate(new_list):
-        logger.debug(image_path)
-        image_convertor(image_path,f"{DATA_ROOT}book_cache/{book_uuid}/{str(index+1).zfill(4)}.jpg",to_height=1080,quality=85)
-    
+        for index, file_name in enumerate(file_list_in_zip):
+            convert_path = f"{DATA_ROOT}book_cache/{book_uuid}/{str(index+1).zfill(4)}.jpg"
+            logger.debug(convert_path)
+            existing_zip.extract(file_name, f'{APP_ROOT}temp/{book_uuid}')
+            image_convertor(f'{APP_ROOT}temp/{book_uuid}/{file_name}', convert_path, to_height=1080,quality=85)
+
     shutil.rmtree(f"{APP_ROOT}temp/")
     os.mkdir(f"{APP_ROOT}temp/")
 
