@@ -33,21 +33,21 @@ async def get_api_library(
     return query.all()
 
 
-@app.get("/api/books", tags=["book"])
+@app.get("/api/books", tags=["book"], response_model=BookSelect)
 async def get_api_books(
         db: Session = Depends(get_db),
         uuid: str = None,
-        author_like: str = None,
-        title_like: str = None,
+        authorLike: str = None,
+        titleLike: str = None,
         rate: int = None,
         series: str = None,
         state: str = None,
         genre: str = None,
         library: str = None,
-        file_name_like: str = None,
+        fileNameLike: str = None,
         limit:int = 50,
         offset:int = 0,
-        sort_key:str = "file",
+        sortKey:str = "file",
     ):
 
     query = db.query(BookModel)
@@ -55,11 +55,11 @@ async def get_api_books(
     if uuid != None:
         query = query.filter(BookModel.uuid==uuid)
 
-    if author_like != None:
-        query = query.filter(BookModel.author.like(f'%{author_like}%'))
+    if authorLike != None:
+        query = query.filter(BookModel.author.like(f'%{authorLike}%'))
     
-    if title_like != None:
-        query = query.filter(BookModel.title.like(f'%{title_like}%'))
+    if titleLike != None:
+        query = query.filter(BookModel.title.like(f'%{titleLike}%'))
     
     if rate != None:
         if rate == 0:
@@ -73,16 +73,16 @@ async def get_api_books(
     if library != None:
         query = query.filter(BookModel.library == library)
     
-    if file_name_like != None:
-        query = query.filter(BookModel.import_file_name.like(f'%{file_name_like}%'))
+    if fileNameLike != None:
+        query = query.filter(BookModel.import_file_name.like(f'%{fileNameLike}%'))
 
-    if sort_key == "file":
+    if sortKey == "file":
         query = query.order_by(BookModel.import_file_name)
-    elif sort_key == "author":
+    elif sortKey == "author":
         query = query.order_by(BookModel.author)
-    elif sort_key == "title":
+    elif sortKey == "title":
         query = query.order_by(BookModel.title)
-    elif sort_key == "date":
+    elif sortKey == "date":
         query = query.order_by(BookModel.add_date)
     
     count = query.count()

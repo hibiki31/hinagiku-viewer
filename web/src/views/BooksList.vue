@@ -33,34 +33,47 @@
     <!-- ダイアログ -->
     <v-dialog v-model="menuDialog" scrollable max-width="500px">
       <v-card>
-        <v-card-text class="pt-6">
-          <v-btn @click="bookExport" class="ml-3">エクスポート</v-btn>
-        </v-card-text>
+        <v-card-title>Select Editor</v-card-title>
         <v-divider></v-divider>
         <v-card-text style="height: 300px">
           <v-rating
             v-model="openItem.rate"
             small
+            class="pa-1"
           ></v-rating>
-          {{ this.openItem }}
+          <v-row class="mt-1">
+            <v-text-field label="Title" v-model="openItem.title"></v-text-field>
+            <v-btn small icon class="mt-3"><v-icon>mdi-magnify</v-icon></v-btn>
+          </v-row>
+          <v-row>
+            <v-text-field class="mt-0" label="Author" v-model="openItem.author"></v-text-field>
+            <v-btn small icon class="mt-3" @click="openItemSearchAuthor()"><v-icon>mdi-magnify</v-icon></v-btn>
+          </v-row>
+          <v-text-field label="Publisher" v-model="openItem.publisher"></v-text-field>
+          <v-btn small class="pa-1" @click="showJson = !showJson">Json</v-btn>
+        <div v-if="showJson">{{ this.openItem }}</div>
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions>
           <v-btn color="blue darken-1" text @click="menuDialog = false">閉じる</v-btn>
           <v-btn color="blue darken-1" text @click="bookInfoSubmit">保存</v-btn>
+          <v-spacer></v-spacer>
+          <v-btn color="red darken-1" text @click="bookExport" class="ml-3">エクスポート</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
     <!-- 複数選択ダイアログ -->
     <v-dialog v-model="mulchBooksDialog" scrollable max-width="500px">
       <v-card>
-        <v-card-text class="pt-6">
-        </v-card-text>
+        <v-card-title>
+          Range Editor
+        </v-card-title>
         <v-divider></v-divider>
         <v-card-text style="height: 300px">
           <v-rating
             v-model="openItem.rate"
             small
+            class="pa-3"
           ></v-rating>
         </v-card-text>
         <v-divider></v-divider>
@@ -72,11 +85,11 @@
     </v-dialog>
     <!-- トップバー -->
     <v-app-bar color="primary" dark dense flat app clipped-left v-if="this.$store.state.showMenuBer">
-      <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon @click="showDrawer = !showDrawer"></v-app-bar-nav-icon>
       <v-toolbar-title>HinaV</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-text-field
-        v-model="searchQuery.title"
+        v-model="queryTitle"
         hide-details
         single-line
       ></v-text-field>
@@ -85,7 +98,7 @@
     </v-app-bar>
     <!-- ドロワー -->
     <v-navigation-drawer
-      v-model="drawer"
+      v-model="showDrawer"
       app
       clipped
     >
@@ -101,10 +114,10 @@
         <v-list-item-group>
           <v-select
               :items="libraryList"
-              v-model="searchQuery.library"
-              label="ライブラリー"
+              label="Library"
+              v-model="queryLibrary"
               dense
-              class="pt-2"
+              class="pr-2 pl-2"
             ></v-select>
         </v-list-item-group>
       </v-list>
@@ -114,18 +127,22 @@
       <v-list nav dense>
         <v-list-item-group>
           <v-rating
-            v-model="searchQuery.rate"
+            v-model="queryRate"
             small
           ></v-rating>
-          <v-btn icon small @click="searchQuery.rate = null"><v-icon>mdi-reload</v-icon></v-btn>
-          <v-btn icon small @click="searchQuery.rate = 0"><v-icon>mdi-star</v-icon></v-btn>
+          <v-btn small color="primary" dark @click="queryRate = null" class="ma-1">
+          All Rate
+          </v-btn>
+          <v-btn small color="gray" dark @click="queryRate = 0" class="ma-1">
+          No Rate
+          </v-btn>
         </v-list-item-group>
       </v-list>
       <v-divider></v-divider>
       <v-list nav dense>
         <v-list-item-group>
-          <v-btn icon small @click="exportDialog = true"><v-icon>mdi-export</v-icon></v-btn>
-          <v-btn icon small @click="mulchBooksDialog = true"><v-icon>mdi-pen</v-icon></v-btn>
+          <v-btn class="ma-1" small @click="exportDialog = true">Range Export<v-icon>mdi-export</v-icon></v-btn>
+          <v-btn class="ma-1" small @click="mulchBooksDialog = true">Range Change<v-icon>mdi-pen</v-icon></v-btn>
         </v-list-item-group>
       </v-list>
       <v-divider class="pb-2"></v-divider>
@@ -145,16 +162,14 @@
               :src="getCoverURL(item.uuid)"
               v-hammer:press="(event)=> openMenu(item)"
             ></v-img>
-            <!-- <v-card-title>
-              {{ item.title }}
-            </v-card-title>
-            <v-card-text>
-              <v-icon v-if="item.state=='cached'" color="primary">mdi-checkbox-marked-circle-outline</v-icon>
-              <v-icon v-else >mdi-checkbox-marked-circle-outline</v-icon>
-            </v-card-text> -->
           </v-card>
         </v-col>
       </v-row>
+      <v-pagination
+        v-model="page"
+        :length="Math.ceil(totalItems/searchQuery.limit)"
+        :total-visible="7"
+      ></v-pagination>
     </v-container>
   </div>
 </template>
@@ -168,33 +183,92 @@ export default {
   name: 'Books',
   data: function () {
     return {
-      exportDialog: false,
-      version: require('../../package.json').version,
-      drawer: false,
+      // 監視パラーメータで重複を避けるため検索を行うかのフラグ
+      serachEnable: true,
+      pageWatchEnable: true,
+      // 表示ステータス
       menuDialog: false,
+      exportDialog: false,
       mulchBooksDialog: false,
-      booksList: [],
+      showDrawer: false,
+      // ダイアログで使用
+      showJson: false,
+      // ローカルクエリ
+      page: 1,
+      queryTitle: '',
+      queryRate: null,
+      queryLibrary: '',
+      // 検索クエリ
       searchQuery: {
-        openUUID: null,
-        title: '',
+        limit: 60,
+        offset: 0,
+        title: null,
         rate: null,
         genre: null,
-        library: ['default', 0]
+        library: 'default',
+        fileNameLike: '',
+        authorLike: null
       },
+      // ダイアログで開いているアイテム
       openItem: {},
-      libraryList: []
+      // ライブラリ情報
+      libraryList: [],
+      booksList: [],
+      totalItems: 0,
+      // バージョン固定値
+      version: require('../../package.json').version
     }
   },
+
   watch: {
-    searchQuery: {
-      handler: function (newValue, oldValue) {
+    page: {
+      handler () {
+        window.scrollTo({ top: 0 })
+        this.searchQuery.offset = this.searchQuery.limit * (this.page - 1)
+        if (this.pageWatchEnable) {
+          this.search()
+        }
+      },
+      deep: true
+    },
+    queryTitle: {
+      handler () {
+        window.scrollTo({ top: 0 })
+        this.pageChange()
+        this.searchQuery.fileNameLike = this.queryTitle
+        this.search(true)
+      },
+      deep: true
+    },
+    queryRate: {
+      handler () {
+        window.scrollTo({ top: 0 })
+        this.pageChange()
+        this.searchQuery.rate = this.queryRate
+        this.search()
+      },
+      deep: true
+    },
+    queryLibrary: {
+      handler () {
+        window.scrollTo({ top: 0 })
+        this.pageChange()
+        this.searchQuery.library = this.queryLibrary[0]
         this.search()
       },
       deep: true
     }
   },
+
   methods: {
-    searchBooksPut () {
+    async searchBooksPut () {
+      // 全件取得
+      this.mulchBooksDialog = false
+      this.searchQuery.offset = 0
+      this.searchQuery.limit = 99999
+      // 同期をとる
+      await this.search()
+      // uuidを取得
       const uuids = this.booksList.map(x => x.uuid)
       axios.request({
         method: 'put',
@@ -203,8 +277,14 @@ export default {
       })
         .then((response) => (this.$_pushNotice('検索範囲のエクスポートを依頼しました', 'success')))
     },
-    searchBooksRate () {
+    async searchBooksRate () {
+      // 全件取得
       this.mulchBooksDialog = false
+      this.searchQuery.offset = 0
+      this.searchQuery.limit = 99999
+      // 同期をとる
+      await this.search()
+      // uuidを取得
       const uuids = this.booksList.map(x => x.uuid)
       axios.request({
         method: 'put',
@@ -213,12 +293,24 @@ export default {
       })
         .then((response) => (this.$_pushNotice('検索範囲の本の評価を変更', 'success')))
     },
+    openItemSearchAuthor () {
+      this.searchQuery.authorLike = this.openItem.author
+      this.menuDialog = false
+      this.pageChange()
+      this.search()
+    },
     bookInfoSubmit () {
       this.menuDialog = false
       axios.request({
         method: 'put',
         url: '/api/books',
-        data: { uuids: [this.openItem.uuid], rate: this.openItem.rate }
+        data: {
+          uuids: [this.openItem.uuid],
+          rate: this.openItem.rate,
+          publisher: this.openItem.publisher,
+          title: this.openItem.title,
+          author: this.openItem.author
+        }
       })
         .then((response) => (this.$_pushNotice('書籍情報を更新しました', 'success')))
     },
@@ -234,20 +326,37 @@ export default {
         })
     },
     reload () {
-      this.searchQuery.title = null
-      this.searchQuery.rate = null
-      this.searchQuery.genre = null
+      this.pageChange()
+      this.searchQuery = {
+        limit: 60,
+        offset: 0,
+        title: null,
+        rate: null,
+        genre: null,
+        library: 'default',
+        fileNameLike: ''
+      }
       this.search()
     },
-    search () {
-      axios.get('/api/books', {
-        params: {
-          file_name_like: this.searchQuery.title,
-          rate: this.searchQuery.rate,
-          library: this.searchQuery.library[0]
-        }
-      })
-        .then((response) => (this.booksList = response.data))
+    async search () {
+      if (this.serachEnable) {
+        await axios.get('/api/books', {
+          params: this.searchQuery
+        })
+          .then((response) => {
+            this.booksList = response.data.rows
+            this.totalItems = response.data.count
+            this.$_pushNotice(this.totalItems + '件', 'info')
+          })
+        // ローカルストレージにパラメータ格納
+        const parsed = JSON.stringify(this.searchQuery)
+        localStorage.setItem('searchQuery', parsed)
+      }
+    },
+    pageChange () {
+      this.pageWatchEnable = false
+      this.page = 1
+      this.pageWatchEnable = true
     },
     openMenu (item) {
       this.openItem = item
@@ -255,6 +364,7 @@ export default {
     },
     async toReaderPage (item) {
       if (item.state !== 'cached') {
+        this.$_pushNotice('キャッシュの作成をリクエスト', 'info')
         axios.request({
           method: 'put',
           url: '/api/books',
@@ -262,10 +372,11 @@ export default {
         })
       }
       // ローカルストレージにパラメータ格納
-      this.searchQuery.openUUID = item.uuid
       const parsed = JSON.stringify(this.searchQuery)
       localStorage.setItem('searchQuery', parsed)
+      localStorage.setItem('openBookUUID', item.uuid)
 
+      // 移動
       router.push({ name: 'BookReader', params: { uuid: item.uuid } })
     },
     getCoverURL (uuid) {
@@ -275,45 +386,59 @@ export default {
       } else {
         return '/media/books/' + uuid
       }
+    },
+    scrollToUUID () {
+      setTimeout(() => {
+        const openBookUUID = localStorage.openBookUUID
+        this.$forceNextTick(() => {
+          if (openBookUUID) {
+            const options = { offset: -300 }
+            VueScrollTo.scrollTo(document.getElementById(openBookUUID), 400, options)
+          }
+        })
+        localStorage.removeItem('openBookUUID')
+      }, 300)
     }
   },
-  mounted: async function () {
-    // 前回開いていた本がある場合再開
-    const uuid = localStorage.uuid
-    const page = localStorage.page
 
+  mounted: async function () {
+    // 前回開いていた本を取得
+    const uuid = localStorage.backBookUUID
+    const page = localStorage.backBookPage
+    // 前回開いていた本が取得できたら本を開く
     if (uuid && page) {
       router.push({ name: 'BookReader', params: { uuid: uuid }, query: { page: page } })
       return
     } else {
-      localStorage.removeItem('uuid')
-      localStorage.removeItem('page')
+      localStorage.removeItem('backBookUUID')
+      localStorage.removeItem('backBookPage')
     }
+
+    // ライブラリ情報取得
+    axios.get('/api/library').then((response) => (this.libraryList = response.data))
 
     // 検索パラメータを復元
     try {
       const getParam = JSON.parse(localStorage.getItem('searchQuery'))
-      if (('title' in getParam) && ('rate' in getParam) && ('genre' in getParam) && ('library' in getParam) && ('openUUID' in getParam)) {
-        this.searchQuery = getParam
+      // 上書きじゃなくてあったKeyを追加
+      for (const key in getParam) {
+        this.searchQuery[key] = getParam[key]
       }
     } catch (e) {
       localStorage.removeItem('searchQuery')
     }
 
-    this.booksList = (await axios.get('/api/books', {
-      params: {
-        file_name_like: this.searchQuery.title,
-        rate: this.searchQuery.rate,
-        library: this.searchQuery.library[0]
-      }
-    })).data
+    // クエリから戻す
+    this.serachEnable = false
+    this.page = Math.ceil(this.searchQuery.offset / this.searchQuery.limit + 1)
+    this.queryTitle = this.searchQuery.fileNameLike
+    this.serachEnable = true
 
-    this.$forceNextTick(() => {
-      if (this.searchQuery.openUUID) {
-        VueScrollTo.scrollTo(document.getElementById(this.searchQuery.openUUID), 200)
-      }
-    })
-    axios.get('/api/library').then((response) => (this.libraryList = response.data))
+    // 初期ロード
+    this.search()
+
+    // 開いていた本へジャンプ
+    this.scrollToUUID()
   }
 }
 </script>

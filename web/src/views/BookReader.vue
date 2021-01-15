@@ -144,11 +144,13 @@ export default {
     }
   },
   methods: {
+    // ライブラリに戻るときに
     goLibrary () {
       localStorage.removeItem('uuid')
       localStorage.removeItem('page')
-      router.push({ name: 'Books' })
+      router.push({ name: 'BooksList' })
     },
+    // ページを進めるときに
     getDLoadingPage (page) {
       // 指定ページが0以下 or ページ数より大きかったら終了
       if ((page <= 0) || (page > this.bookInfo.page)) {
@@ -159,6 +161,7 @@ export default {
         this.getImageBlob(this.uuid, page)
       }
     },
+    // ページ取得
     getImageBlob (uuid, page) {
       axios
         .get('/media/books/' + uuid + '/' + page, {
@@ -237,46 +240,60 @@ export default {
         url: '/api/books',
         data: { uuids: [this.uuid], state: 'request' }
       })
+    },
+    parseBoolean (str) {
+      return (str === 'true')
     }
   },
   mounted: function () {
+    // パスからUUIDを取得
     this.uuid = this.$route.params.uuid
-    localStorage.uuid = this.uuid
+    // ローカルストレージに保存
+    localStorage.uuid = this.openBookUUID
 
+    // ページの指定はあるか？
     if (this.$route.query.page) {
       this.nowPage = Number(this.$route.query.page)
     }
 
+    // 4ページ決め打ちで先読み用アレイ
     this.pageBlob = Array(4)
-    this.getImageBlob(this.uuid, 1, 0)
-
-    axios.get('/api/books', {
-      params: { uuid: this.uuid }
-    })
-      .then((response) => {
-        this.bookInfo = response.data[0]
-        Array.prototype.push.apply(this.pageBlob, Array(this.bookInfo.page - 4))
-      })
-
-    const towPageTemp = localStorage.showTowPage
-    if (towPageTemp !== null) {
-      this.showTowPage = towPageTemp
-    } else {
-      this.showTowPage = !(this.$vuetify.breakpoint.md || this.$vuetify.breakpoint.sm)
-      localStorage.setItem('showTowPage', this.showTowPage)
-    }
-    this.baseWidth = !this.showTowPage
-
-    this.$store.dispatch('hideMenuBer')
-    window.addEventListener('resize', this.handleResize)
-
     this.getDLoadingPage(this.nowPage + 0)
     this.getDLoadingPage(this.nowPage + 1)
     this.getDLoadingPage(this.nowPage + 2)
     this.getDLoadingPage(this.nowPage + 3)
+
+    // 書籍情報取得
+    axios.get('/api/books', {
+      params: { uuid: this.uuid }
+    })
+      .then((response) => {
+        this.bookInfo = response.data.rows[0]
+        Array.prototype.push.apply(this.pageBlob, Array(this.bookInfo.page - 4))
+      })
+
+    // 表示設定を取得
+    const showTowPage = localStorage.showTowPage
+
+    // なかったら縦横比で設定
+    if (showTowPage !== null) {
+      this.showTowPage = this.parseBoolean(showTowPage)
+    } else {
+      this.showTowPage = !(this.$vuetify.breakpoint.md || this.$vuetify.breakpoint.sm)
+      localStorage.setItem('showTowPage', this.showTowPage)
+    }
+    // 見開き表示設定から縦横のベースを決定
+    this.baseWidth = !this.showTowPage
+
+    // メニューを非表示
+    this.$store.dispatch('hideMenuBer')
+    // ウインドウ変更検出リスナー登録
+    window.addEventListener('resize', this.handleResize)
   },
   beforeDestroy: function () {
+    // メニューを表示
     this.$store.dispatch('showMenuBer')
+    // ウインドウ変更検出リスナー解除
     window.removeEventListener('resize', this.handleResize)
   }
 }

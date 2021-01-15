@@ -9,6 +9,7 @@ class BookBase(CamelModel):
     uuid: str
     title: str = None
     author: str = None
+    publisher: str = None
     size: int = None
     page: int = None
     add_date: datetime = None
@@ -20,6 +21,12 @@ class BookBase(CamelModel):
     library: str = None
     class Config:
         orm_mode  =  True
+
+class BookSelect(CamelModel):
+    limit: int
+    offset: int
+    count: int
+    rows: List[BookBase]
     
 
 class BookPut(CamelModel):
@@ -30,6 +37,7 @@ class BookPut(CamelModel):
     series: str = None
     author: str = None
     title: str = None
+    publisher: str = None
     genre: str = None
     library: str = None
     class Config:

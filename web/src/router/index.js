@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Books from '../views/Books.vue'
+import BooksList from '../views/BooksList.vue'
 import BookReader from '../views/BookReader.vue'
 
 Vue.use(VueRouter)
@@ -8,8 +8,8 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
-    name: 'Books',
-    component: Books
+    name: 'BooksList',
+    component: BooksList
   },
   {
     path: '/books/:uuid',

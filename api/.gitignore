@@ -2,4 +2,5 @@
 /temp/
 __pycache__/
 .DS_Store
+.vscode/
 docker-compose.yml
