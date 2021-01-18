@@ -20,7 +20,7 @@ RUN pip install alembic
 
 RUN mkdir -p /opt/app
 RUN mkdir -p /opt/data
-ADD . /opt/app
+COPY . /opt/app
 WORKDIR /opt/app
 
 EXPOSE 8000
