@@ -9,6 +9,8 @@ import os
 import uuid
 
 import datetime
+from time import sleep
+
 
 import shutil
 
@@ -56,6 +58,26 @@ def book_icon():
     return
 
 
+def is_copping(file_path):
+    '''
+    ファイルサイズの変更がなくなるまで待機する
+    '''
+    for i in range(1,10):
+        seize_point1 = os.path.getsize(file_path)
+        sleep(1)
+        seize_point2 = os.path.getsize(file_path)
+
+        if seize_point1 != seize_point2:
+            logger.error("サイズが変わったため読み直します")
+            continue
+        if seize_point2 == 0:
+            logger.error("0Byteなので読み直します")
+            continue
+        # 1秒サイズ変わってないからコピー中では無い
+        return False
+    # 10秒ずっと変わってたからコピー中
+    return True
+
 
 def task_library():
     db = SessionLocal()
@@ -71,6 +93,11 @@ def task_library():
         book_uuid = uuid.uuid4()
         page_len = 0
 
+        if is_copping(send_book):
+            logger.error("ファイルサイズが変わり続けたためインポートをスキップ")
+            break
+
+
         try:
             with zipfile.ZipFile(send_book) as existing_zip:
                 zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
@@ -80,9 +107,7 @@ def task_library():
                 existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
                 image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',to_height=640,quality=85)
         except:
-            import traceback
-            traceback.print_exc()
-            logger.error(f'{send_book}はエラーが発生したため除外されました')
+            logger.error(f'{send_book}はエラーが発生したため除外されました', exc_info=True)
             shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
             continue
 
@@ -124,6 +149,8 @@ def task_library():
     
         shutil.rmtree(f"{APP_ROOT}temp/")
         os.mkdir(f"{APP_ROOT}temp/")
+        
+        # 応急処置として１件で終了するのでキャッシュ作成が止まらない
         break
     return
 
@@ -174,7 +201,13 @@ def image_convertor(src_path, dst_path, to_height, quality):
     new_width = int(to_height / height * width)
 
     new_img = img.resize((new_width, new_height), Image.LANCZOS)
-    new_img.save(dst_path, quality=quality)
+    # Tempで保存
+    temp_file = os.path.splitext(dst_path)[0]
+    temp_ext = os.path.splitext(dst_path)[1]
+
+    new_img.save(f'{temp_file}.temp{temp_ext}', quality=quality)
+    # 戻す
+    shutil.move(f'{temp_file}.temp{temp_ext}', dst_path)
 
 
 

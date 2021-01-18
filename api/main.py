@@ -56,37 +56,19 @@ Base.metadata.create_all(bind=Engine)
 
 @app.get("/media/books/{uuid}/{page}")
 async def main(
-        uuid: str = None,
-        page: int = None,
+        uuid: str,
+        page: int,
     ):
-    if uuid == None:
-        raise HTTPException(
-            status_code=404,
-            detail="BOOK_IDを指定してください",
-        )
-    
-    if page == None:
-        some_file_path = f"{DATA_ROOT}book_library/{uuid}.jpg"
-    else:
-        some_file_path = f"{DATA_ROOT}book_cache/{uuid}/{str(page).zfill(4)}.jpg"
+    some_file_path = f"{DATA_ROOT}book_cache/{uuid}/{str(page).zfill(4)}.jpg"
     
     for i in range(0,300):
+        # 存在しないとき
         if not os.path.exists(some_file_path):
             await sleep(0.1)
             continue
-        seize_point1 = os.path.getsize(some_file_path)
-        await sleep(0.1)
-        seize_point2 = os.path.getsize(some_file_path)
+        # 返す
+        return FileResponse(some_file_path)
 
-        if seize_point1 != seize_point2:
-            logger.error("サイズが変わったため読み直します")
-            continue
-
-        try:
-            return FileResponse(some_file_path)
-        except:
-            await sleep(0.1)
-            continue
     raise HTTPException(
         status_code=404,
         detail="ファイルが存在しません",
@@ -94,13 +76,8 @@ async def main(
 
 @app.get("/media/books/{uuid}")
 async def get_media_books_uuid(
-        uuid: str = None
+        uuid: str
     ):
-    if uuid == None:
-        raise HTTPException(
-            status_code=404,
-            detail="BOOK_IDを指定してください",
-        )
     
     some_file_path = f"{DATA_ROOT}book_library/{uuid}.jpg"
 
