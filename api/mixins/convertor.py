@@ -5,8 +5,11 @@ import zipfile
 
 import glob
 from PIL import Image, ImageFilter
+from io import BytesIO 
 import os
 import uuid
+
+from fastapi import HTTPException
 
 import datetime
 from time import sleep
@@ -174,6 +177,43 @@ def task_convert(book_uuid):
 
     shutil.rmtree(f"{APP_ROOT}temp/")
     os.mkdir(f"{APP_ROOT}temp/")
+
+
+def direct_book_page(book_uuid, page, to_height, quality):
+    try:
+        with zipfile.ZipFile(f'{DATA_ROOT}book_library/{book_uuid}.zip') as existing_zip:
+            # 関係あるファイルパスのリストに変更
+            file_list_in_zip = existing_zip.namelist()
+            file_list_in_zip = [p for p in file_list_in_zip if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
+            file_list_in_zip.sort()
+
+            if page > len(file_list_in_zip):
+                raise HTTPException(
+                    status_code=404,
+                    detail="ページが存在しません",
+                )
+
+            # 指定されたページだけ読み込んでPILに
+            img_src = Image.open(BytesIO(existing_zip.read(file_list_in_zip[page-1]))).convert('RGB')
+        
+            # 縦横計算
+            width, height = img_src.size
+            new_height = int(to_height)
+            new_width = int(to_height / height * width)
+
+            # 空の入れ物用意
+            img_dst = BytesIO()
+            # 変換
+            new_img = img_src.resize((new_width, new_height), Image.LANCZOS)
+            new_img.save(img_dst, format='JPEG')
+            img_dst.seek(0)
+
+            return img_dst
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=404,
+            detail="本が存在しません",
+        )
 
 
 

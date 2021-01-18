@@ -16,6 +16,7 @@ from fastapi.responses import StreamingResponse
 from mixins.log import setup_logger
 from mixins.database import SessionLocal, Engine, Base
 from mixins.settings import DATA_ROOT, APP_ROOT
+from mixins.convertor import direct_book_page
 
 from books.router import app as books_router
 
@@ -54,11 +55,32 @@ app.include_router(books_router)
 Base.metadata.create_all(bind=Engine)
 
 
+@app.get("/media/books/{uuid}")
+async def get_media_books_uuid(
+        uuid: str
+    ):
+    
+    some_file_path = f"{DATA_ROOT}book_library/{uuid}.jpg"
+
+    if not os.path.exists(some_file_path):
+        raise HTTPException(
+            status_code=404,
+            detail="ファイルが存在しません",
+        )
+
+    return FileResponse(some_file_path)
+
+
 @app.get("/media/books/{uuid}/{page}")
-async def main(
+async def media_books_uuid_page(
         uuid: str,
         page: int,
+        dicrect: bool = False,
     ):
+    if dicrect:
+        data = direct_book_page(uuid, page, 1080, 85)
+        return StreamingResponse(data, media_type="image/png")
+
     some_file_path = f"{DATA_ROOT}book_cache/{uuid}/{str(page).zfill(4)}.jpg"
     
     for i in range(0,300):
@@ -74,20 +96,6 @@ async def main(
         detail="ファイルが存在しません",
     )
 
-@app.get("/media/books/{uuid}")
-async def get_media_books_uuid(
-        uuid: str
-    ):
-    
-    some_file_path = f"{DATA_ROOT}book_library/{uuid}.jpg"
-
-    if not os.path.exists(some_file_path):
-        raise HTTPException(
-            status_code=404,
-            detail="ファイルが存在しません",
-        )
-
-    return FileResponse(some_file_path)
 
 def worker_up():
     worker_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py"]))
