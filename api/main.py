@@ -77,6 +77,7 @@ async def media_books_uuid_page(
         page: int,
         dicrect: bool = False,
     ):
+    logger.info(dicrect)
     if dicrect:
         data = direct_book_page(uuid, page, 1080, 85)
         return StreamingResponse(data, media_type="image/png")
