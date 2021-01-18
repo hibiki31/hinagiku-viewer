@@ -8,7 +8,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from starlette.requests import Request
 from typing import List, Optional
-from asyncio import sleep
 
 from fastapi.responses import FileResponse
 from fastapi.responses import StreamingResponse
@@ -72,7 +71,7 @@ async def get_media_books_uuid(
 
 
 @app.get("/media/books/{uuid}/{page}")
-async def media_books_uuid_page(
+def media_books_uuid_page(
         uuid: str,
         page: int,
         direct: bool = False,
@@ -86,7 +85,7 @@ async def media_books_uuid_page(
     for i in range(0,300):
         # 存在しないとき
         if not os.path.exists(some_file_path):
-            await sleep(0.1)
+            time.sleep(0.1)
             continue
         # 返す
         return FileResponse(some_file_path)
