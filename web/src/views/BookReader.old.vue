@@ -222,9 +222,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.body {
-  buser-select: none;
-}
 #contextmenu{
   display:none;
   position:fixed;

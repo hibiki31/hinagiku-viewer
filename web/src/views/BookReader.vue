@@ -120,6 +120,8 @@ export default {
       showTowPage: false,
       uuid: '',
       nowPage: 1,
+      loadCounter: 0,
+      nowLoading: false,
       booksList: [],
       width: window.innerWidth,
       height: window.innerHeight,
@@ -128,15 +130,8 @@ export default {
     }
   },
   watch: {
-    nowPage: function (newPage, oldIndex) {
-      this.getDLoadingPage(newPage + 0)
-      this.getDLoadingPage(newPage + 1)
-      this.getDLoadingPage(newPage + 2)
-      this.getDLoadingPage(newPage + 3)
-      this.getDLoadingPage(newPage + 4)
-      this.getDLoadingPage(newPage + 5)
-      this.getDLoadingPage(newPage - 2)
-      this.getDLoadingPage(newPage - 1)
+    nowPage: function (newPage, oldPage) {
+      this.getDLoadingPage()
       localStorage.page = newPage
     },
     showTowPage: function (newValue, oldValue) {
@@ -151,21 +146,72 @@ export default {
       router.push({ name: 'BooksList' })
     },
     // ページを進めるときに
-    getDLoadingPage (page) {
-      // 指定ページが0以下 or ページ数より大きかったら終了
-      if ((page <= 0) || (page > this.bookInfo.page)) {
+    async getDLoadingPage () {
+      const uuid = this.uuid
+
+      // ロード中
+      if (this.nowLoading) {
+        this.loadCounter = 0
+        console.log('ロード中なので終了')
         return
       }
-      if (typeof this.pageBlob[page - 1] === 'undefined') {
-        this.pageBlob[page - 1] = LoadingImage
-        this.getImageBlob(this.uuid, page)
+
+      // まず現在のファイルを確認
+      if (typeof this.pageBlob[this.nowPage - 1] === 'undefined') {
+        this.pageBlob[this.nowPage - 1] = LoadingImage
+        console.log(`現在のページ${this.nowPage}が読み込まれて無いのでカウンタを0に`)
+        this.loadCounter = 0
       }
+
+      // 移動時に99999とかにして再帰処理を止めてる
+      if (this.loadCounter > 5) {
+        this.loadCounter = 0
+        console.log('先読み上限にきたので終了')
+        return
+      }
+
+      const page = this.nowPage + this.loadCounter
+
+      // 指定ページが0以下 or ページ数より大きかったら終了
+      if ((page <= 0) || (page > this.bookInfo.page)) {
+        console.log('ページ限界なので終了')
+        return
+      }
+
+      this.nowLoading = true
+
+      if (typeof this.pageBlob[page - 1] !== 'undefined') {
+        this.loadCounter += 1
+        this.nowLoading = false
+        this.getDLoadingPage()
+        return
+      }
+
+      console.log(`${page}を読みます ${this.nowPage}+${this.loadCounter}`)
+
+      await axios
+        .get(`/media/books/${uuid}/${page}`, {
+          responseType: 'blob',
+          params: { direct: 'True' }
+        })
+        .then(response => {
+          this.pageBlob.splice(page - 1, 1, window.URL.createObjectURL(response.data))
+          this.loadCounter += 1
+          this.nowLoading = false
+          this.getDLoadingPage()
+        })
+        .catch(error => {
+          console.log(error)
+          this.$_pushNotice('ページが見つかりませんでした', 'error')
+          this.menuDialog = true
+        })
     },
     // ページ取得
     getImageBlob (uuid, page) {
       axios
-        .get('/media/books/' + uuid + '/' + page, {
-          responseType: 'blob'
+        .get(`/media/books/${uuid}/${page}`, {
+          responseType: 'blob',
+          params: { direct: 'True' }
         })
         .then(response => {
           this.pageBlob.splice(page - 1, 1, window.URL.createObjectURL(response.data))
@@ -291,6 +337,8 @@ export default {
     window.addEventListener('resize', this.handleResize)
   },
   beforeDestroy: function () {
+    // 再帰処理を止めてる
+    this.loadCounter = 99999
     // メニューを表示
     this.$store.dispatch('showMenuBer')
     // ウインドウ変更検出リスナー解除

@@ -1,5 +1,6 @@
 <template>
   <div class="books">
+    <search-dialog ref='searchDialog' />
     <!-- エクスポート確認 -->
     <v-dialog
       v-model="exportDialog"
@@ -178,9 +179,13 @@
 import axios from '@/axios/index'
 import router from '../router'
 import VueScrollTo from 'vue-scrollto'
+import SearchDialog from '../components/SearchDialog'
 
 export default {
   name: 'Books',
+  components: {
+    SearchDialog
+  },
   data: function () {
     return {
       // 監視パラーメータで重複を避けるため検索を行うかのフラグ
@@ -363,14 +368,6 @@ export default {
       this.menuDialog = true
     },
     async toReaderPage (item) {
-      if (item.state !== 'cached') {
-        this.$_pushNotice('キャッシュの作成をリクエスト', 'info')
-        axios.request({
-          method: 'put',
-          url: '/api/books',
-          data: { uuids: [item.uuid], state: 'request' }
-        })
-      }
       // ローカルストレージにパラメータ格納
       const parsed = JSON.stringify(this.searchQuery)
       localStorage.setItem('searchQuery', parsed)
@@ -378,6 +375,16 @@ export default {
 
       // 移動
       router.push({ name: 'BookReader', params: { uuid: item.uuid } })
+    },
+    createCache (book) {
+      if (book.state !== 'cached') {
+        this.$_pushNotice('キャッシュの作成をリクエスト', 'info')
+        axios.request({
+          method: 'put',
+          url: '/api/books',
+          data: { uuids: [book.uuid], state: 'request' }
+        })
+      }
     },
     getCoverURL (uuid) {
       const api = process.env.VUE_APP_API_HOST
