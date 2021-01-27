@@ -75,9 +75,10 @@ def media_books_uuid_page(
         uuid: str,
         page: int,
         direct: bool = False,
+        height: int = 1080,
     ):
     if direct:
-        data = direct_book_page(uuid, page, 1080, 85)
+        data = direct_book_page(uuid, page, height, 85)
         return StreamingResponse(data, media_type="image/png")
 
     some_file_path = f"{DATA_ROOT}book_cache/{uuid}/{str(page).zfill(4)}.jpg"

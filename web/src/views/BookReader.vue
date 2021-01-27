@@ -189,7 +189,10 @@ export default {
       await axios
         .get(`/media/books/${uuid}/${page}`, {
           responseType: 'blob',
-          params: { direct: 'True' }
+          params: {
+            direct: 'True',
+            height: window.innerHeight
+          }
         })
         .then(response => {
           this.pageBlob.splice(page - 1, 1, window.URL.createObjectURL(response.data))

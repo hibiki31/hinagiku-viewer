@@ -53,7 +53,7 @@ def book_icon():
                 page_len = len(zip_content)
                 cover_path = zip_content[0]
                 existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
-                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',to_height=320,quality=85)
+                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',to_height=640,quality=85)
         except:
             import traceback
             traceback.print_exc()
