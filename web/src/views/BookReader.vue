@@ -120,8 +120,8 @@ export default {
       showTowPage: false,
       uuid: '',
       nowPage: 1,
-      loadCounter: 0,
       nowLoading: false,
+      pageMove: false,
       booksList: [],
       width: window.innerWidth,
       height: window.innerHeight,
@@ -148,46 +148,43 @@ export default {
     // ページを進めるときに
     async getDLoadingPage () {
       const uuid = this.uuid
+      const cachePage = 64
+      let pageOffset = null
 
-      // ロード中
-      if (this.nowLoading) {
-        this.loadCounter = 0
-        console.log('ロード中なので終了')
+      for (let i = 0; i < cachePage; i++) {
+        if (this.pageBlob[this.nowPage - 1 + i] == null) {
+          pageOffset = i
+          break
+        }
+      }
+
+      const page = this.nowPage + pageOffset
+
+      // 先読み限界
+      if (pageOffset === null) {
+        console.log('先読み限界で終了')
         return
       }
-
-      // まず現在のファイルを確認
-      if (typeof this.pageBlob[this.nowPage - 1] === 'undefined') {
-        this.pageBlob[this.nowPage - 1] = LoadingImage
-        console.log(`現在のページ${this.nowPage}が読み込まれて無いのでカウンタを0に`)
-        this.loadCounter = 0
-      }
-
-      // 移動時に99999とかにして再帰処理を止めてる
-      if (this.loadCounter > 5) {
-        this.loadCounter = 0
-        console.log('先読み上限にきたので終了')
+      // ページ移動
+      if (this.pageMove) {
+        console.log('ページ移動したので終了')
         return
       }
-
-      const page = this.nowPage + this.loadCounter
-
       // 指定ページが0以下 or ページ数より大きかったら終了
       if ((page <= 0) || (page > this.bookInfo.page)) {
         console.log('ページ限界なので終了')
         return
       }
-
-      this.nowLoading = true
-
-      if (typeof this.pageBlob[page - 1] !== 'undefined') {
-        this.loadCounter += 1
-        this.nowLoading = false
-        this.getDLoadingPage()
+      // ロード中
+      if (this.nowLoading) {
+        console.log('ロード中なので終了')
         return
       }
 
-      console.log(`${page}を読みます ${this.nowPage}+${this.loadCounter}`)
+      this.nowLoading = true
+      this.pageBlob[page - 1] = LoadingImage
+
+      console.log(`${page}ページを読みます`)
 
       await axios
         .get(`/media/books/${uuid}/${page}`, {
@@ -196,14 +193,15 @@ export default {
         })
         .then(response => {
           this.pageBlob.splice(page - 1, 1, window.URL.createObjectURL(response.data))
-          this.loadCounter += 1
           this.nowLoading = false
           this.getDLoadingPage()
         })
         .catch(error => {
           console.log(error)
-          this.$_pushNotice('ページが見つかりませんでした', 'error')
-          this.menuDialog = true
+          this.$_pushNotice('エラーが発生したので再試行します', 'error')
+          this.pageBlob[page - 1] = null
+          this.nowLoading = false
+          this.getDLoadingPage()
         })
     },
     // ページ取得
@@ -304,10 +302,7 @@ export default {
 
     // 4ページ決め打ちで先読み用アレイ
     this.pageBlob = Array(4)
-    this.getDLoadingPage(this.nowPage + 0)
-    this.getDLoadingPage(this.nowPage + 1)
-    this.getDLoadingPage(this.nowPage + 2)
-    this.getDLoadingPage(this.nowPage + 3)
+    this.getDLoadingPage()
 
     // 書籍情報取得
     axios.get('/api/books', {
@@ -338,7 +333,7 @@ export default {
   },
   beforeDestroy: function () {
     // 再帰処理を止めてる
-    this.loadCounter = 99999
+    this.pageMove = true
     // メニューを表示
     this.$store.dispatch('showMenuBer')
     // ウインドウ変更検出リスナー解除

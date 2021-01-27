@@ -96,11 +96,6 @@ def task_library():
         book_uuid = uuid.uuid4()
         page_len = 0
 
-        if is_copping(send_book):
-            logger.error("ファイルサイズが変わり続けたためインポートをスキップ")
-            break
-
-
         try:
             with zipfile.ZipFile(send_book) as existing_zip:
                 zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
@@ -108,7 +103,7 @@ def task_library():
                 zip_content.sort()
                 cover_path = zip_content[0]
                 existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
-                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',to_height=640,quality=85)
+                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',to_height=256,quality=85)
         except:
             logger.error(f'{send_book}はエラーが発生したため除外されました', exc_info=True)
             shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
