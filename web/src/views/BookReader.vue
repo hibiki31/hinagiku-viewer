@@ -191,7 +191,7 @@ export default {
           responseType: 'blob',
           params: {
             direct: 'True',
-            height: window.innerHeight
+            height: window.innerHeight * window.devicePixelRatio
           }
         })
         .then(response => {
