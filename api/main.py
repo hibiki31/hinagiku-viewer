@@ -18,11 +18,13 @@ from mixins.settings import DATA_ROOT, APP_ROOT
 from mixins.convertor import direct_book_page
 
 from books.router import app as books_router
+from books.schemas import BookCacheCreate
 
 
 logger = setup_logger(__name__)
 
 worker_pool = []
+converter_pool = []
 
 tags_metadata = [
     {
@@ -96,6 +98,15 @@ def media_books_uuid_page(
         detail="ファイルが存在しません",
     )
 
+@app.patch("/media/books")
+def patch_media_books_(
+        model: BookCacheCreate
+    ):
+    for w in converter_pool:
+        w.terminate()
+    converter_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "convert", model.uuid, str(model.height)]))
+
+    return ""
 
 def worker_up():
     worker_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py"]))

@@ -369,6 +369,7 @@ export default {
     },
     async toReaderPage (item) {
       // ローカルストレージにパラメータ格納
+      this.createCache(item)
       const parsed = JSON.stringify(this.searchQuery)
       localStorage.setItem('searchQuery', parsed)
       localStorage.setItem('openBookUUID', item.uuid)
@@ -377,14 +378,12 @@ export default {
       router.push({ name: 'BookReader', params: { uuid: item.uuid } })
     },
     createCache (book) {
-      if (book.state !== 'cached') {
-        this.$_pushNotice('キャッシュの作成をリクエスト', 'info')
-        axios.request({
-          method: 'put',
-          url: '/api/books',
-          data: { uuids: [book.uuid], state: 'request' }
-        })
-      }
+      this.$_pushNotice('キャッシュの作成をリクエスト', 'info')
+      axios.request({
+        method: 'patch',
+        url: '/media/books',
+        data: { uuid: book.uuid, height: window.innerHeight * window.devicePixelRatio }
+      })
     },
     getCoverURL (uuid) {
       const api = process.env.VUE_APP_API_HOST

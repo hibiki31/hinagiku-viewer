@@ -42,11 +42,10 @@ def endless_eight():
         sleep(0.1)
 
 
-def one_shot_convert(uuid):
+def one_shot_convert(uuid, height):
     db = SessionLocal()
     logger.info("単体変換起動")
-    task_convert(book_uuid=uuid)
-
+    task_convert(book_uuid=uuid, to_height=height)
 
 
 if __name__ == "__main__":
@@ -54,6 +53,11 @@ if __name__ == "__main__":
 
     if len(args) == 1:
         endless_eight()
-    elif len(args) == 3:
-        if args[2] == "convert":
-            one_shot_convert(args[3])    
+    elif len(args) == 4:
+        # worker.py convert uuid height
+        if args[1] == "convert":
+            logger.info(f'単発変換{args[2]} - {args[3]}')
+            one_shot_convert(
+                uuid=args[2], 
+                height=int(args[3])
+            )

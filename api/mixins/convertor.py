@@ -166,7 +166,8 @@ def task_library():
 
 
 
-def task_convert(book_uuid):
+def task_convert(book_uuid, to_height=1080, mode=2):
+    timer = DebugTimer()
     logger.info(book_uuid)
     # キャッシュ先にフォルダ作成
     os.makedirs(f"{DATA_ROOT}book_cache/{book_uuid}/", exist_ok=True)
@@ -177,17 +178,47 @@ def task_convert(book_uuid):
         file_list_in_zip.sort()
 
         for index, file_name in enumerate(file_list_in_zip):
-            convert_path = f"{DATA_ROOT}book_cache/{book_uuid}/{str(index+1).zfill(4)}.jpg"
-            logger.debug(convert_path)
-            existing_zip.extract(file_name, f'{APP_ROOT}temp/{book_uuid}')
-            image_convertor(f'{APP_ROOT}temp/{book_uuid}/{file_name}', convert_path, to_height=1080,quality=85)
+            convert_path = f"{DATA_ROOT}book_cache/{book_uuid}/{to_height}_{str(index+1).zfill(4)}.jpg"
+            convert_tmep = f"{DATA_ROOT}book_cache/{book_uuid}/{to_height}_{str(index+1).zfill(4)}.jpg"
+            
+            if mode == 1:
+                existing_zip.extract(file_name, f'{APP_ROOT}temp/{book_uuid}')
+                image_convertor(f'{APP_ROOT}temp/{book_uuid}/{file_name}', convert_path, to_height=to_height,quality=85)
+            elif mode == 2:
+                # 指定されたページだけ読み込んでPILに
+                img_src = Image.open(BytesIO(existing_zip.read(file_name))).convert('RGB')
+            
+                # 縦横計算
+                width, height = img_src.size
+                if height < to_height:
+                    new_height = height
+                    new_width = width
+                else:
+                    new_height = int(to_height)
+                    new_width = int(to_height / height * width)
+                
+                # 変換
+                new_img = img_src.resize((new_width, new_height), Image.LANCZOS)
+                new_img.save(convert_tmep, format='JPEG')
+                shutil.move(convert_tmep, convert_path)
+                logger.debug(convert_path)
+                
+
 
     shutil.rmtree(f"{APP_ROOT}temp/")
     os.mkdir(f"{APP_ROOT}temp/")
+    timer.rap("変換終了")
+
+
 
 
 def direct_book_page(book_uuid, page, to_height, quality):
     timer = DebugTimer()
+    cache_file = f"{DATA_ROOT}book_cache/{book_uuid}/{to_height}_{str(page).zfill(4)}.jpg"
+    if os.path.exists(cache_file):
+        logger.debug(f"キャッシュから読み込み{book_uuid} {page}")
+        return open(cache_file, mode="rb")
+
     try:
         with zipfile.ZipFile(f'{DATA_ROOT}book_library/{book_uuid}.zip') as existing_zip:
             # 関係あるファイルパスのリストに変更
@@ -208,8 +239,12 @@ def direct_book_page(book_uuid, page, to_height, quality):
         
             # 縦横計算
             width, height = img_src.size
-            new_height = int(to_height)
-            new_width = int(to_height / height * width)
+            if height < to_height:
+                new_height = height
+                new_width = width
+            else:
+                new_height = int(to_height)
+                new_width = int(to_height / height * width)
 
             # 空の入れ物用意
             img_dst = BytesIO()
@@ -248,8 +283,12 @@ def image_convertor(src_path, dst_path, to_height, quality):
     img = Image.open(src_path).convert('RGB')
 
     width, height = img.size
-    new_height = int(to_height)
-    new_width = int(to_height / height * width)
+    if height < to_height:
+        new_height = height
+        new_width = width
+    else:
+        new_height = int(to_height)
+        new_width = int(to_height / height * width)
 
     new_img = img.resize((new_width, new_height), Image.LANCZOS)
     # Tempで保存

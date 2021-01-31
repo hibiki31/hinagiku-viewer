@@ -42,3 +42,7 @@ class BookPut(CamelModel):
     library: str = None
     class Config:
         orm_mode  =  True
+
+class BookCacheCreate(CamelModel):
+    uuid: str
+    height: int

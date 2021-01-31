@@ -120,7 +120,7 @@ export default {
       showTowPage: false,
       uuid: '',
       nowPage: 1,
-      nowLoading: false,
+      nowLoading: 0,
       pageMove: false,
       booksList: [],
       width: window.innerWidth,
@@ -148,7 +148,8 @@ export default {
     // ページを進めるときに
     async getDLoadingPage () {
       const uuid = this.uuid
-      const cachePage = 64
+      const cachePage = 32
+      const mulchLoad = 3
       let pageOffset = null
 
       for (let i = 0; i < cachePage; i++) {
@@ -176,12 +177,12 @@ export default {
         return
       }
       // ロード中
-      if (this.nowLoading) {
+      if (this.nowLoading >= mulchLoad) {
         console.log('ロード中なので終了')
         return
       }
 
-      this.nowLoading = true
+      this.nowLoading += 1
       this.pageBlob[page - 1] = LoadingImage
 
       console.log(`${page}ページを読みます`)
@@ -196,14 +197,14 @@ export default {
         })
         .then(response => {
           this.pageBlob.splice(page - 1, 1, window.URL.createObjectURL(response.data))
-          this.nowLoading = false
+          this.nowLoading -= 1
           this.getDLoadingPage()
         })
         .catch(error => {
           console.log(error)
           this.$_pushNotice('エラーが発生したので再試行します', 'error')
           this.pageBlob[page - 1] = null
-          this.nowLoading = false
+          this.nowLoading -= 1
           this.getDLoadingPage()
         })
     },
