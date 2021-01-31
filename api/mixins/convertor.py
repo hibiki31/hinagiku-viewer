@@ -12,7 +12,7 @@ import uuid
 from fastapi import HTTPException
 
 import datetime
-from time import sleep
+from time import sleep, time
 
 
 import shutil
@@ -26,6 +26,18 @@ from books.models import BookModel
 
 
 logger = setup_logger(__name__)
+
+
+class DebugTimer():
+    def __init__(self):
+        self.time = time()
+    def rap(self, message):
+        now_time = time()
+        run_time = (now_time - self.time) * 1000
+        logger.debug(f'{run_time:.1f}ms - {message}')
+        self.time = now_time
+
+
 
 
 def main():
@@ -175,6 +187,7 @@ def task_convert(book_uuid):
 
 
 def direct_book_page(book_uuid, page, to_height, quality):
+    timer = DebugTimer()
     try:
         with zipfile.ZipFile(f'{DATA_ROOT}book_library/{book_uuid}.zip') as existing_zip:
             # 関係あるファイルパスのリストに変更
@@ -187,9 +200,11 @@ def direct_book_page(book_uuid, page, to_height, quality):
                     status_code=404,
                     detail="ページが存在しません",
                 )
+            timer.rap("リストをソート")
 
             # 指定されたページだけ読み込んでPILに
             img_src = Image.open(BytesIO(existing_zip.read(file_list_in_zip[page-1]))).convert('RGB')
+            timer.rap("ZIPをREADしてPILに")
         
             # 縦横計算
             width, height = img_src.size
@@ -202,6 +217,7 @@ def direct_book_page(book_uuid, page, to_height, quality):
             new_img = img_src.resize((new_width, new_height), Image.LANCZOS)
             new_img.save(img_dst, format='JPEG')
             img_dst.seek(0)
+            timer.rap("変換")
 
             return img_dst
     except FileNotFoundError:
