@@ -80,6 +80,10 @@ def media_books_uuid_page(
         height: int = 1080,
     ):
     if direct:
+        cache_file = f"{DATA_ROOT}book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
+        if os.path.exists(cache_file):
+            logger.debug(f"キャッシュから読み込み{uuid} {page}")
+            return FileResponse(path=cache_file)
         data = direct_book_page(uuid, page, height, 85)
         return StreamingResponse(data, media_type="image/png")
 

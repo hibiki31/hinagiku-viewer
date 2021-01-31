@@ -214,11 +214,6 @@ def task_convert(book_uuid, to_height=1080, mode=2):
 
 def direct_book_page(book_uuid, page, to_height, quality):
     timer = DebugTimer()
-    cache_file = f"{DATA_ROOT}book_cache/{book_uuid}/{to_height}_{str(page).zfill(4)}.jpg"
-    if os.path.exists(cache_file):
-        logger.debug(f"キャッシュから読み込み{book_uuid} {page}")
-        return open(cache_file, mode="rb")
-
     try:
         with zipfile.ZipFile(f'{DATA_ROOT}book_library/{book_uuid}.zip') as existing_zip:
             # 関係あるファイルパスのリストに変更
