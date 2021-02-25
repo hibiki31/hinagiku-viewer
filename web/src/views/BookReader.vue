@@ -6,7 +6,6 @@
         <v-card-text class="pt-6">
           <v-btn @click="nowPage += 1"> ページ調整 </v-btn>
           <v-btn @click="goLibrary()" class="ml-3">ライブラリへ戻る</v-btn>
-          <v-btn @click="reCache()" class="ml-3">キャッシュ再生成</v-btn>
           <v-row class="mt-3 pa-0">
             <v-col cols="12" sm="4">
               <v-select
@@ -128,7 +127,7 @@
         <v-btn icon @click="nowPage+=1">
           <v-icon>mdi-book-open-page-variant</v-icon>
         </v-btn>
-        <v-btn icon @click="goLibrary()" class="ml-3">
+        <v-btn icon @click="goLibrary" class="ml-3">
           <v-icon>mdi-close-circle</v-icon>
         </v-btn>
         <v-btn icon @click="menuDialog=true" class="ml-3">
@@ -255,7 +254,7 @@ export default {
           }
         })
         .then(response => {
-          this.loadSizeMB += Number(response.headers['content-length']) / 1000000.0
+          this.loadSizeMB += Number(response.headers['content-length']) / 1000000
           this.pageBlob.splice(page - 1, 1, window.URL.createObjectURL(response.data))
           this.nowLoading -= 1
           this.getDLoadingPage()
@@ -268,12 +267,14 @@ export default {
           setTimeout(this.getDLoadingPage, 1000)
         })
     },
-    openSubMenu () {
+    openSubMenu (event, item, i) {
+      console.log(event)
       if (this.subMenu) {
         this.subMenu = false
       } else {
         this.subMenu = true
       }
+      document.body.style.zoom = 1.0
     },
     pageNext () {
       if (this.settings.showTowPage) {
@@ -302,9 +303,10 @@ export default {
         this.pageBack()
       } else if (swipe === 'right') {
         this.pageNext()
-      } else if (swipe === 'up') {
-        alert('aaa')
+      } else if (swipe === 'bottom') {
         this.menuDialog = true
+      } else if (swipe === 'top') {
+        this.goLibrary()
       }
     },
     openMenu () {
@@ -351,6 +353,8 @@ export default {
     }
   },
   mounted: function () {
+    // 拡大率修正
+    document.body.style.zoom = 1.0
     // パスからUUIDを取得して，ローカルストレージに保存
     this.uuid = this.$route.params.uuid
     localStorage.openBookUUID = this.uuid
@@ -399,7 +403,6 @@ export default {
 }
 .image-base-height > img {
   max-height: 100vh;
-  height: auto;
-  width: auto;
+  max-width: 100%;
 }
 </style>
