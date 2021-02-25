@@ -181,6 +181,8 @@ export default {
       cachePageItems: [2, 4, 8, 16, 32, 64],
       loadSizeB: 0,
       loadSizeMB: 0,
+      viewerPage1TowPage: false,
+      viewerPage2TowPage: false,
       settings: {
         cachePage: 32,
         mulchLoad: 4,
@@ -232,29 +234,29 @@ export default {
 
       // 先読み限界
       if (pageOffset === null) {
-        console.log('先読み限界で終了')
+        // console.log('先読み限界で終了')
         return
       }
       // ページ移動
       if (this.pageMove) {
-        console.log('ページ移動したので終了')
+        // console.log('ページ移動したので終了')
         return
       }
       // 指定ページが0以下 or ページ数より大きかったら終了
       if ((page <= 0) || (page > this.bookInfo.page)) {
-        console.log('ページ限界なので終了')
+        // console.log('ページ限界なので終了')
         return
       }
       // ロード中
       if (this.nowLoading >= mulchLoad) {
-        console.log('ロード中なので終了')
+        // console.log('ロード中なので終了')
         return
       }
 
       this.nowLoading += 1
       this.pageBlob[page - 1] = LoadingImage
 
-      console.log(`${page}ページを読みます`)
+      // console.log(`${page}ページを読みます`)
 
       let height = this.settings.customHeight
       if (this.settings.showWindwSize) { height = this.settings.windowHeight }
@@ -371,12 +373,21 @@ export default {
       const width = element.naturalWidth
       const height = element.naturalHeight
       const fitWidth = width * this.height / height * 2
-      console.log([width, height, this.width, this.height])
-      if (fitWidth > this.width) {
-        this.settings.showTowPage = false
+      // console.log([width, height, this.width, this.height])
+      if (id === 'viewer-page-1') {
+        if (fitWidth > this.width) {
+          this.viewerPage1TowPage = false
+        } else {
+          this.viewerPage1TowPage = true
+        }
       } else {
-        this.settings.showTowPage = true
+        if (fitWidth > this.width) {
+          this.viewerPage2TowPage = false
+        } else {
+          this.viewerPage2TowPage = true
+        }
       }
+      this.settings.showTowPage = this.viewerPage1TowPage & this.viewerPage2TowPage
     }
   },
   mounted: function () {
