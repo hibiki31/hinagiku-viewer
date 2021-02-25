@@ -287,11 +287,15 @@ def create_book_page_cache(book_uuid, page, to_height, quality):
             new_height = int(to_height)
             new_width = int(to_height / height * width)
 
-        # 変換
-        new_img = img_src.resize((new_width, new_height), Image.LANCZOS)
-        new_img.save(f"{DATA_ROOT}book_cache/{book_uuid}/{to_height}_{str(page).zfill(4)}.jpg", format='JPEG')
-        timer.rap("変換")
+        # Tempパスを定義
+        dest_path = f"{DATA_ROOT}book_cache/{book_uuid}/{to_height}_{str(page).zfill(4)}.jpg"
+        temp_file = os.path.splitext(dst_path)[0]
+        temp_ext = os.path.splitext(dst_path)[1]
 
+        new_img = img_src.resize((new_width, new_height), Image.LANCZOS)
+        new_img.save(f'{temp_file}.page_temp{temp_ext}', quality=quality)
+        shutil.move(f'{temp_file}.page_temp{temp_ext}', dst_path)
+        timer.rap("変換")
 
 def task_export(book_model):
     book_uuid = book_model.uuid
