@@ -76,7 +76,7 @@
       class="text-center"
     >
       <!-- 見開き表示 -->
-      <template v-if="settings.showTowPage" >
+      <template v-if="settings.showTowPage">
         <img
           v-hammer:swipe="onSwipe"
           v-hammer:press="openSubMenu"
@@ -99,6 +99,19 @@
           :src="this.pageBlob[this.nowPage-1]"
         />
       </template>
+      <!-- 確認用 -->
+      <div style="display: none;">
+        <img
+          id="viewer-page-1"
+          v-on:load="imageLoad('viewer-page-1')"
+          :src="this.pageBlob[this.nowPage+0]"
+        />
+        <img
+          id="viewer-page-2"
+          v-on:load="imageLoad('viewer-page-2')"
+          :src="this.pageBlob[this.nowPage-1]"
+        />
+      </div>
     </div>
     <!-- 下部メニュ -->
     <div fluid class="text-center" style="position: fixed; bottom: 5px; z-index: 10; width: 100%" v-show="subMenu">
@@ -351,6 +364,18 @@ export default {
         localStorage.removeItem('readerSettings')
         this.settings.showTowPage = !(this.$vuetify.breakpoint.md || this.$vuetify.breakpoint.sm)
         this.settings.showBaseWidth = !this.settings.showTowPage
+      }
+    },
+    imageLoad (id) {
+      const element = document.getElementById(id)
+      const width = element.naturalWidth
+      const height = element.naturalHeight
+      const fitWidth = width * this.height / height * 2
+      console.log([width, height, this.width, this.height])
+      if (fitWidth > this.width) {
+        this.settings.showTowPage = false
+      } else {
+        this.settings.showTowPage = true
       }
     }
   },
