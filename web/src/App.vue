@@ -36,7 +36,7 @@ export default {
 </script>
 
 <style lang="scss">
-html {
-  -webkit-user-select: none;
-}
+// html {
+//   -webkit-user-select: none;
+// }
 </style>

@@ -166,6 +166,7 @@ export default {
       bookInfo: {},
       pageBlob: [],
       cachePageItems: [2, 4, 8, 16, 32, 64],
+      loadSizeB: 0,
       loadSizeMB: 0,
       settings: {
         cachePage: 32,
@@ -254,7 +255,8 @@ export default {
           }
         })
         .then(response => {
-          this.loadSizeMB += Number(response.headers['content-length']) / 1000000
+          this.loadSizeB += Number(response.headers['content-length'])
+          this.loadSizeMB = Math.round(this.loadSizeB / 10000) / 100
           this.pageBlob.splice(page - 1, 1, window.URL.createObjectURL(response.data))
           this.nowLoading -= 1
           this.getDLoadingPage()
