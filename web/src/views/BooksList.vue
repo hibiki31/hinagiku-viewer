@@ -409,8 +409,8 @@ export default {
 
   mounted: async function () {
     // 前回開いていた本を取得
-    const uuid = localStorage.backBookUUID
-    const page = localStorage.backBookPage
+    const uuid = localStorage.openBookUUID
+    const page = localStorage.openBookPage
     // 前回開いていた本が取得できたら本を開く
     if (uuid && page) {
       router.push({ name: 'BookReader', params: { uuid: uuid }, query: { page: page } })

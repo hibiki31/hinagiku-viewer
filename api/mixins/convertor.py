@@ -97,8 +97,7 @@ def is_copping(file_path):
     return True
 
 
-def task_library():
-    db = SessionLocal()
+def task_library(db):
     # ディレクトリ作成
     os.makedirs(f"{DATA_ROOT}book_library/", exist_ok=True)
     os.makedirs(f"{DATA_ROOT}book_send/", exist_ok=True)
@@ -106,6 +105,8 @@ def task_library():
 
     send_books_list = glob.glob(f"{DATA_ROOT}book_send/**", recursive=True)
     send_books_list = [p for p in send_books_list if os.path.splitext(p)[1].lower() in [".zip"]]
+    if len(send_books_list) != 0:
+        logger.info(str(len(send_books_list)) + "件の本をライブラリに追加します")
 
     for send_book in send_books_list:
         book_uuid = uuid.uuid4()
@@ -118,7 +119,7 @@ def task_library():
                 zip_content.sort()
                 cover_path = zip_content[0]
                 existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
-                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',to_height=256,quality=85)
+                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_library/{book_uuid}.jpg',to_height=600,quality=85)
         except:
             logger.error(f'{send_book}はエラーが発生したため除外されました', exc_info=True)
             shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
@@ -162,9 +163,6 @@ def task_library():
     
         shutil.rmtree(f"{APP_ROOT}temp/")
         os.mkdir(f"{APP_ROOT}temp/")
-        
-        # 応急処置として１件で終了するのでキャッシュ作成が止まらない
-        break
     return
 
 

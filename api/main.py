@@ -25,6 +25,7 @@ logger = setup_logger(__name__)
 
 worker_pool = []
 converter_pool = []
+library_pool = []
 
 tags_metadata = [
     {
@@ -94,12 +95,23 @@ def patch_media_books_(
     converter_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "convert", model.uuid, str(model.height)]))
     return { "status": "ok", "model": model }
 
+@app.patch("/media/library")
+def patch_media_library():
+    for i in library_pool:
+        if i.poll() == None:
+            return { "status": "allredy" }
+    library_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "library"]))
+    return { "status": "ok"}
+
 def worker_up():
-    worker_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py"]))
+    pass
+    # worker_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py"]))
 
 
 def worker_down():
     for w in worker_pool:
+        w.terminate()
+    for w in converter_pool:
         w.terminate()
 
 

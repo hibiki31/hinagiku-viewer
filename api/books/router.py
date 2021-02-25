@@ -47,7 +47,7 @@ async def get_api_books(
         fileNameLike: str = None,
         limit:int = 50,
         offset:int = 0,
-        sortKey:str = "file",
+        sortKey:str = "author-title",
     ):
 
     query = db.query(BookModel)
@@ -83,7 +83,10 @@ async def get_api_books(
     elif sortKey == "title":
         query = query.order_by(BookModel.title)
     elif sortKey == "date":
-        query = query.order_by(BookModel.add_date)
+        query = query.order_by(BookModel.add_date.desc())
+    elif sortKey == "author-title":
+        query = query.order_by(BookModel.author, BookModel.title)
+
     
     count = query.count()
 

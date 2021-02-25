@@ -7,11 +7,51 @@
           <v-btn @click="nowPage += 1"> ページ調整 </v-btn>
           <v-btn @click="goLibrary()" class="ml-3">ライブラリへ戻る</v-btn>
           <v-btn @click="reCache()" class="ml-3">キャッシュ再生成</v-btn>
-          <v-switch
-            v-model="showTowPage"
-            label="見開き表示"
-            hide-details
-          ></v-switch>
+          <v-row class="mt-3 pa-0">
+            <v-col cols="12" sm="4">
+              <v-select
+                :items="cachePageItems"
+                v-model="settings.cachePage"
+                label="先読みページ数"
+                dense
+              ></v-select>
+            </v-col>
+            <v-col cols="12" sm="4">
+              <v-select
+                :items="[600, 1080, 1920]"
+                v-model="settings.customHeight"
+                label="ページ縦サイズ"
+                dense
+              ></v-select>
+            </v-col>
+            <v-col cols="12" sm="4">
+              <v-text-field
+                v-model="this.loadSizeMB"
+                label="ロードサイズ MB"
+                clearable
+                readonly
+                dense
+              ></v-text-field>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12" sm="6">
+              <v-switch
+                v-model="settings.showTowPage"
+                label="見開き表示"
+                dense
+                hide-details
+              ></v-switch>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-switch
+                v-model="settings.showWindwSize"
+                label="画面サイズで表示"
+                dense
+                hide-details
+              ></v-switch>
+            </v-col>
+          </v-row>
           <v-slider
             v-model="nowPage"
             label="ページ"
@@ -22,6 +62,7 @@
         </v-card-text>
         <v-divider></v-divider>
         <v-card-text style="height: 300px">
+          size: {{ loadSizeMB }}MB
           {{ bookInfo }}
         </v-card-text>
         <v-divider></v-divider>
@@ -32,11 +73,11 @@
     </v-dialog>
     <!-- 画像表示ぶ-->
     <div
-      v-bind:class="{ 'image-base-width': baseWidth, 'image-base-height': !baseWidth }"
+      v-bind:class="{ 'image-base-width': settings.showBaseWidth, 'image-base-height': !settings.showBaseWidth }"
       class="text-center"
     >
       <!-- 見開き表示 -->
-      <template v-if="this.showTowPage" >
+      <template v-if="settings.showTowPage" >
         <img
           v-hammer:swipe="onSwipe"
           v-hammer:press="openSubMenu"
@@ -64,12 +105,12 @@
     <div fluid class="text-center" style="position: fixed; bottom: 5px; z-index: 10; width: 100%" v-show="subMenu">
       <v-container>
         <v-switch
-          v-model="showTowPage"
+          v-model="settings.showTowPage"
           label="見開き表示"
           hide-details
         ></v-switch>
         <v-switch
-          v-model="baseWidth"
+          v-model="settings.showBaseWidth"
           label="横幅に合わせる"
           hide-details
         ></v-switch>
@@ -114,10 +155,8 @@ export default {
         16: 'bottom'
       },
       menuDialog: false,
-      baseWidth: false,
       subMenu: false,
       heightOffcet: 0,
-      showTowPage: false,
       uuid: '',
       nowPage: 1,
       nowLoading: 0,
@@ -126,30 +165,47 @@ export default {
       width: window.innerWidth,
       height: window.innerHeight,
       bookInfo: {},
-      pageBlob: []
+      pageBlob: [],
+      cachePageItems: [2, 4, 8, 16, 32, 64],
+      loadSizeMB: 0,
+      settings: {
+        cachePage: 32,
+        mulchLoad: 4,
+        showTowPage: false,
+        showBaseWidth: false,
+        showWindwSize: false,
+        customHeight: 1024,
+        windowHeight: window.innerHeight * window.devicePixelRatio
+      }
     }
   },
   watch: {
     nowPage: function (newPage, oldPage) {
       this.getDLoadingPage()
-      localStorage.page = newPage
+      localStorage.openBookPage = newPage
+      if (Number(this.$route.query.page) !== newPage) {
+        this.$router.push({ query: { page: newPage } })
+      }
     },
-    showTowPage: function (newValue, oldValue) {
-      localStorage.showTowPage = newValue
+    settings: {
+      handler: function (val, oldVal) {
+        localStorage.setItem('readerSettings', JSON.stringify(this.settings))
+      },
+      deep: true
     }
   },
   methods: {
     // ライブラリに戻るときに
     goLibrary () {
-      localStorage.removeItem('uuid')
-      localStorage.removeItem('page')
+      localStorage.removeItem('openBookUUID')
+      localStorage.removeItem('openBookPage')
       router.push({ name: 'BooksList' })
     },
     // ページを進めるときに
     async getDLoadingPage () {
       const uuid = this.uuid
-      const cachePage = 32
-      const mulchLoad = 3
+      const cachePage = this.settings.cachePage
+      const mulchLoad = this.settings.mulchLoad
       let pageOffset = null
 
       for (let i = 0; i < cachePage; i++) {
@@ -187,15 +243,19 @@ export default {
 
       console.log(`${page}ページを読みます`)
 
+      let height = this.settings.customHeight
+      if (this.settings.showWindwSize) { height = this.settings.windowHeight }
+
       await axios
         .get(`/media/books/${uuid}/${page}`, {
           responseType: 'blob',
           params: {
             direct: 'True',
-            height: window.innerHeight * window.devicePixelRatio
+            height: height
           }
         })
         .then(response => {
+          this.loadSizeMB += Number(response.headers['content-length']) / 1000000.0
           this.pageBlob.splice(page - 1, 1, window.URL.createObjectURL(response.data))
           this.nowLoading -= 1
           this.getDLoadingPage()
@@ -205,23 +265,7 @@ export default {
           this.$_pushNotice('エラーが発生したので再試行します', 'error')
           this.pageBlob[page - 1] = null
           this.nowLoading -= 1
-          this.getDLoadingPage()
-        })
-    },
-    // ページ取得
-    getImageBlob (uuid, page) {
-      axios
-        .get(`/media/books/${uuid}/${page}`, {
-          responseType: 'blob',
-          params: { direct: 'True' }
-        })
-        .then(response => {
-          this.pageBlob.splice(page - 1, 1, window.URL.createObjectURL(response.data))
-        })
-        .catch(error => {
-          console.log(error)
-          this.$_pushNotice('ページが見つかりませんでした', 'error')
-          this.menuDialog = true
+          setTimeout(this.getDLoadingPage, 1000)
         })
     },
     openSubMenu () {
@@ -232,7 +276,7 @@ export default {
       }
     },
     pageNext () {
-      if (this.showTowPage) {
+      if (this.settings.showTowPage) {
         this.nowPage += 2
       } else {
         this.nowPage += 1
@@ -243,7 +287,7 @@ export default {
       }
     },
     pageBack () {
-      if (this.showTowPage) {
+      if (this.settings.showTowPage) {
         this.nowPage -= 2
       } else {
         this.nowPage -= 1
@@ -291,13 +335,25 @@ export default {
     },
     parseBoolean (str) {
       return (str === 'true')
+    },
+    loadSettings () {
+      // 設定の復元
+      try {
+        // 置き換えじゃなくてキーごとに上書き
+        const getParam = JSON.parse(localStorage.getItem('readerSettings'))
+        for (const key in getParam) { this.settings[key] = getParam[key] }
+      } catch (e) {
+        console.log(e)
+        localStorage.removeItem('readerSettings')
+        this.settings.showTowPage = !(this.$vuetify.breakpoint.md || this.$vuetify.breakpoint.sm)
+        this.settings.showBaseWidth = !this.settings.showTowPage
+      }
     }
   },
   mounted: function () {
-    // パスからUUIDを取得
+    // パスからUUIDを取得して，ローカルストレージに保存
     this.uuid = this.$route.params.uuid
-    // ローカルストレージに保存
-    localStorage.uuid = this.openBookUUID
+    localStorage.openBookUUID = this.uuid
 
     // ページの指定はあるか？
     if (this.$route.query.page) {
@@ -317,18 +373,7 @@ export default {
         Array.prototype.push.apply(this.pageBlob, Array(this.bookInfo.page - 4))
       })
 
-    // 表示設定を取得
-    const showTowPage = localStorage.showTowPage
-
-    // なかったら縦横比で設定
-    if (showTowPage !== null) {
-      this.showTowPage = this.parseBoolean(showTowPage)
-    } else {
-      this.showTowPage = !(this.$vuetify.breakpoint.md || this.$vuetify.breakpoint.sm)
-      localStorage.setItem('showTowPage', this.showTowPage)
-    }
-    // 見開き表示設定から縦横のベースを決定
-    this.baseWidth = !this.showTowPage
+    this.loadSettings()
 
     // メニューを非表示
     this.$store.dispatch('hideMenuBer')

@@ -36,9 +36,7 @@ def endless_eight():
             break
         
         db.query(BookModel).filter(BookModel.state=="export").delete()
-
         db.commit()
-        
         sleep(0.1)
 
 
@@ -55,5 +53,11 @@ if __name__ == "__main__":
                 to_height=int(args[3])
             )
             logger.info(f'別プロセスでキャッシュ完了 height:{args[3]} uuid:{args[2]}')
+    elif len(args) == 2:
+        if args[1] == "library":
+            logger.info(f'別プロセスでライブラリ追加処理開始')
+            task_library(db=db)
+            logger.info(f'別プロセスでライブラリ追加処理終了')
+
     else:
         endless_eight()
