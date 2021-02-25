@@ -15,7 +15,7 @@ from fastapi.responses import StreamingResponse
 from mixins.log import setup_logger
 from mixins.database import SessionLocal, Engine, Base
 from mixins.settings import DATA_ROOT, APP_ROOT
-from mixins.convertor import direct_book_page
+from mixins.convertor import create_book_page_cache
 
 from books.router import app as books_router
 from books.schemas import BookCacheCreate
@@ -60,47 +60,30 @@ Base.metadata.create_all(bind=Engine)
 async def get_media_books_uuid(
         uuid: str
     ):
-    
-    some_file_path = f"{DATA_ROOT}book_library/{uuid}.jpg"
-
-    if not os.path.exists(some_file_path):
+    file_path = f"{DATA_ROOT}book_library/{uuid}.jpg"
+    if not os.path.exists(file_path):
         raise HTTPException(
             status_code=404,
             detail="ファイルが存在しません",
         )
-
-    return FileResponse(some_file_path)
+    return FileResponse(file_path)
 
 
 @app.get("/media/books/{uuid}/{page}")
 def media_books_uuid_page(
         uuid: str,
         page: int,
-        direct: bool = False,
+        direct: bool = True,
         height: int = 1080,
     ):
     if direct:
         cache_file = f"{DATA_ROOT}book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
         if os.path.exists(cache_file):
             logger.debug(f"キャッシュから読み込み{uuid} {page}")
-            return FileResponse(path=cache_file)
-        data = direct_book_page(uuid, page, height, 85)
-        return StreamingResponse(data, media_type="image/png")
+        else:
+            create_book_page_cache(uuid, page, height, 85)
+        return FileResponse(path=cache_file)
 
-    some_file_path = f"{DATA_ROOT}book_cache/{uuid}/{str(page).zfill(4)}.jpg"
-    
-    for i in range(0,300):
-        # 存在しないとき
-        if not os.path.exists(some_file_path):
-            time.sleep(0.1)
-            continue
-        # 返す
-        return FileResponse(some_file_path)
-
-    raise HTTPException(
-        status_code=404,
-        detail="ファイルが存在しません",
-    )
 
 @app.patch("/media/books")
 def patch_media_books_(
@@ -109,8 +92,7 @@ def patch_media_books_(
     for w in converter_pool:
         w.terminate()
     converter_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "convert", model.uuid, str(model.height)]))
-
-    return ""
+    return { "status": "ok", "model": model }
 
 def worker_up():
     worker_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py"]))

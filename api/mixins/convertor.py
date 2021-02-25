@@ -256,6 +256,41 @@ def direct_book_page(book_uuid, page, to_height, quality):
             detail="本が存在しません",
         )
 
+def create_book_page_cache(book_uuid, page, to_height, quality):
+    timer = DebugTimer()
+    # キャッシュ先にフォルダ作成
+    os.makedirs(f"{DATA_ROOT}book_cache/{book_uuid}/", exist_ok=True)
+    
+    with zipfile.ZipFile(f'{DATA_ROOT}book_library/{book_uuid}.zip') as existing_zip:
+        # 関係あるファイルパスのリストに変更
+        file_list_in_zip = existing_zip.namelist()
+        file_list_in_zip = [p for p in file_list_in_zip if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
+        file_list_in_zip.sort()
+
+        if page > len(file_list_in_zip):
+            raise HTTPException(
+                status_code=404,
+                detail="ページが存在しません",
+            )
+        timer.rap("リストをソート")
+
+        # 指定されたページだけ読み込んでPILに
+        img_src = Image.open(BytesIO(existing_zip.read(file_list_in_zip[page-1]))).convert('RGB')
+        timer.rap("ZIPをREADしてPILに")
+    
+        # 縦横計算
+        width, height = img_src.size
+        if height < to_height:
+            new_height = height
+            new_width = width
+        else:
+            new_height = int(to_height)
+            new_width = int(to_height / height * width)
+
+        # 変換
+        new_img = img_src.resize((new_width, new_height), Image.LANCZOS)
+        new_img.save(f"{DATA_ROOT}book_cache/{book_uuid}/{to_height}_{str(page).zfill(4)}.jpg", format='JPEG')
+        timer.rap("変換")
 
 
 def task_export(book_model):
