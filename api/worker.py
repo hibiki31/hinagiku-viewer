@@ -42,22 +42,18 @@ def endless_eight():
         sleep(0.1)
 
 
-def one_shot_convert(uuid, height):
-    db = SessionLocal()
-    logger.info("単体変換起動")
-    task_convert(book_uuid=uuid, to_height=height)
-
-
 if __name__ == "__main__":
     args = sys.argv
+    db = SessionLocal()
 
-    if len(args) == 1:
-        endless_eight()
-    elif len(args) == 4:
-        # worker.py convert uuid height
+    # worker.py convert uuid height
+    if len(args) == 4:
         if args[1] == "convert":
-            logger.info(f'単発変換{args[2]} - {args[3]}')
-            one_shot_convert(
-                uuid=args[2], 
-                height=int(args[3])
+            logger.info(f'別プロセスでキャッシュ作成 height:{args[3]} uuid:{args[2]}')
+            task_convert(
+                book_uuid=args[2], 
+                to_height=int(args[3])
             )
+            logger.info(f'別プロセスでキャッシュ完了 height:{args[3]} uuid:{args[2]}')
+    else:
+        endless_eight()

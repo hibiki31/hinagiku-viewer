@@ -31,10 +31,13 @@ logger = setup_logger(__name__)
 class DebugTimer():
     def __init__(self):
         self.time = time()
-    def rap(self, message):
+    def rap(self, message, level='debug'):
         now_time = time()
         run_time = (now_time - self.time) * 1000
-        logger.debug(f'{run_time:.1f}ms - {message}')
+        if level == 'info':
+            logger.debug(f'{run_time:.1f}ms - {message}')
+        else:
+            logger.debug(f'{run_time:.1f}ms - {message}')
         self.time = now_time
 
 
@@ -168,7 +171,6 @@ def task_library():
 
 def task_convert(book_uuid, to_height=1080, mode=2):
     timer = DebugTimer()
-    logger.info(book_uuid)
     # キャッシュ先にフォルダ作成
     os.makedirs(f"{DATA_ROOT}book_cache/{book_uuid}/", exist_ok=True)
     # 解凍
@@ -202,9 +204,6 @@ def task_convert(book_uuid, to_height=1080, mode=2):
                 new_img.save(convert_tmep, format='JPEG')
                 shutil.move(convert_tmep, convert_path)
                 logger.debug(convert_path)
-                
-
-
     shutil.rmtree(f"{APP_ROOT}temp/")
     os.mkdir(f"{APP_ROOT}temp/")
     timer.rap("変換終了")
@@ -288,7 +287,7 @@ def create_book_page_cache(book_uuid, page, to_height, quality):
             new_width = int(to_height / height * width)
 
         # Tempパスを定義
-        dest_path = f"{DATA_ROOT}book_cache/{book_uuid}/{to_height}_{str(page).zfill(4)}.jpg"
+        dst_path = f"{DATA_ROOT}book_cache/{book_uuid}/{to_height}_{str(page).zfill(4)}.jpg"
         temp_file = os.path.splitext(dst_path)[0]
         temp_ext = os.path.splitext(dst_path)[1]
 
