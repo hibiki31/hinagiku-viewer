@@ -181,7 +181,7 @@ def task_convert(book_uuid, to_height=1080, mode=2):
 
         for index, file_name in enumerate(file_list_in_zip):
             convert_path = f"{DATA_ROOT}book_cache/{book_uuid}/{to_height}_{str(index+1).zfill(4)}.jpg"
-            convert_tmep = f"{DATA_ROOT}book_cache/{book_uuid}/{to_height}_{str(index+1).zfill(4)}.jpg"
+            convert_tmep = f"{DATA_ROOT}book_cache/{book_uuid}/{to_height}_{str(index+1).zfill(4)}.book_temp.jpg"
             
             if mode == 1:
                 existing_zip.extract(file_name, f'{APP_ROOT}temp/{book_uuid}')
