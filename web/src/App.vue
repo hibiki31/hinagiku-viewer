@@ -36,7 +36,20 @@ export default {
 </script>
 
 <style lang="scss">
-// html {
-//   -webkit-user-select: none;
-// }
+html {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.selectable {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  -khtml-user-select: text;
+  -webkit-user-select: text;
+  -webkit-touch-callout: text;
+}
 </style>

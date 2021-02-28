@@ -41,7 +41,7 @@
             v-model="openItem.publisher"
           ></v-text-field>
           <v-btn small class="pa-1" @click="showJson = !showJson">Json</v-btn>
-          <div v-if="showJson">{{ this.openItem }}</div>
+          <div v-if="showJson" class="selectable">{{ this.openItem }}</div>
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions>

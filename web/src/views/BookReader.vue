@@ -60,8 +60,7 @@
           ></v-slider>
         </v-card-text>
         <v-divider></v-divider>
-        <v-card-text style="height: 300px">
-          size: {{ loadSizeMB }}MB
+        <v-card-text style="height: 300px" class="selectable">
           {{ bookInfo }}
         </v-card-text>
         <v-divider></v-divider>
@@ -285,7 +284,6 @@ export default {
         })
     },
     openSubMenu (event, item, i) {
-      console.log(event)
       if (this.subMenu) {
         this.subMenu = false
       } else {
@@ -441,6 +439,6 @@ export default {
 }
 .image-base-height > img {
   max-height: 100vh;
-  max-width: 100%;
+  height: 100vh;
 }
 </style>
