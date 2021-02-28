@@ -148,17 +148,18 @@
           <v-btn class="ma-1" small @click="mulchBooksDialog = true"
             >Range Change<v-icon>mdi-pen</v-icon></v-btn
           >
+          <v-btn class="ma-1" small @click="loadLibrary">
+            Load
+          </v-btn>
+          <v-switch
+            v-model="showListMode"
+            class="ma-1"
+            label="リスト表示"
+            dense
+            hide-details
+          ></v-switch>
         </v-list-item-group>
       </v-list>
-      <v-btn @click="loadLibrary">
-        Load
-      </v-btn>
-      <v-switch
-        v-model="showListMode"
-        label=""
-        dense
-        hide-details
-      ></v-switch>
       <!-- ライセンス -->
       <v-divider class="pb-2"></v-divider>
       <span class="subtitle-2 ml-3"
@@ -465,7 +466,7 @@ export default {
       this.createCache(item)
       const parsed = JSON.stringify(this.searchQuery)
       localStorage.setItem('searchQuery', parsed)
-      localStorage.setItem('openBookUUID', item.uuid)
+      localStorage.setItem('backBookUUID', item.uuid)
 
       // 移動
       router.push({ name: 'BookReader', params: { uuid: item.uuid } })
@@ -491,18 +492,18 @@ export default {
     },
     scrollToUUID () {
       setTimeout(() => {
-        const openBookUUID = localStorage.openBookUUID
+        const backBookUUID = localStorage.backBookUUID
         this.$forceNextTick(() => {
-          if (openBookUUID) {
+          if (backBookUUID) {
             const options = { offset: -300 }
             VueScrollTo.scrollTo(
-              document.getElementById(openBookUUID),
+              document.getElementById(backBookUUID),
               400,
               options
             )
           }
         })
-        localStorage.removeItem('openBookUUID')
+        localStorage.removeItem('backBookUUID')
       }, 300)
     }
   },
@@ -511,6 +512,7 @@ export default {
     // 前回開いていた本を取得
     const uuid = localStorage.openBookUUID
     const page = localStorage.openBookPage
+    console.log(uuid)
     // 前回開いていた本が取得できたら本を開く
     if (uuid && page) {
       router.push({
@@ -520,8 +522,8 @@ export default {
       })
       return
     } else {
-      localStorage.removeItem('backBookUUID')
-      localStorage.removeItem('backBookPage')
+      localStorage.removeItem('openBookUUID')
+      localStorage.removeItem('openBookPage')
     }
 
     // ライブラリ情報取得
