@@ -166,6 +166,99 @@ def task_library(db):
         os.mkdir(f"{APP_ROOT}temp/")
     return
 
+def export_library(db):
+    for request in db.query(BookModel).filter(BookModel.state=="export").all():
+        request: BookModel
+        print(BookModel.import_file_name)
+
+    return
+    export_file = f'{DATA_ROOT}book_library/{book_uuid}.zip'
+    export_dir = f"{DATA_ROOT}book_export/"
+
+    os.makedirs(f"{DATA_ROOT}book_export/", exist_ok=True)
+
+    book_uuid = book_model.uuid
+    file_name = book_model.import_file_name
+    logger.info(f'{book_uuid}をエクスポートします')
+    
+
+    
+    try:
+        shutil.move(export_file, export_dir+file_name)
+        os.remove(f'{DATA_ROOT}book_library/{book_uuid}.jpg')
+    except:
+        logger.error(f'{export_file}は存在しなかったためレコードの削除のみを行いました')
+
+
+
+    # ディレクトリ作成
+    os.makedirs(f"{DATA_ROOT}book_library/", exist_ok=True)
+    os.makedirs(f"{DATA_ROOT}book_send/", exist_ok=True)
+    os.makedirs(f"{DATA_ROOT}book_fail/", exist_ok=True)
+    os.makedirs(f"{DATA_ROOT}book_cache/thum/", exist_ok=True)
+
+    send_books_list = glob.glob(f"{DATA_ROOT}book_send/**", recursive=True)
+    send_books_list = [p for p in send_books_list if os.path.splitext(p)[1].lower() in [".zip"]]
+    if len(send_books_list) != 0:
+        logger.info(str(len(send_books_list)) + "件の本をライブラリに追加します")
+
+    for send_book in send_books_list:
+        book_uuid = uuid.uuid4()
+        page_len = 0
+
+        try:
+            with zipfile.ZipFile(send_book) as existing_zip:
+                zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
+                page_len = len(zip_content)
+                zip_content.sort()
+                cover_path = zip_content[0]
+                existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
+                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_cache/thum/{book_uuid}.jpg',to_height=600,quality=85)
+        except:
+            logger.error(f'{send_book}はエラーが発生したため除外されました', exc_info=True)
+            shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
+            continue
+
+
+        get_genre = os.path.basename(os.path.dirname(send_book))
+        if get_genre == "book_send":
+            get_genre = "default"
+        
+        file_name_purse:PurseResult = base_purser(os.path.basename(send_book))
+            
+        model = BookModel(
+            uuid = str(book_uuid),
+            # ソフトメタデータ
+            title = file_name_purse.title,
+            author = file_name_purse.author,
+            publisher = file_name_purse.publisher,
+            series = None,
+            series_no = None,
+            rate = None,
+            genre = None,
+            library = get_genre,
+            # ハードメタデータ
+            size = os.path.getsize(send_book),
+            page = page_len,
+            add_date = datetime.datetime.now(),
+            file_date = datetime.datetime.fromtimestamp(os.path.getmtime(send_book)),
+            import_file_name = os.path.basename(send_book),
+            # アクティブメタデータ
+            cache_date = None,
+            open_count = 0,
+            open_date = None,
+            state = "imported",
+        )
+
+        db.add(model)
+        db.commit()
+        shutil.move(send_book, f'{DATA_ROOT}book_library/{book_uuid}.zip')
+        logger.info(f'ライブラリに追加: {DATA_ROOT}book_library/{book_uuid}.zip')
+    
+        shutil.rmtree(f"{APP_ROOT}temp/")
+        os.mkdir(f"{APP_ROOT}temp/")
+    return
+
 
 
 def task_convert(book_uuid, to_height=1080, mode=2):

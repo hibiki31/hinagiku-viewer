@@ -7,7 +7,7 @@ from mixins.settings import APP_ROOT, DATA_ROOT
 from mixins.log import setup_logger
 from mixins.database import SessionLocal
 
-from mixins.convertor import task_library, task_convert, task_export
+from mixins.convertor import task_library, task_convert, task_export, export_library
 
 from books.models import BookModel 
 
@@ -58,6 +58,8 @@ if __name__ == "__main__":
             logger.info(f'別プロセスでライブラリ追加処理開始')
             task_library(db=db)
             logger.info(f'別プロセスでライブラリ追加処理終了')
-
+            logger.info(f'別プロセスでライブラリエクスポート開始')
+            export_library(db=db)
+            logger.info(f'別プロセスでライブラリエクスポート終了')
     else:
         endless_eight()
