@@ -2,6 +2,8 @@ import subprocess
 import time
 import uvicorn
 import os
+import asyncio
+from aiopath import AsyncPath
 
 from fastapi import status, FastAPI, Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,6 +21,21 @@ from mixins.convertor import create_book_page_cache
 
 from books.router import app as books_router
 from books.schemas import BookCacheCreate
+
+async def run(cmd):
+    proc = await asyncio.create_subprocess_shell(
+        cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE)
+
+    stdout, stderr = await proc.communicate()
+
+    if proc.returncode != 0:
+        print(f'[{cmd!r} exited with {proc.returncode}]')
+        if stdout:
+            print(f'[stdout]\n{stdout.decode()}')
+        if stderr:
+            print(f'[stderr]\n{stderr.decode()}')
 
 
 logger = setup_logger(__name__)
@@ -71,13 +88,23 @@ async def get_media_books_uuid(
 
 
 @app.get("/media/books/{uuid}/{page}")
-def media_books_uuid_page(
+async def media_books_uuid_page(
         uuid: str,
         page: int,
         direct: bool = True,
         height: int = 1080,
     ):
-    if direct:
+    # 非同期
+    if True:
+        cache_file = f"{DATA_ROOT}book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
+        if await AsyncPath(cache_file).exists():
+            logger.debug(f"キャッシュから読み込み{uuid} {page}")
+        else:
+            cmd = f"python3 {APP_ROOT}worker.py page {uuid} {str(height)} {str(page)}"
+            await run(cmd)
+        return FileResponse(path=cache_file)
+    # 同期
+    if False:
         cache_file = f"{DATA_ROOT}book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
         if os.path.exists(cache_file):
             logger.debug(f"キャッシュから読み込み{uuid} {page}")
