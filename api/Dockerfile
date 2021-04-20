@@ -17,7 +17,7 @@ RUN pip install pandas==1.1.3
 RUN pip install aiofiles
 RUN pip install Pillow
 RUN pip install alembic
-RUN pip install iopath
+RUN pip install aiopath
 RUN mkdir -p /opt/app
 RUN mkdir -p /opt/data
 COPY . /opt/app
