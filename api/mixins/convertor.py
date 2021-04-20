@@ -170,6 +170,8 @@ def export_library(db):
     for book_model in db.query(BookModel).filter(BookModel.state=="export").all():
         book_model: BookModel
         task_export(book_model=book_model)
+        db.query(BookModel).filter(BookModel.uuid==book_model.uuid).delete()
+        db.commit()
 
 
 
@@ -309,9 +311,18 @@ def task_export(book_model):
 
     os.makedirs(export_dir, exist_ok=True)
 
-    shutil.move(export_file, export_dir+file_name)
+    try:
+        shutil.move(export_file, export_dir+file_name)
+    except FileNotFoundError:
+        logger.warn(f'{book_uuid}は存在しないためデータベースから消去します')
+    
+    try:
+        os.remove(f'{DATA_ROOT}book_cache/thum/{book_uuid}.jpg')
+    except:
+        logger.warn(f'{book_uuid}のサムネイルが削除出来ませんでした')
+
     os.chmod(export_dir+file_name,777)
-    os.remove(f'{DATA_ROOT}book_cache/thum/{book_uuid}.jpg')
+    
 
 
 def image_convertor(src_path, dst_path, to_height, quality):
