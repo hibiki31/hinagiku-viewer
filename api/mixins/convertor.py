@@ -308,12 +308,10 @@ def task_export(book_model):
     export_dir = f"{DATA_ROOT}book_export/"
 
     os.makedirs(export_dir, exist_ok=True)
-    try:
-        shutil.move(export_file, export_dir+file_name)
-        os.remove(f'{DATA_ROOT}book_library/{book_uuid}.jpg')
-    except:
-        logger.error(f'{export_file}は存在しなかったためレコードの削除のみを行いました')
 
+    shutil.move(export_file, export_dir+file_name)
+    os.chmod(export_dir+file_name,777)
+    os.remove(f'{DATA_ROOT}book_cache/thum/{book_uuid}.jpg')
 
 
 def image_convertor(src_path, dst_path, to_height, quality):
