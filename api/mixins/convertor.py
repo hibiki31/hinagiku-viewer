@@ -24,6 +24,9 @@ from mixins.purser import PurseResult, base_purser
 
 from books.models import BookModel
 
+import json
+import hashlib
+
 
 logger = setup_logger(__name__)
 
@@ -42,6 +45,31 @@ class DebugTimer():
 
 
 
+def get_hash(path):
+    # ハッシュアルゴリズムを決めます
+    algo = 'sha1'
+
+    # ハッシュオブジェクトを作ります
+    h = hashlib.new(algo)
+
+    # 分割する長さをブロックサイズの整数倍に決めます
+    Length = hashlib.new(algo).block_size * 0x800
+
+    # 大きなバイナリデータを用意します
+    with open(path,'rb') as f:
+        BinaryData = f.read(Length)
+
+        # データがなくなるまでループします
+        while BinaryData:
+
+            # ハッシュオブジェクトに追加して計算します。
+            h.update(BinaryData)
+
+            # データの続きを読み込む
+            BinaryData = f.read(Length)
+
+    # ハッシュオブジェクトを16進数で出力します
+    return h.hexdigest()
 
 def main():
     # unzip(unzip_file=zip_name, to_dir=dir_name)
@@ -112,7 +140,6 @@ def task_library(db):
     for send_book in send_books_list:
         book_uuid = uuid.uuid4()
         page_len = 0
-
         try:
             with zipfile.ZipFile(send_book) as existing_zip:
                 zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
@@ -167,12 +194,24 @@ def task_library(db):
     return
 
 def export_library(db):
+    os.makedirs(f"{DATA_ROOT}book_export/", exist_ok=True)
     for book_model in db.query(BookModel).filter(BookModel.state=="export").all():
         book_model: BookModel
         task_export(book_model=book_model)
         db.query(BookModel).filter(BookModel.uuid==book_model.uuid).delete()
         db.commit()
-
+    for book_model in db.query(BookModel).all():
+        book_model: BookModel
+        d = get_model_dict(book_model)
+        d["sha1"] = get_hash(f'{DATA_ROOT}book_library/{book_model.uuid}.zip')
+        d["add_date"] = d["add_date"].isoformat()
+        d["file_date"] = d["file_date"].isoformat()
+        with open(f"{DATA_ROOT}book_export/{book_model.uuid}.json", 'w') as f:
+            json.dump(d, f, indent=4)
+    
+def get_model_dict(model):
+    return dict((column.name, getattr(model, column.name)) 
+                for column in model.__table__.columns)
 
 
 def task_convert(book_uuid, to_height=1080, mode=2):
