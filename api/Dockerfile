@@ -17,6 +17,10 @@ RUN pip install pandas==1.1.3
 RUN pip install aiofiles
 RUN pip install Pillow
 RUN pip install alembic
+RUN pip install fastapi-jwt-auth
+RUN pip install passlib
+RUN pip install python-multipart
+RUN pip install bcrypt
 
 RUN mkdir -p /opt/app
 RUN mkdir -p /opt/data
