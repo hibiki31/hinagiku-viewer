@@ -20,6 +20,7 @@ from mixins.settings import DATA_ROOT, APP_ROOT
 from mixins.convertor import create_book_page_cache
 
 from books.router import app as books_router
+from users.router import app as users_router
 from books.schemas import BookCacheCreate
 
 async def run(cmd):
@@ -69,7 +70,8 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-app.include_router(books_router)
+app.include_router(router=books_router)
+app.include_router(router=users_router)
 
 Base.metadata.create_all(bind=Engine)
 
@@ -122,7 +124,7 @@ def patch_media_books_(
     converter_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "convert", model.uuid, str(model.height)]))
     return { "status": "ok", "model": model }
 
-@app.patch("/media/library")
+@app.patch("/media/library", tags=["library"])
 def patch_media_library():
     for i in library_pool:
         if i.poll() == None:
