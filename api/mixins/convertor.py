@@ -154,8 +154,10 @@ def task_library(db, user_id):
                 logger.error(f'{send_book} チェックサムが一致していないため除外します')
                 shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
                 continue
+            is_import = True
         else:
             book_uuid = uuid.uuid4()
+            is_import = False
         
         # サムネイルの作成など
         try:
@@ -205,6 +207,8 @@ def task_library(db, user_id):
                 book_uuid = str(book_uuid),
                 rate = json_metadata['rate'],
             )
+            db.add(model)
+            db.add(metadata_model)  
         else:
             model = BookModel(
                 uuid = str(book_uuid),
@@ -214,7 +218,6 @@ def task_library(db, user_id):
                 publisher = file_name_purse.publisher,
                 series = None,
                 series_no = None,
-                rate = None,
                 genre = None,
                 library = get_genre,
                 # ハードメタデータ
@@ -223,18 +226,16 @@ def task_library(db, user_id):
                 add_date = datetime.datetime.now(),
                 file_date = datetime.datetime.fromtimestamp(os.path.getmtime(send_book)),
                 import_file_name = os.path.basename(send_book),
-                # アクティブメタデータ
-                cache_date = None,
-                open_count = 0,
-                open_date = None,
-                state = "imported",
             )
+            db.add(model)
 
-        db.add(model)
-        db.add(metadata_model)
-        db.commit()
+        
         shutil.move(send_book, f'{DATA_ROOT}book_library/{book_uuid}.zip')
-        logger.info(f'ライブラリに追加: {DATA_ROOT}book_library/{book_uuid}.zip')
+
+        if is_import:
+            logger.info(f'ライブラリにインポート: {DATA_ROOT}book_library/{book_uuid}.zip')
+        else:
+            logger.info(f'ライブラリに追加: {DATA_ROOT}book_library/{book_uuid}.zip')
     
         shutil.rmtree(f"{APP_ROOT}temp/")
         os.mkdir(f"{APP_ROOT}temp/")
@@ -247,6 +248,7 @@ def export_library(db):
         task_export(book_model=book_model)
         db.query(BookModel).filter(BookModel.uuid==book_model.uuid).delete()
         db.commit()
+    return
     for book_model in db.query(BookModel).all():
         book_model: BookModel
         d = get_model_dict(book_model)
@@ -257,8 +259,12 @@ def export_library(db):
             json.dump(d, f, indent=4)
     
 def get_model_dict(model):
-    return dict((column.name, getattr(model, column.name)) 
-                for column in model.__table__.columns)
+    return dict((
+                column.name, 
+                getattr(model, column.name)
+            )
+            for column in model.__table__.columns
+        )
 
 
 def task_convert(book_uuid, to_height=1080, mode=2):

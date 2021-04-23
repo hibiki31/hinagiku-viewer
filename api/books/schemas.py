@@ -1,9 +1,15 @@
 from datetime import datetime
 
-from typing import List, Optional
+from typing import List, Optional, Literal
 from pydantic import BaseModel
 from fastapi_camelcase import CamelModel
 
+
+class BookUserDataBase(CamelModel):
+    last_open_date: datetime = None
+    read_times:int = None
+    open_page:int = None
+    rate: int = None
 
 class BookBase(CamelModel):
     uuid: str
@@ -20,10 +26,11 @@ class BookBase(CamelModel):
     import_file_name: str
     add_date: datetime
     file_date: datetime
-    user_last_open_date: datetime = None
-    user_read_times:int = None
-    user_open_page:int = None
-    user_rate: int = None
+    last_open_date: datetime = None
+    read_times:int = None
+    open_page:int = None
+    rate: int = None
+    user_data: BookUserDataBase = None
     class Config:
         orm_mode  =  True
 
@@ -52,6 +59,13 @@ class BookPut(CamelModel):
 class BookUserMetaDataPut(CamelModel):
     uuids: List[str]
     rate: int = None
+    class Config:
+        orm_mode  =  True
+
+class BookUserMetaDataPatch(CamelModel):
+    uuids: List[str]
+    page: int = None
+    status: Literal['open', 'close', 'pause']
     class Config:
         orm_mode  =  True
 

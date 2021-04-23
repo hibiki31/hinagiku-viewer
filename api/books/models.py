@@ -34,6 +34,7 @@ class BookModel(Base):
     publisher = Column(String)
     # ハードメタデータ
     size = Column(Integer)
+    sha1 = Column(String)
     page = Column(Integer)
     add_date = Column(DateTime)
     file_date = Column(DateTime)

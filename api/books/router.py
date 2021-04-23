@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Request, HTTPException
-from sqlalchemy.orm import Session, aliased, exc
+from sqlalchemy.orm import Session, aliased, exc, selectinload
 from sqlalchemy import func
 from sqlalchemy import or_, and_
 
@@ -8,7 +8,7 @@ from .schemas import *
 
 from mixins.database import get_db
 from mixins.log import setup_logger
-
+from mixins.purser import book_result_mapper
 from users.router import get_current_user
 from users.schemas import UserCurrent
 
@@ -34,6 +34,8 @@ async def get_api_library(
     
     return query.all()
 
+
+
 @app.get("/api/books", tags=["book"], response_model=BookGet)
 async def get_api_books(
         db: Session = Depends(get_db),
@@ -54,40 +56,15 @@ async def get_api_books(
 
     user_metadata_subquery = aliased(
         BookUserMetaDataModel, 
-        db.query(BookUserMetaDataModel).filter(BookUserMetaDataModel.user_id==current_user.id).subquery("user_metadata_subquery")
+        db.query(BookUserMetaDataModel).filter(BookUserMetaDataModel.user_id==current_user.id).subquery("user_data")
     )
 
     query = db.query(
-        BookModel,
-        BookModel.uuid,
-        BookModel.user_id,
-        BookModel.library,
-        BookModel.import_file_name,
-        BookModel.add_date,
-        BookModel.file_date,
-        BookModel.author,
-        BookModel.genre,
-        BookModel.page,
-        BookModel.size,
-        BookModel.title,
-        BookModel.publisher,
-        BookModel.is_shered,
-        BookModel.tags.all,
-        user_metadata_subquery.rate.label("user_rate"),
-        user_metadata_subquery.last_open_date.label("user_last_open_date"),
-        user_metadata_subquery.read_times.label("user_read_times"),
-        user_metadata_subquery.open_page.label("user_open_page"),
-    ).outerjoin(
-    # query = db.query(BookModel).outerjoin(
+            BookModel,user_metadata_subquery
+        ).outerjoin(
         user_metadata_subquery,
         BookModel.uuid==user_metadata_subquery.book_uuid
     )
-    from pprint import pprint
-
-    pprint(dir(BookModel.tags))
-
-
-    # query = db.query(BookModel)
 
     if not current_user.is_admin:
         query = query.filter(
@@ -137,8 +114,10 @@ async def get_api_books(
     query = query.limit(limit).offset(offset)
 
     rows = query.all()
-    
-    print(query.statement.compile())
+    rows = list(map(book_result_mapper,rows))
+
+    # クエリ確認
+    # print(query.statement.compile())
 
     return {"count": count, "limit": limit, "offset": offset, "rows": rows}
 
@@ -203,7 +182,31 @@ def change_user_data(
     db.commit()
     return metadata_model
 
+@app.patch("/api/books/user-data", tags=["book"])
+def signal_book_status(
+        db: Session = Depends(get_db),
+        model: BookUserMetaDataPatch = None,
+        current_user: UserCurrent = Depends(get_current_user)
+    ):
+    for book_uuid in model.uuids:
+        try:
+            metadata_model: BookUserMetaDataModel = db.query(BookUserMetaDataModel).filter(
+                and_(
+                    BookUserMetaDataModel.book_uuid==book_uuid,
+                    BookUserMetaDataModel.user_id==current_user.id
+                )
+            ).one()
+            metadata_model.rate = model.rate
+        except exc.NoResultFound:
+            metadata_model = BookUserMetaDataModel(
+                user_id = current_user.id,
+                book_uuid = str(book_uuid),
+                rate = model.rate,
+            )
 
+        db.merge(metadata_model)
+    db.commit()
+    return metadata_model
 
 @app.post("/api/books/tag", tags=["book"])
 def change_user_data(
@@ -219,7 +222,7 @@ def change_user_data(
                 status_code=404,
                 detail=f"本が存在しません,操作は全て取り消されました: {book_uuid}",
             )
-        book.tags.append(TagModel(name=model.name))
+        book.tags.append(TagsModel(name=model.name))
 
         # try:
         #     tag_model: BookTagModel = db.query(BookTagModel).filter(

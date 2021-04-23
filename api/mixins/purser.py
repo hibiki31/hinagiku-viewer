@@ -25,6 +25,20 @@ def old_purser(text):
 def base_purser(text):
     res = re.findall(r'^(\((.*?)\))? ?(\[(.*?)\])? ?(.*?)(\.zip)?$', text)
     return PurseResult(publisher=res[0][1], author=res[0][3], title=res[0][4])
+
+
+def get_model_dict(model):
+    return dict((
+                column.name, 
+                getattr(model, column.name)
+            )
+            for column in model.__table__.columns
+        )
+
+def book_result_mapper(book_data):
+    book_dic = get_model_dict(book_data[0])
+    book_dic["user_data"] = get_model_dict(book_data[1])
+    return book_dic
     
 if __name__ == "__main__":
     print(base_purser("aa"))
