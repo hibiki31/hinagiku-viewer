@@ -21,7 +21,9 @@ from mixins.convertor import create_book_page_cache
 
 from books.router import app as books_router
 from users.router import app as users_router
-from books.schemas import BookCacheCreate
+from books.schemas import BookCacheCreate, LibraryPatch
+from users.router import get_current_user
+from users.schemas import UserCurrent
 
 async def run(cmd):
     proc = await asyncio.create_subprocess_shell(
@@ -46,10 +48,8 @@ converter_pool = []
 library_pool = []
 
 tags_metadata = [
-    {
-        "name": "book",
-        "description": "",
-    }
+    { "name": "book", "description": "The book is managed by uuid and has an owner"},
+    { "name": "library", "description": "Books always belong to one library"}
 ]
 
 app = FastAPI(
@@ -69,10 +69,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-
-app.include_router(router=books_router)
 app.include_router(router=users_router)
-
+app.include_router(router=books_router)
 Base.metadata.create_all(bind=Engine)
 
 
@@ -124,12 +122,20 @@ def patch_media_books_(
     converter_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "convert", model.uuid, str(model.height)]))
     return { "status": "ok", "model": model }
 
-@app.patch("/media/library", tags=["library"])
-def patch_media_library():
+
+@app.patch("/api/library", tags=["library"])
+def patch_media_library(
+        model: LibraryPatch,
+        current_user:UserCurrent = Depends(get_current_user)
+    ):
     for i in library_pool:
         if i.poll() == None:
             return { "status": "allredy" }
-    library_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "library"]))
+    if model.state == "load":
+        library_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "load", current_user.id]))
+    elif model.state == "export":
+        library_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "export"]))
+
     return { "status": "ok"}
 
 def worker_up():
@@ -147,6 +153,7 @@ def worker_down():
 @app.on_event("startup")
 async def startup_event():
     worker_up()
+
 
 @app.on_event("shutdown")
 async def shutdown_event():

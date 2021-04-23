@@ -8,3 +8,4 @@ class UserModel(Base):
     id = Column(String, primary_key=True)
     password = Column(String)
     is_admin = Column(Boolean)
+    books = relationship("BookModel")

@@ -7,22 +7,28 @@ from fastapi_camelcase import CamelModel
 
 class BookBase(CamelModel):
     uuid: str
+    user_id: str
     title: str = None
     author: str = None
     publisher: str = None
-    size: int = None
-    page: int = None
-    add_date: datetime = None
-    file_date: datetime = None
-    import_file_name: str
-    state: str = None
-    rate: int = None
+    is_shered: bool
+    library: str
     genre: str = None
-    library: str = None
+    tags: list = None
+    size: int
+    page: int
+    import_file_name: str
+    add_date: datetime
+    file_date: datetime
+    user_last_open_date: datetime = None
+    user_read_times:int = None
+    user_open_page:int = None
+    user_rate: int = None
     class Config:
         orm_mode  =  True
 
-class BookSelect(CamelModel):
+
+class BookGet(CamelModel):
     limit: int
     offset: int
     count: int
@@ -43,6 +49,19 @@ class BookPut(CamelModel):
     class Config:
         orm_mode  =  True
 
+class BookUserMetaDataPut(CamelModel):
+    uuids: List[str]
+    rate: int = None
+    class Config:
+        orm_mode  =  True
+
+class BookTagBase(CamelModel):
+    uuids: List[str]
+    name: str
+
 class BookCacheCreate(CamelModel):
     uuid: str
     height: int
+
+class LibraryPatch(CamelModel):
+    state: str

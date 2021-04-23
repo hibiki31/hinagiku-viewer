@@ -41,37 +41,41 @@ def endless_eight():
 
 if __name__ == "__main__":
     args = sys.argv
-
-    # worker.py convert uuid height
-    if len(args) == 4:
-        if args[1] == "convert":
-            logger.info(f'別プロセスでキャッシュ作成 height:{args[3]} uuid:{args[2]}')
-            task_convert(
-                book_uuid=args[2], 
-                to_height=int(args[3])
-            )
-            logger.info(f'別プロセスでキャッシュ完了 height:{args[3]} uuid:{args[2]}')
-    elif len(args) == 5:
-        if args[1] == "page":
-            uuid = args[2]
-            height = int(args[3])
-            page = int(args[4])
-            logger.info(f'別プロセスでページキャッシュ作成 height:{height} uuid:{uuid}')
-            create_book_page_cache(
-                book_uuid=uuid, 
-                page=page, 
-                to_height=height, 
-                quality=85
-            )
-            logger.info(f'別プロセスでページキャッシュ完了 height:{height} uuid:{uuid}')
-    elif len(args) == 2:
-        if args[1] == "library":
-            db = SessionLocal()
-            logger.info(f'別プロセスでライブラリ追加処理開始')
-            task_library(db=db)
-            logger.info(f'別プロセスでライブラリ追加処理終了')
-            logger.info(f'別プロセスでライブラリエクスポート開始')
-            export_library(db=db)
-            logger.info(f'別プロセスでライブラリエクスポート終了')
-    else:
+    if len(args) == 1:
         endless_eight()
+
+    if args[1] == "convert":
+        book_uuid = args[2]
+        height = int(args[3])
+        logger.info(f'ワーカーが全ページキャッシュ作成 height:{args[3]} uuid:{args[2]}')
+        task_convert(
+            book_uuid=book_uuid, 
+            to_height=height
+        )
+        logger.info(f'別プロセスでキャッシュ完了 height:{args[3]} uuid:{args[2]}')
+    
+    if args[1] == "page":
+        uuid = args[2]
+        height = int(args[3])
+        page = int(args[4])
+        logger.info(f'別プロセスでページキャッシュ作成 height:{height} uuid:{uuid}')
+        create_book_page_cache(
+            book_uuid=uuid, 
+            page=page, 
+            to_height=height, 
+            quality=85
+        )
+        logger.info(f'別プロセスでページキャッシュ完了 height:{height} uuid:{uuid}')
+
+    if args[1] == "export":
+        db = SessionLocal()
+        logger.info(f'別プロセスでライブラリエクスポート開始')
+        export_library(db=db)
+        logger.info(f'別プロセスでライブラリエクスポート終了')
+
+    if args[1] == "load":
+        user_id = args[2]
+        db = SessionLocal()
+        logger.info(f'別プロセスでライブラリ追加処理開始')
+        task_library(db=db, user_id=user_id)
+        logger.info(f'別プロセスでライブラリ追加処理終了')
