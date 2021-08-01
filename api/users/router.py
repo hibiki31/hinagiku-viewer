@@ -47,7 +47,6 @@ oauth2_scheme = OAuth2PasswordBearer(
 )
 
 
-#  トークン生成
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
@@ -59,7 +58,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-async def get_current_user(
+def get_current_user(
         token: str = Depends(oauth2_scheme), 
         db: Session = Depends(get_db)
     ):
@@ -68,6 +67,7 @@ async def get_current_user(
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
     except:
+        # トークンがデコード出来なかった場合は認証失敗
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Illegal credentials",
@@ -75,11 +75,32 @@ async def get_current_user(
         )
 
     try:
+        # 正常なトークンだけどユーザが存在しない場合は認証失敗
+        # もはやサーバー側のエラー
         user = db.query(UserModel).filter(UserModel.id==user_id).one()
     except:
-        raise HTTPException(status_code=400, detail="Bad token")
+        raise HTTPException(status_code=400, detail="Illegal credentials")
 
     return UserCurrent(id=user_id, token=token, is_admin=user.is_admin)
+
+
+@app.get("/api/users", tags=["user"],response_model=List[UserGet])
+def read_api_users(
+        db: Session = Depends(get_db),
+        current_user: UserCurrent = Depends(get_current_user)
+    ): 
+    return db.query(UserModel).all()
+
+
+@app.get("/api/users/me/", tags=["user"], response_model=UserGet)
+def read_api_users_me(
+        db: Session = Depends(get_db),
+        current_user: UserCurrent = Depends(get_current_user)
+    ):
+
+    user = db.query(UserModel).filter(UserModel.id == current_user.id).one()
+   
+    return user
 
 
 @app.post("/api/auth", response_model=TokenRFC6749Response, tags=["auth"])
@@ -113,12 +134,15 @@ async def api_auth_setup(
         user: UserPost, 
         db: Session = Depends(get_db)
     ):
+
+    # ユーザがいる場合はセットアップ済みなのでイジェクト
     if not db.query(UserModel).all() == []:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Already initialized"
         )
 
+    # ユーザ追加
     db.add(UserModel(
         id=user.id, 
         password=pwd_context.hash(user.password),
@@ -137,19 +161,11 @@ async def read_auth_validate(
 
 
 
-@app.get("/api/users/me/", tags=["user"], response_model=UserGet)
-async def read_users_me(
-        db: Session = Depends(get_db),
-        current_user: UserCurrent = Depends(get_current_user)
-    ):
 
-    user = db.query(UserModel).filter(UserModel.id == current_user.id).one()
-   
-    return user
 
 
 @app.post("/api/users", tags=["user"])
-async def post_api_users(
+def post_api_users(
         user: UserPost, 
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
@@ -172,9 +188,3 @@ async def post_api_users(
     return user
 
 
-@app.get("/api/users", tags=["user"],response_model=List[UserGet])
-async def get_api_users(
-        db: Session = Depends(get_db),
-        current_user: UserCurrent = Depends(get_current_user)
-    ): 
-    return db.query(UserModel).all()

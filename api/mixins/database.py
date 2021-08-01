@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from mixins.settings import DATA_ROOT
+from pprint import pprint
 
 
 DATABASE_PATH = DATA_ROOT + "app_data/api.db"
@@ -18,6 +19,9 @@ class RepresentableBase(object):
         return '<{0}({1})>'.format(
             self.__class__.__name__, columns
         )
+    def debug(self):
+        print(f'<self.__class__.__name__>')
+        pprint(self.__dict__)
 
 
 def get_db():

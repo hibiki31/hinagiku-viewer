@@ -8,9 +8,11 @@ from .schemas import *
 
 from mixins.database import get_db
 from mixins.log import setup_logger
-from mixins.purser import book_result_mapper
+from mixins.purser import book_result_mapper, get_model_dict
 from users.router import get_current_user
 from users.schemas import UserCurrent
+
+from datetime import datetime
 
 app = APIRouter()
 logger = setup_logger(__name__)
@@ -35,8 +37,8 @@ async def get_api_library(
     return query.all()
 
 
-
-@app.get("/api/books", tags=["book"], response_model=BookGet)
+#, response_model=BookGet
+@app.get("/api/books", tags=["book"])
 async def get_api_books(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user),
@@ -51,19 +53,23 @@ async def get_api_books(
         fileNameLike: str = None,
         limit:int = 50,
         offset:int = 0,
+        tag: str = None,
         sortKey:str = "author-title",
     ):
 
-    user_metadata_subquery = aliased(
-        BookUserMetaDataModel, 
-        db.query(BookUserMetaDataModel).filter(BookUserMetaDataModel.user_id==current_user.id).subquery("user_data")
-    )
+    user_metadata_subquery = db.query(
+        BookUserMetaDataModel
+    ).filter(
+        BookUserMetaDataModel.user_id==current_user.id
+    ).subquery()
+
+    user_data = aliased(BookUserMetaDataModel, user_metadata_subquery)
 
     query = db.query(
-            BookModel,user_metadata_subquery
+            BookModel,user_data
         ).outerjoin(
-        user_metadata_subquery,
-        BookModel.uuid==user_metadata_subquery.book_uuid
+        user_data,
+        BookModel.uuid==user_data.book_uuid
     )
 
     if not current_user.is_admin:
@@ -97,6 +103,9 @@ async def get_api_books(
     
     if fileNameLike != None:
         query = query.filter(BookModel.import_file_name.like(f'%{fileNameLike}%'))
+    
+    if tag != None:
+        query = query.filter(BookModel.tags.any(name=tag))
 
     if sortKey == "file":
         query = query.order_by(BookModel.import_file_name)
@@ -114,12 +123,23 @@ async def get_api_books(
     query = query.limit(limit).offset(offset)
 
     rows = query.all()
-    rows = list(map(book_result_mapper,rows))
+    rows = book_result_mapper(rows)
+
 
     # クエリ確認
     # print(query.statement.compile())
 
     return {"count": count, "limit": limit, "offset": offset, "rows": rows}
+
+
+@app.get("/api/authors", tags=["author"])
+def read_api_authors(
+        db: Session = Depends(get_db)
+    ):
+    row = db.query(AuthorModel).all()
+    return row
+
+
 
 @app.put("/api/books", tags=["book"])
 def change_book_data(
@@ -137,6 +157,9 @@ def change_book_data(
 
         if model.library != None:
             book.library = model.library
+
+        if model.publisher != None:
+            book.publisher = model.publisher
         
         if model.series != None:
             book.series = model.series
@@ -177,7 +200,6 @@ def change_user_data(
                 book_uuid = str(book_uuid),
                 rate = model.rate,
             )
-
         db.merge(metadata_model)
     db.commit()
     return metadata_model
@@ -188,6 +210,7 @@ def signal_book_status(
         model: BookUserMetaDataPatch = None,
         current_user: UserCurrent = Depends(get_current_user)
     ):
+    resulet_data = []
     for book_uuid in model.uuids:
         try:
             metadata_model: BookUserMetaDataModel = db.query(BookUserMetaDataModel).filter(
@@ -196,42 +219,85 @@ def signal_book_status(
                     BookUserMetaDataModel.user_id==current_user.id
                 )
             ).one()
-            metadata_model.rate = model.rate
         except exc.NoResultFound:
             metadata_model = BookUserMetaDataModel(
                 user_id = current_user.id,
                 book_uuid = str(book_uuid),
-                rate = model.rate,
             )
-
+        if model.status == "open":
+            metadata_model.open_page = 0
+            metadata_model.last_open_date = datetime.now()
+            if metadata_model.read_times == None:
+                metadata_model.read_times = 0
+            metadata_model.read_times += 1
+        elif model.status == "pause":
+            metadata_model.open_page = model.page
+            metadata_model.last_open_date = datetime.now()
+        elif model.status == "close" :
+            metadata_model.open_page = None
+            metadata_model.last_open_date = datetime.now()
+        resulet_data.append(get_model_dict(metadata_model))
         db.merge(metadata_model)
     db.commit()
-    return metadata_model
+    return resulet_data
 
 @app.post("/api/books/tag", tags=["book"])
-def change_user_data(
+def append_tag(
         model: BookTagBase,
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
     ):
+    result_data = []
     for book_uuid in model.uuids:
         try:
             book: BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
-        except:
+        except exc.NoResultFound:
             raise HTTPException(
                 status_code=404,
                 detail=f"本が存在しません,操作は全て取り消されました: {book_uuid}",
             )
-        book.tags.append(TagsModel(name=model.name))
+        try:
+            tags_model: TagsModel = db.query(TagsModel).filter(TagsModel.name==model.name).one()
+        except exc.NoResultFound:
+            tags_model = TagsModel(name=model.name)
+        book.tags.append(tags_model)
 
-        # try:
-        #     tag_model: BookTagModel = db.query(BookTagModel).filter(
-        #         BookTagModel.name==model.name
-        #     ).one()
-        # except exc.NoResultFound:
-        #     tag_model = BookTagModel(
-        #         name=model.name,
+        
+        result_data.append(get_model_dict(book))
+        db.merge(book)
+    db.commit()
+    return result_data
 
-        #     )
-        # db.merge(book)
-    return db.commit()
+@app.delete("/api/books/tag", tags=["book"])
+def delete_tag(
+        model: BookTagBase,
+        db: Session = Depends(get_db),
+        current_user: UserCurrent = Depends(get_current_user)
+    ):
+    result_data = []
+    for book_uuid in model.uuids:
+        try:
+            book: BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
+        except exc.NoResultFound:
+            raise HTTPException(
+                status_code=404,
+                detail=f"本が存在しません,操作は全て取り消されました: {book_uuid}",
+            )
+        try:
+            tags_model: TagsModel = db.query(TagsModel).filter(TagsModel.name==model.name).one()
+        except exc.NoResultFound:
+            pass
+        book.tags.remove(tags_model)
+        
+        result_data.append(get_model_dict(book))
+        db.merge(book)
+    db.commit()
+    return result_data
+
+@app.get("/api/books/tag", tags=["book"])
+def show_tag(
+    db: Session = Depends(get_db),
+    current_user: UserCurrent = Depends(get_current_user)
+    ):
+    tags = db.query(TagsModel).filter(TagsModel.books.any(user_id=current_user.id)).all()
+    return tags

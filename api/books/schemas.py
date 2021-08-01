@@ -1,7 +1,7 @@
 from datetime import datetime
+from enum import Enum, IntEnum
 
-from typing import List, Optional, Literal
-from pydantic import BaseModel
+from typing import List, Optional, Literal, Any
 from fastapi_camelcase import CamelModel
 
 
@@ -26,11 +26,7 @@ class BookBase(CamelModel):
     import_file_name: str
     add_date: datetime
     file_date: datetime
-    last_open_date: datetime = None
-    read_times:int = None
-    open_page:int = None
-    rate: int = None
-    user_data: BookUserDataBase = None
+    user_data: Any
     class Config:
         orm_mode  =  True
 
@@ -44,8 +40,6 @@ class BookGet(CamelModel):
 
 class BookPut(CamelModel):
     uuids: List[str]
-    state: str = None
-    rate: int = None
     series_no: int = None
     series: str = None
     author: str = None
@@ -77,5 +71,9 @@ class BookCacheCreate(CamelModel):
     uuid: str
     height: int
 
+class LibraryPatchEnum(str, Enum):
+    export = "export"
+    load = "load"
+
 class LibraryPatch(CamelModel):
-    state: str
+    state: LibraryPatchEnum = LibraryPatchEnum.load

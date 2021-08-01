@@ -1,4 +1,5 @@
 import re
+from books.models import BookUserMetaDataModel
 
 class PurseResult():
     def __init__(self, publisher, author, title):
@@ -35,10 +36,15 @@ def get_model_dict(model):
             for column in model.__table__.columns
         )
 
-def book_result_mapper(book_data):
-    book_dic = get_model_dict(book_data[0])
-    book_dic["user_data"] = get_model_dict(book_data[1])
-    return book_dic
+def book_result_mapper(rows):
+    result = []
+    for row in rows:
+        dic = row[0].__dict__
+        if dic["user_data"] != []:
+            dic["user_data"] = dic["user_data"][0].__dict__
+            # del dic["user_data"]["book_uuid"], dic["user_data"]["user_id"]
+        result.append(dic)
+    return result
     
 if __name__ == "__main__":
     print(base_purser("aa"))

@@ -22,7 +22,7 @@ from mixins.log import setup_logger
 from mixins.database import SessionLocal
 from mixins.purser import PurseResult, base_purser
 
-from books.models import BookModel, BookUserMetaDataModel
+from books.models import *
 from users.models import UserModel
 
 import json
@@ -142,104 +142,140 @@ def task_library(db, user_id):
         logger.info(str(len(send_books_list)) + "件の本をライブラリに追加します")
 
     for send_book in send_books_list:
-        # チェックサム
-        sha1 = get_hash(send_book)
-        # メタデータの取得を試みる
-        josn_path = f'{os.path.splitext(send_book)[0]}.json'
-        if os.path.exists(josn_path):
-            with open(josn_path) as f:
-                json_metadata = json.load(f)
-            book_uuid = json_metadata['uuid']
-            if sha1 != json_metadata["sha1"]:
-                logger.error(f'{send_book} チェックサムが一致していないため除外します')
-                shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
-                continue
-            is_import = True
-        else:
-            book_uuid = uuid.uuid4()
-            is_import = False
-        
-        # サムネイルの作成など
-        try:
-            with zipfile.ZipFile(send_book) as existing_zip:
-                zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
-                # ページ数取得
-                page_len = len(zip_content)
-                zip_content.sort()
-                # サムネイル作成
-                cover_path = zip_content[0]
-                existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
-                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_cache/thum/{book_uuid}.jpg',to_height=600,quality=85)
-        except:
-            logger.error(f'{send_book}はエラーが発生したため除外されました', exc_info=True)
-            shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
-            continue
-
-        
-        get_genre = os.path.basename(os.path.dirname(send_book))
-        if get_genre == "book_send":
-            get_genre = "default"
-        
-        file_name_purse:PurseResult = base_purser(os.path.basename(send_book))
-
-        if os.path.exists(josn_path):
-            model = BookModel(
-                uuid = str(book_uuid),
-                user_id = user_id,
-                # ソフトメタデータ
-                title = json_metadata['title'],
-                author = json_metadata['author'],
-                publisher = json_metadata['publisher'],
-                series = json_metadata['series'],
-                series_no = json_metadata['series_no'],
-                genre = json_metadata['genre'],
-                library = json_metadata['library'],
-                # ハードメタデータ
-                size = json_metadata['size'],
-                page = json_metadata['page'],
-                add_date = datetime.datetime.fromisoformat(json_metadata['add_date']),
-                file_date = datetime.datetime.fromisoformat(json_metadata['file_date']),
-                import_file_name = json_metadata['import_file_name'],
-                is_shered = False
-            )
-            metadata_model = BookUserMetaDataModel(
-                user_id = user_id,
-                book_uuid = str(book_uuid),
-                rate = json_metadata['rate'],
-            )
-            db.add(model)
-            db.add(metadata_model)  
-        else:
-            model = BookModel(
-                uuid = str(book_uuid),
-                # ソフトメタデータ
-                title = file_name_purse.title,
-                author = file_name_purse.author,
-                publisher = file_name_purse.publisher,
-                series = None,
-                series_no = None,
-                genre = None,
-                library = get_genre,
-                # ハードメタデータ
-                size = os.path.getsize(send_book),
-                page = page_len,
-                add_date = datetime.datetime.now(),
-                file_date = datetime.datetime.fromtimestamp(os.path.getmtime(send_book)),
-                import_file_name = os.path.basename(send_book),
-            )
-            db.add(model)
-
-        
-        shutil.move(send_book, f'{DATA_ROOT}book_library/{book_uuid}.zip')
-
-        if is_import:
-            logger.info(f'ライブラリにインポート: {DATA_ROOT}book_library/{book_uuid}.zip')
-        else:
-            logger.info(f'ライブラリに追加: {DATA_ROOT}book_library/{book_uuid}.zip')
-    
-        shutil.rmtree(f"{APP_ROOT}temp/")
-        os.mkdir(f"{APP_ROOT}temp/")
+        book_load(send_book, user_model, db)
     return
+
+def make_thum(send_book, book_uuid):
+    """
+    サムネイルの作成とページ数の取得 -> page_len
+    """
+    try:
+        with zipfile.ZipFile(send_book) as existing_zip:
+            zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
+            # ページ数取得
+            page_len = len(zip_content)
+            zip_content.sort()
+            # サムネイル作成
+            cover_path = zip_content[0]
+            existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
+            image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_cache/thum/{book_uuid}.jpg',to_height=600,quality=85)
+    except:
+        logger.error(f'{send_book} エラーが発生したため除外されました', exc_info=True)
+        shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
+        return
+    return page_len
+
+
+def book_load(send_book, user_model, db):
+    # チェックサム
+    sha1 = get_hash(send_book)
+
+    # メタデータの取得を試みる
+    josn_path = f'{os.path.splitext(send_book)[0]}.json'
+    # インポート用データ
+    json_metadata = None
+    book_uuid = uuid.uuid4()
+
+    # インポートできた場合は上書き
+    if os.path.exists(josn_path):
+        with open(josn_path) as f:
+            json_metadata = json.load(f)
+        book_uuid = json_metadata['uuid']
+        if sha1 != json_metadata["sha1"]:
+            logger.error(f'{send_book} メタデータとハッシュ値が異なるため破損している可能性がありエラーへ移動')
+            shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
+            return
+    
+    page_len = make_thum(send_book, book_uuid)
+
+    # ライブラリ名定義
+    get_library = os.path.basename(os.path.dirname(send_book))
+    if get_library == "book_send":
+        get_library = "default"
+    
+    # ファイル名からパース
+    file_name_purse:PurseResult = base_purser(os.path.basename(send_book))
+
+    if os.path.exists(josn_path):
+        title = json_metadata['title']
+        author = json_metadata['author']
+        publisher = json_metadata['publisher']
+        series = json_metadata['series']
+        series_no = json_metadata['series_no']
+        genre = json_metadata['genre']
+        library = json_metadata['library']
+        size = json_metadata['size']
+        page = json_metadata['page']
+        add_date = datetime.datetime.fromisoformat(json_metadata['add_date'])
+        file_date = datetime.datetime.fromisoformat(json_metadata['file_date'])
+        import_file_name = json_metadata['import_file_name']
+    else:
+        title = file_name_purse.title
+        author = file_name_purse.author
+        publisher = file_name_purse.publisher
+        series = None
+        series_no = None
+        genre = None
+        library = get_library
+        size = os.path.getsize(send_book)
+        page = page_len
+        add_date = datetime.datetime.now()
+        file_date = datetime.datetime.fromtimestamp(os.path.getmtime(send_book))
+        import_file_name = os.path.basename(send_book)
+
+    if not (library_model := db.query(LibraryModel).filter(LibraryModel.name==library).one_or_none()):
+        library_model = LibraryModel(name=library)
+        db.add(library_model)
+        db.commit()
+
+    if not (author_model := db.query(AuthorModel).filter(AuthorModel.name==author).one_or_none()):
+        author_model = AuthorModel(name=author)
+        db.add(author_model)
+        db.commit()
+    
+    print(author_model)
+
+    model = BookModel(
+        uuid = str(book_uuid),
+        user_id = user_model.id,
+        # ソフトメタデータ
+        title = title,
+        author = author_model.id,
+        publisher = None,
+        series = None,
+        series_no = series_no,
+        genre = None,
+        library = library_model.id,
+        # ハードメタデータ
+        size = size,
+        page = page,
+        add_date = add_date,
+        file_date = file_date,
+        import_file_name = import_file_name,
+        is_shered = False
+    )
+    db.add(model)  
+        
+    if json_metadata:
+        metadata_model = BookUserMetaDataModel(
+            user_id = user_model.id,
+            book_uuid = str(book_uuid),
+            rate = json_metadata['rate'],
+        )
+        db.add(metadata_model)
+    db.commit()
+    
+    shutil.move(send_book, f'{DATA_ROOT}book_library/{book_uuid}.zip')
+
+    if json_metadata:
+        logger.info(f'ライブラリにインポート: {DATA_ROOT}book_library/{book_uuid}.zip')
+    else:
+        logger.info(f'ライブラリに追加: {DATA_ROOT}book_library/{book_uuid}.zip')
+
+    shutil.rmtree(f"{APP_ROOT}temp/")
+    os.mkdir(f"{APP_ROOT}temp/")
+
+
 
 def export_library(db):
     os.makedirs(f"{DATA_ROOT}book_export/", exist_ok=True)
