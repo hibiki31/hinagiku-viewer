@@ -3,14 +3,9 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from mixins.settings import DATA_ROOT
 
+
 DATABASE_PATH = DATA_ROOT + "app_data/api.db"
 SQLALCHEMY_DATABASE_URL = "sqlite:///" + DATABASE_PATH
-
-
-Engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=Engine)
 
 
 # プリントでデバッグしやすいように
@@ -25,13 +20,22 @@ class RepresentableBase(object):
         )
 
 
-# 全てのクラスに共通のスーパークラスを追加
-Base = declarative_base(cls=RepresentableBase)
-
-
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+def get_db_url():
+    return SQLALCHEMY_DATABASE_URL
+
+
+Engine = create_engine(
+    get_db_url(), connect_args={"check_same_thread": False}
+)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=Engine)
+
+# 全てのクラスに共通のスーパークラスを追加
+Base = declarative_base(cls=RepresentableBase)

@@ -69,9 +69,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
 app.include_router(router=users_router)
 app.include_router(router=books_router)
-Base.metadata.create_all(bind=Engine)
+# Base.metadata.create_all(bind=Engine)
 
 
 @app.get("/media/books/{uuid}")

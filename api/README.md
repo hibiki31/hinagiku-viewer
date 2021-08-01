@@ -16,3 +16,10 @@
   - read_times
   - open_page
   - rate
+
+## Alembic
+
+```
+alembic revision --autogenerate
+alembic upgrade head
+```
