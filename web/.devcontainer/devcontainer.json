@@ -1,0 +1,15 @@
+{
+	"name": "Hinav-WEB",
+	"context": "..",
+	"dockerFile": "../Dockerfile.dev",
+	"forwardPorts": [
+		8080, // App
+	  ],
+	"extensions":["octref.vetur"],
+	"mounts": [
+		"source=try-hinav_node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume"
+	],
+	"containerEnv": {
+		"CHOKIDAR_USEPOLLING": "true" // ホットリロード用
+	},
+}

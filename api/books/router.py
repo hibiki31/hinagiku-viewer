@@ -26,13 +26,15 @@ exception_notfund = HTTPException(
 @app.get("/api/library", tags=["library"])
 async def get_api_library(
         db: Session = Depends(get_db),
+        current_user: UserCurrent = Depends(get_current_user)
     ):
     query = db.query(
-        BookModel.library.label("library"), 
-        func.count(BookModel.library).label("count")
+        func.count(BookModel.uuid).label("count"),
+        LibraryModel.name.label("name"),
+        LibraryModel.id.label("id")
+    ).outerjoin(LibraryModel).group_by(
+        LibraryModel.name
     )
-
-    query = query.group_by(BookModel.library)
     
     return query.all()
 
@@ -49,7 +51,7 @@ async def get_api_books(
         series: str = None,
         state: str = None,
         genre: str = None,
-        library: str = None,
+        library: int = None,
         fileNameLike: str = None,
         limit:int = 50,
         offset:int = 0,
@@ -66,7 +68,8 @@ async def get_api_books(
     user_data = aliased(BookUserMetaDataModel, user_metadata_subquery)
 
     query = db.query(
-            BookModel,user_data
+            BookModel,
+            user_data,
         ).outerjoin(
         user_data,
         BookModel.uuid==user_data.book_uuid
@@ -84,7 +87,7 @@ async def get_api_books(
         query = query.filter(BookModel.uuid==uuid)
 
     if authorLike != None:
-        query = query.filter(BookModel.author.like(f'%{authorLike}%'))
+        query = query.filter(BookModel.author_id.like(f'%{authorLike}%'))
     
     if titleLike != None:
         query = query.filter(BookModel.title.like(f'%{titleLike}%'))
@@ -96,10 +99,10 @@ async def get_api_books(
             query = query.filter(BookModel.rate == rate)
 
     if genre != None:
-        query = query.filter(BookModel.genre == genre)
+        query = query.filter(BookModel.genre_id == genre)
     
     if library != None:
-        query = query.filter(BookModel.library == library)
+        query = query.filter(BookModel.library_id == library)
     
     if fileNameLike != None:
         query = query.filter(BookModel.import_file_name.like(f'%{fileNameLike}%'))
@@ -110,13 +113,13 @@ async def get_api_books(
     if sortKey == "file":
         query = query.order_by(BookModel.import_file_name)
     elif sortKey == "author":
-        query = query.order_by(BookModel.author)
+        query = query.order_by(BookModel.title)
     elif sortKey == "title":
         query = query.order_by(BookModel.title)
     elif sortKey == "date":
         query = query.order_by(BookModel.add_date.desc())
     elif sortKey == "author-title":
-        query = query.order_by(BookModel.author, BookModel.title)
+        query = query.order_by(BookModel.title)
     
     count = query.count()
 
@@ -125,8 +128,6 @@ async def get_api_books(
     rows = query.all()
     rows = book_result_mapper(rows)
 
-
-    # クエリ確認
     # print(query.statement.compile())
 
     return {"count": count, "limit": limit, "offset": offset, "rows": rows}

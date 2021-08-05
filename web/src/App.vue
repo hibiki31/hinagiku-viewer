@@ -23,15 +23,27 @@
 </template>
 
 <script>
+import axios from '@/axios/index'
+import Cookies from 'js-cookie'
+
 export default {
   name: 'App',
-
-  components: {
-  },
-
   data: () => ({
-    //
-  })
+    version: require('../package.json').version,
+    userId: ''
+  }),
+  mounted: async function () {
+    const token = Cookies.get('token')
+    axios.interceptors.request.use(
+      (config) => {
+        config.headers.Authorization = 'Bearer ' + token
+        return config
+      },
+      (err) => {
+        return Promise.reject(err)
+      }
+    )
+  }
 }
 </script>
 

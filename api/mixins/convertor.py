@@ -17,6 +17,8 @@ from time import sleep, time
 
 import shutil
 
+from sqlalchemy.sql.functions import mode
+
 from mixins.settings import APP_ROOT, DATA_ROOT
 from mixins.log import setup_logger
 from mixins.database import SessionLocal
@@ -223,29 +225,50 @@ def book_load(send_book, user_model, db):
         file_date = datetime.datetime.fromtimestamp(os.path.getmtime(send_book))
         import_file_name = os.path.basename(send_book)
 
-    if not (library_model := db.query(LibraryModel).filter(LibraryModel.name==library).one_or_none()):
+    if (library!=None) and not (library_model := db.query(LibraryModel).filter(LibraryModel.name==library).one_or_none()):
         library_model = LibraryModel(name=library)
         db.add(library_model)
         db.commit()
+        library = library_model.id
+    elif (library!=None):
+        library = library_model.id
 
-    if not (author_model := db.query(AuthorModel).filter(AuthorModel.name==author).one_or_none()):
-        author_model = AuthorModel(name=author)
-        db.add(author_model)
+
+    if (genre != None) and not (genre_model := db.query(GenreModel).filter(GenreModel.name==genre).one_or_none()):
+        genre_model = GenreModel(name=genre)
+        db.add(genre_model)
         db.commit()
+        genre = genre_model.id
+    elif (genre != None):
+        genre = genre_model.id
     
-    print(author_model)
+    if (publisher != None) and not (publisher_model := db.query(PublisherModel).filter(PublisherModel.name==publisher).one_or_none()):
+        publisher_model = PublisherModel(name=publisher)
+        db.add(publisher_model)
+        db.commit()
+        publisher = publisher_model.id
+    elif (publisher != None):
+        publisher = publisher_model.id
+
+    if (series != None) and not (series_model := db.query(SeriesModel).filter(SeriesModel.name==series).one_or_none()):
+        series_model = SeriesModel(name=series)
+        db.add(series_model)
+        db.commit()
+        series_model = series_model.id
+    elif (series != None):
+        series_model = series_model.id
 
     model = BookModel(
+        sha1 = sha1,
         uuid = str(book_uuid),
         user_id = user_model.id,
         # ソフトメタデータ
         title = title,
-        author = author_model.id,
-        publisher = None,
-        series = None,
+        publisher_id = publisher,
+        series_id = series,
         series_no = series_no,
-        genre = None,
-        library = library_model.id,
+        genre_id = genre,
+        library_id = library,
         # ハードメタデータ
         size = size,
         page = page,
@@ -254,7 +277,14 @@ def book_load(send_book, user_model, db):
         import_file_name = import_file_name,
         is_shered = False
     )
-    db.add(model)  
+    
+    db.add(model)
+    if not (author_model := db.query(AuthorModel).filter(AuthorModel.name==author).one_or_none()):
+        author_model = AuthorModel(name=author)
+    
+    model.authors.append(author_model)
+    db.commit()
+   
         
     if json_metadata:
         metadata_model = BookUserMetaDataModel(
@@ -264,6 +294,7 @@ def book_load(send_book, user_model, db):
         )
         db.add(metadata_model)
     db.commit()
+    
     
     shutil.move(send_book, f'{DATA_ROOT}book_library/{book_uuid}.zip')
 

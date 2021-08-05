@@ -6,6 +6,8 @@ import store from './store'
 import vuetify from './plugins/vuetify'
 
 import VueCookies from 'vue-cookies'
+import Cookies from 'js-cookie'
+import axios from '@/axios/index'
 
 import Notifications from 'vue-notification'
 import velocity from 'velocity-animate'
@@ -30,3 +32,34 @@ new Vue({
   vuetify,
   render: h => h(App)
 }).$mount('#app')
+
+const appInit = async () => {
+  const token = Cookies.get('token')
+
+  if (!token) {
+    store.dispatch('updateAuthState', {})
+    if (router.app._route.name === 'Login' && router.app._route.query.redirect) {
+      router.push({ name: 'Login' })
+    }
+  } else {
+    await axios
+      .get('/api/auth/validate',
+        {
+          headers: {
+            Authorization: 'Bearer ' + token
+          }
+        }
+      )
+      .then(res => {
+        store.dispatch('updateAuthState', res.data)
+        if (router.app._route.name === 'Login') {
+          router.push(router.app._route.query.redirect || { name: 'BooksList' })
+        }
+      })
+      .catch(() => {
+        store.dispatch('updateAuthState', {})
+      })
+  }
+}
+
+appInit()

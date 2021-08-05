@@ -114,6 +114,8 @@
             :items="libraryList"
             label="Library"
             v-model="queryLibrary"
+            item-text="name"
+            item-value="id"
             dense
             class="pr-2 pl-2"
           ></v-select>
@@ -270,7 +272,7 @@ export default {
       page: 1,
       queryTitle: '',
       queryRate: null,
-      queryLibrary: '',
+      queryLibrary: 0,
       // 検索クエリ
       searchQuery: {
         limit: 60,
@@ -278,7 +280,7 @@ export default {
         title: null,
         rate: null,
         genre: null,
-        library: 'default',
+        library: 0,
         fileNameLike: '',
         authorLike: null
       },
@@ -326,7 +328,7 @@ export default {
       handler () {
         window.scrollTo({ top: 0 })
         this.pageChange()
-        this.searchQuery.library = this.queryLibrary[0]
+        this.searchQuery.library = this.queryLibrary
         this.search()
       },
       deep: true
@@ -508,11 +510,10 @@ export default {
     }
   },
 
-  mounted: async function () {
+  mounted: function () {
     // 前回開いていた本を取得
     const uuid = localStorage.openBookUUID
     const page = localStorage.openBookPage
-    console.log(uuid)
     // 前回開いていた本が取得できたら本を開く
     if (uuid && page) {
       router.push({

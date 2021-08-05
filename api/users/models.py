@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from mixins.database import Base
 
 class UserModel(Base):
-    __tablename__ = "users"
+    __tablename__ = "user"
     id = Column(String, primary_key=True)
     password = Column(String)
     is_admin = Column(Boolean)

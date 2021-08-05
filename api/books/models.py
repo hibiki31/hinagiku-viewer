@@ -2,19 +2,24 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, T
 from sqlalchemy.orm import relationship
 from mixins.database import Base, Engine
 
-association_table = Table('tag_to_book', Base.metadata,
-    Column('book_uuid', String, ForeignKey('books.uuid')),
-    Column('tags_id', Integer, ForeignKey('tags.id'))
+books_to_tags = Table('tag_to_book', Base.metadata,
+    Column('book_uuid', String, ForeignKey('book.uuid')),
+    Column('tags_id', Integer, ForeignKey('tag.id'))
+)
+
+books_to_authors = Table('book_to_author', Base.metadata,
+    Column('book_uuid', String, ForeignKey('book.uuid')),
+    Column('author_id', Integer, ForeignKey('author.id'))
 )
 
 
 class TagsModel(Base):
-    __tablename__ = 'tags'
+    __tablename__ = 'tag'
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False, unique=True)
     books = relationship(
         'BookModel',
-        secondary=association_table,
+        secondary=books_to_tags,
         back_populates='tags',
         lazy=False,
     )
@@ -23,50 +28,75 @@ class LibraryModel(Base):
     __tablename__ = 'library'
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False, unique=True)
-    books = relationship('BookModel',lazy=False)
+    books = relationship('BookModel',lazy=False, back_populates='library')
 
 class AuthorModel(Base):
     __tablename__ = 'author'
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False, unique=True)
     description = Column(String)
-    books = relationship('BookModel',lazy=False)
+    books = relationship(
+        'BookModel',
+        secondary=books_to_authors,
+        back_populates='authors',
+        lazy=False,
+    )
 
 
 class GenreModel(Base):
     __tablename__ = 'genre'
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False, unique=True)
-    books = relationship('BookModel',lazy=False)
+    books = relationship('BookModel',lazy=False, back_populates='genre')
 
 
 class PublisherModel(Base):
     __tablename__ = 'publisher'
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False, unique=True)
-    books = relationship('BookModel',lazy=False)
+    books = relationship('BookModel',lazy=False, back_populates='publisher')
 
 
 class SeriesModel(Base):
     __tablename__ = 'series'
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False, unique=True)
-    books = relationship('BookModel',lazy=False)
+    books = relationship('BookModel',lazy=False, back_populates='series')
 
 
 
 class BookModel(Base):
-    __tablename__ = "books"
+    __tablename__ = "book"
     uuid = Column(String, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey('users.id', onupdate='CASCADE', ondelete='CASCADE'))
+    user_id = Column(String, ForeignKey('user.id', onupdate='CASCADE', ondelete='CASCADE'))
     # ソフトメタデータ
     title = Column(String)
-    library = Column(Integer, ForeignKey('library.id'), nullable=False)
-    author = Column(Integer, ForeignKey('author.id'))
-    genre = Column(Integer, ForeignKey('genre.id'))
-    publisher = Column(Integer, ForeignKey('publisher.id'))
-    series = Column(Integer, ForeignKey('series.id'))
+    
+    library_id = Column(Integer, ForeignKey('library.id'), nullable=False)
+    library = relationship('LibraryModel',lazy=False, back_populates='books')
+    
+    authors = relationship(
+        'AuthorModel',
+        secondary=books_to_authors,
+        back_populates='books',
+        lazy=False,
+    )
+
+    genre_id = Column(Integer, ForeignKey('genre.id'))
+    genre = relationship('GenreModel',lazy=False, back_populates='books')
+    publisher_id = Column(Integer, ForeignKey('publisher.id'))
+    publisher = relationship('PublisherModel',lazy=False, back_populates='books')
+    series_id = Column(Integer, ForeignKey('series.id'))
+    series = relationship('SeriesModel',lazy=False, back_populates='books')
     series_no = Column(Integer)
+
+    # タグ
+    tags = relationship(
+        'TagsModel',
+        secondary=books_to_tags,
+        back_populates='books',
+        lazy=False,
+    )
     
     # ハードメタデータ
     size = Column(Integer)
@@ -78,19 +108,12 @@ class BookModel(Base):
     # 設定
     is_shered = Column(Boolean)
     state = Column(String)
-    # タグ
-    tags = relationship(
-        'TagsModel',
-        secondary=association_table,
-        back_populates='books',
-        lazy=False,
-    )
     user_data = relationship('BookUserMetaDataModel',lazy=False)
 
 class BookUserMetaDataModel(Base):
     __tablename__ = "books_metadata"
-    user_id = Column(String, ForeignKey('users.id', onupdate='CASCADE', ondelete='CASCADE'), primary_key=True)
-    book_uuid = Column(String, ForeignKey('books.uuid', onupdate='CASCADE', ondelete='CASCADE'), primary_key=True)
+    user_id = Column(String, ForeignKey('user.id', onupdate='CASCADE', ondelete='CASCADE'), primary_key=True)
+    book_uuid = Column(String, ForeignKey('book.uuid', onupdate='CASCADE', ondelete='CASCADE'), primary_key=True)
     last_open_date = Column(DateTime)
     read_times = Column(Integer)
     open_page = Column(Integer)
