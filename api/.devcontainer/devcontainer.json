@@ -20,6 +20,7 @@
 		"ms-python.vscode-pylance",
 		"mtxr.sqltools",
 		"mtxr.sqltools-driver-pg",
+		"cweijan.vscode-postgresql-client2",
 		"donjayamanne.githistory"
 	],
 	"forwardPorts": [
