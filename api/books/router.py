@@ -45,28 +45,30 @@ async def get_api_books(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user),
         uuid: str = None,
+        fileNameLike: str = None,
         authorLike: str = None,
         titleLike: str = None,
+        fullText: str = None,
         rate: int = None,
-        series: str = None,
+        seriesId: str = None,
+        genreId: str = None,
+        libraryId: int = None,
+        tag: str = None,
         state: str = None,
-        genre: str = None,
-        library: int = None,
-        fileNameLike: str = None,
         limit:int = 50,
         offset:int = 0,
-        tag: str = None,
         sortKey:str = "author-title",
     ):
 
+    # ユーザデータのサブクエリ
     user_metadata_subquery = db.query(
         BookUserMetaDataModel
     ).filter(
         BookUserMetaDataModel.user_id==current_user.id
     ).subquery()
-
     user_data = aliased(BookUserMetaDataModel, user_metadata_subquery)
 
+    # ユーザデータ結合
     query = db.query(
             BookModel,
             user_data,
@@ -75,6 +77,9 @@ async def get_api_books(
         BookModel.uuid==user_data.book_uuid
     )
 
+    # 管理者はすべて表示
+    # 管理者以外は自分ののみ
+    # 共有は全員に表示
     if not current_user.is_admin:
         query = query.filter(
             or_(
@@ -86,9 +91,6 @@ async def get_api_books(
     if uuid != None:
         query = query.filter(BookModel.uuid==uuid)
 
-    if authorLike != None:
-        query = query.filter(BookModel.author_id.like(f'%{authorLike}%'))
-    
     if titleLike != None:
         query = query.filter(BookModel.title.like(f'%{titleLike}%'))
     
@@ -97,18 +99,40 @@ async def get_api_books(
             query = query.filter(or_(BookModel.rate == 0, BookModel.rate == None))
         else:
             query = query.filter(BookModel.rate == rate)
-
-    if genre != None:
-        query = query.filter(BookModel.genre_id == genre)
     
-    if library != None:
-        query = query.filter(BookModel.library_id == library)
+    if genreId != None:
+        query = query.filter(BookModel.genre_id == genreId)
+    
+    if libraryId != None:
+        query = query.filter(BookModel.library_id == libraryId)
+    
+    if authorLike != None:
+        query = query.join(BookModel.authors).filter(
+            AuthorModel.name.like(f'%{authorLike}%')
+        )
     
     if fileNameLike != None:
         query = query.filter(BookModel.import_file_name.like(f'%{fileNameLike}%'))
     
     if tag != None:
         query = query.filter(BookModel.tags.any(name=tag))
+    
+    if fullText != None:
+        query = query.join(
+            BookModel.authors
+        ).filter(or_(
+            BookModel.title.like(f'%{fullText}%'),
+            BookModel.import_file_name.like(f'%{fullText}%'),
+            AuthorModel.name.like(f'%{fullText}%')
+        )).union(
+            db.query(
+                    BookModel,
+                    user_data,
+                ).outerjoin(
+                user_data,
+                BookModel.uuid==user_data.book_uuid
+            ).filter(BookModel.tags.any(name=tag))
+        )
 
     if sortKey == "file":
         query = query.order_by(BookModel.import_file_name)
