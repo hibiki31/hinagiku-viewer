@@ -1,15 +1,29 @@
 {
-	"name": "API",
-	"context": "..",
-	"dockerFile": "../Dockerfile",
-	"settings": { 
-		"terminal.integrated.shell.linux": null
+	"name": "HinaV-API",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "app",
+	"workspaceFolder": "/workspace/api/",
+	"settings": {
+		"sqltools.connections": [{
+			"name": "Container database",
+			"driver": "PostgreSQL",
+			"previewLimit": 50,
+			"server": "localhost",
+			"port": 5432,
+			"database": "mydatabase",
+			"username": "postgres",
+			"password": "password"
+		}]
 	},
 	"extensions": [
 		"ms-python.python",
+		"ms-python.vscode-pylance",
+		"mtxr.sqltools",
+		"mtxr.sqltools-driver-pg",
 		"donjayamanne.githistory"
 	],
 	"forwardPorts": [
-		8888
+		8888,
+		5432
 	],
 }

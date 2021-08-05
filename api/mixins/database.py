@@ -1,12 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from mixins.settings import DATA_ROOT
+from mixins.settings import SQLALCHEMY_DATABASE_URL
 from pprint import pprint
-
-
-DATABASE_PATH = DATA_ROOT + "app_data/api.db"
-SQLALCHEMY_DATABASE_URL = "sqlite:///" + DATABASE_PATH
 
 
 # プリントでデバッグしやすいように
@@ -36,7 +32,7 @@ def get_db_url():
 
 
 Engine = create_engine(
-    get_db_url(), connect_args={"check_same_thread": False}
+    get_db_url(), connect_args={}
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=Engine)

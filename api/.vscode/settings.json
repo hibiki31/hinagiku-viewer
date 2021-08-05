@@ -1,12 +1,3 @@
 {
-    "python.pythonPath": "/usr/local/bin/python",
-    "sqltools.connections": [
-        {
-            "previewLimit": 50,
-            "driver": "SQLite",
-            "database": "/Users/akane/git/hinagiku-viewer/api/data/app_data/api.db",
-            "name": "aaaa"
-        }
-    ],
-    "sqltools.useNodeRuntime": true
+    "python.pythonPath": "/usr/local/bin/python"
 }
