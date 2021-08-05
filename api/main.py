@@ -1,51 +1,22 @@
-import subprocess
-import time
-import uvicorn
-import os
-import asyncio
-from aiopath import AsyncPath
+import time, uvicorn
 
-from fastapi import status, FastAPI, Depends, FastAPI, HTTPException, Request
+from fastapi import FastAPI, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from starlette.requests import Request
-from typing import List, Optional
-
-from fastapi.responses import FileResponse
-from fastapi.responses import StreamingResponse
 
 from mixins.log import setup_logger
-from mixins.database import SessionLocal, Engine, Base
+from mixins.database import SessionLocal
 from mixins.settings import DATA_ROOT, APP_ROOT
-from mixins.convertor import create_book_page_cache
 
 from books.router import app as books_router
 from users.router import app as users_router
-from books.schemas import BookCacheCreate, LibraryPatch
-from users.router import get_current_user
-from users.schemas import UserCurrent
+from media.router import app as media_router
 
-async def run(cmd):
-    proc = await asyncio.create_subprocess_shell(
-        cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE)
-
-    stdout, stderr = await proc.communicate()
-
-    if proc.returncode != 0:
-        print(f'[{cmd!r} exited with {proc.returncode}]')
-        if stdout:
-            print(f'[stdout]\n{stdout.decode()}')
-        if stderr:
-            print(f'[stderr]\n{stderr.decode()}')
+from media.router import library_pool, converter_pool
 
 
 logger = setup_logger(__name__)
 
-worker_pool = []
-converter_pool = []
-library_pool = []
 
 tags_metadata = [
     { "name": "book", "description": "The book is managed by uuid and has an owner"},
@@ -72,97 +43,20 @@ app.add_middleware(
 
 app.include_router(router=users_router)
 app.include_router(router=books_router)
-# Base.metadata.create_all(bind=Engine)
-
-
-@app.get("/media/books/{uuid}")
-async def get_media_books_uuid(
-        uuid: str
-    ):
-    file_path = f"{DATA_ROOT}book_cache/thum/{uuid}.jpg"
-    if not os.path.exists(file_path):
-        raise HTTPException(
-            status_code=404,
-            detail="ファイルが存在しません",
-        )
-    return FileResponse(file_path)
-
-
-@app.get("/media/books/{uuid}/{page}")
-async def media_books_uuid_page(
-        uuid: str,
-        page: int,
-        direct: bool = True,
-        height: int = 1080,
-    ):
-    # 非同期
-    if True:
-        cache_file = f"{DATA_ROOT}book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
-        if await AsyncPath(cache_file).exists():
-            logger.debug(f"キャッシュから読み込み{uuid} {page}")
-        else:
-            cmd = f"python3 {APP_ROOT}worker.py page {uuid} {str(height)} {str(page)}"
-            await run(cmd)
-        return FileResponse(path=cache_file)
-    # 同期
-    if False:
-        cache_file = f"{DATA_ROOT}book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
-        if os.path.exists(cache_file):
-            logger.debug(f"キャッシュから読み込み{uuid} {page}")
-        else:
-            create_book_page_cache(uuid, page, height, 85)
-        return FileResponse(path=cache_file)
-
-
-@app.patch("/media/books")
-def patch_media_books_(
-        model: BookCacheCreate
-    ):
-    for w in converter_pool:
-        w.terminate()
-    converter_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "convert", model.uuid, str(model.height)]))
-    return { "status": "ok", "model": model }
-
-
-@app.patch("/api/library", tags=["library"])
-def patch_media_library(
-        model: LibraryPatch,
-        current_user:UserCurrent = Depends(get_current_user)
-    ):
-    """
-    load or export
-    """
-    for i in library_pool:
-        if i.poll() == None:
-            return { "status": "allredy" }
-    if model.state == "load":
-        library_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "load", current_user.id]))
-    elif model.state == "export":
-        library_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "export"]))
-
-    return { "status": "ok"}
-
-def worker_up():
-    pass
-    # worker_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py"]))
-
-
-def worker_down():
-    for w in worker_pool:
-        w.terminate()
-    for w in converter_pool:
-        w.terminate()
+app.include_router(router=media_router)
 
 
 @app.on_event("startup")
-async def startup_event():
-    worker_up()
+def startup_event():
+    pass
 
 
 @app.on_event("shutdown")
-async def shutdown_event():
-    worker_down()
-    
+def shutdown_event():
+    for w in library_pool:
+        w.terminate()
+    for w in converter_pool:
+        w.terminate()
 
 # 全てのリクエストで同じ処理が書ける
 @app.middleware("http")
@@ -183,6 +77,7 @@ async def db_session_middleware(request: Request, call_next):
 
     # 結果を返す
     return response
+
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8888, reload=True, access_log=False)

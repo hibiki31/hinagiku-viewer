@@ -20,4 +20,3 @@ class UserCurrent(UserGet):
 
 class UserPost(UserBase):
     password: str
-

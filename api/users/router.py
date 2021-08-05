@@ -23,9 +23,6 @@ logger = setup_logger(__name__)
 app = APIRouter()
 
 
-
-    
-
 # JWTトークンの設定
 if settings.IS_DEV:
     SECRET_KEY = "KEY"
@@ -99,7 +96,30 @@ def read_api_users_me(
     ):
 
     user = db.query(UserModel).filter(UserModel.id == current_user.id).one()
-   
+    return user
+
+
+@app.post("/api/users", tags=["user"])
+def post_api_users(
+        user: UserPost, 
+        db: Session = Depends(get_db),
+        current_user: UserCurrent = Depends(get_current_user)
+    ):
+    db.add(UserModel(
+        id=user.id, 
+        password=pwd_context.hash(user.password),
+        is_admin=False
+        ))
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Request user already exists"
+        )
+
     return user
 
 
@@ -158,33 +178,3 @@ async def read_auth_validate(
         current_user: UserCurrent = Depends(get_current_user)
     ):
     return {"access_token": current_user.token, "token_type": "bearer"}
-
-
-
-
-
-
-@app.post("/api/users", tags=["user"])
-def post_api_users(
-        user: UserPost, 
-        db: Session = Depends(get_db),
-        current_user: UserCurrent = Depends(get_current_user)
-    ):
-    db.add(UserModel(
-        id=user.id, 
-        password=pwd_context.hash(user.password),
-        is_admin=False
-        ))
-
-    try:
-        db.commit()
-    except IntegrityError:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Request user already exists"
-        )
-
-    return user
-
-
