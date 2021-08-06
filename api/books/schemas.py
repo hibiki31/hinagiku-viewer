@@ -1,8 +1,17 @@
+from books.models import BookUserMetaDataModel
 from datetime import datetime
 from enum import Enum, IntEnum
 
 from typing import List, Optional, Literal, Any
 from fastapi_camelcase import CamelModel
+
+
+class BookUserMetaDataPatch(CamelModel):
+    uuids: List[str]
+    page: int = None
+    status: Literal['open', 'close', 'pause']
+    class Config:
+        orm_mode  =  True
 
 
 class BookUserDataBase(CamelModel):
@@ -15,18 +24,18 @@ class BookBase(CamelModel):
     uuid: str
     user_id: str
     title: str = None
-    author: str = None
-    publisher: str = None
+    authors: Any
+    publisher_id: str = None
     is_shered: bool
-    library: str
-    genre: str = None
+    library_id: int
+    genre_id: str = None
     tags: list = None
     size: int
     page: int
     import_file_name: str
     add_date: datetime
     file_date: datetime
-    user_data: Any
+    user_data: BookUserDataBase
     class Config:
         orm_mode  =  True
 
@@ -53,13 +62,6 @@ class BookPut(CamelModel):
 class BookUserMetaDataPut(CamelModel):
     uuids: List[str]
     rate: int = None
-    class Config:
-        orm_mode  =  True
-
-class BookUserMetaDataPatch(CamelModel):
-    uuids: List[str]
-    page: int = None
-    status: Literal['open', 'close', 'pause']
     class Config:
         orm_mode  =  True
 

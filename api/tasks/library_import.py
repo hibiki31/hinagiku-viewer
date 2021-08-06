@@ -63,8 +63,6 @@ def book_import(send_book, user_model, db):
         pre_model.library = "default"
     else:
         pre_model.library = os.path.basename(os.path.dirname(send_book))
-    # サムネイルの作成とページ数取得
-    pre_model.page = make_thum(send_book, pre_model.uuid)
 
     if os.path.exists(f'{os.path.splitext(send_book)[0]}.json'):
         # Jsonインポート
@@ -88,17 +86,21 @@ def book_import(send_book, user_model, db):
         pre_model.file_date = datetime.datetime.fromtimestamp(os.path.getmtime(send_book))
         pre_model.import_file_name = os.path.basename(send_book)
         is_import = False
-
+    
+    # サムネイルの作成とページ数取得
+    pre_model.page = make_thum(send_book, pre_model.uuid)
     
     if not (library_model := db.query(LibraryModel).filter(LibraryModel.name==pre_model.library).one_or_none()):
         library_model = LibraryModel(name=pre_model.library)
         db.add(library_model)
+        db.commit()
     pre_model.library_id = library_model.id
     
     
     if (pre_model.genre != None) and not (genre_model := db.query(GenreModel).filter(GenreModel.name==pre_model.genre).one_or_none()):
         genre_model = GenreModel(name=pre_model.genre)
         db.add(genre_model)
+        db.commit()
         pre_model.genre_id = genre_model.id
     elif (pre_model.genre != None):
         pre_model.genre_id = genre_model.id
@@ -106,6 +108,7 @@ def book_import(send_book, user_model, db):
     if (pre_model.publisher != None) and not (publisher_model := db.query(PublisherModel).filter(PublisherModel.name==pre_model.publisher).one_or_none()):
         publisher_model = PublisherModel(name=pre_model.publisher)
         db.add(publisher_model)
+        db.commit()
         pre_model.publisher_id = publisher_model.id
     elif (pre_model.publisher != None):
         pre_model.publisher = publisher_model.id
@@ -113,6 +116,7 @@ def book_import(send_book, user_model, db):
     if (pre_model.series != None) and not (series_model := db.query(SeriesModel).filter(SeriesModel.name==pre_model.series).one_or_none()):
         series_model = SeriesModel(name=pre_model.series)
         db.add(series_model)
+        db.commit()
         pre_model.series_model = series_model.id
     elif (pre_model.series != None):
         pre_model.series_model = series_model.id
@@ -147,7 +151,6 @@ def book_import(send_book, user_model, db):
             book_uuid = pre_model.uuid,
             rate = pre_model.rate,
         )
-        print(metadata_model)
         db.add(metadata_model)
 
     db.commit()
@@ -166,6 +169,7 @@ def book_import(send_book, user_model, db):
 def book_model_mapper_json(model:BookModel, json):
 
     model.title = json['title']
+    model.uuid = json['uuid']
     model.author = json['author']
     model.publisher = json['publisher']
     model.series = json['series']

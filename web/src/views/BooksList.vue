@@ -21,16 +21,25 @@
         <v-card-title>Select Editor</v-card-title>
         <v-divider></v-divider>
         <v-card-text style="height: 300px">
-          <v-rating v-model="openItem.rate" small class="pa-1"></v-rating>
+          <v-rating v-model="openItem.userData.rate" small class="pa-1"></v-rating>
           <v-row class="mt-1">
             <v-text-field label="Title" v-model="openItem.title"></v-text-field>
             <v-btn small icon class="mt-3"><v-icon>mdi-magnify</v-icon></v-btn>
           </v-row>
-          <v-row>
+          <v-row v-for="author in openItem.authors" :key="author.name">
+            <v-chip
+                class="ma-2"
+                close
+                color="black"
+                label
+                outlined
+                @click="searchQuery.fullText=author.name; search()"
+                @click:close="chip4 = false"
+              >{{author.name}}</v-chip>
             <v-text-field
               class="mt-0"
               label="Author"
-              v-model="openItem.author"
+              v-model="author.name"
             ></v-text-field>
             <v-btn small icon class="mt-3" @click="openItemSearchAuthor()"
               ><v-icon>mdi-magnify</v-icon></v-btn
@@ -280,12 +289,16 @@ export default {
         title: null,
         rate: null,
         genre: null,
-        library: 0,
-        fileNameLike: '',
+        libraryId: null,
+        fullText: '',
         authorLike: null
       },
       // ダイアログで開いているアイテム
-      openItem: {},
+      openItem: {
+        userData: {
+          rate: null
+        }
+      },
       // ライブラリ情報
       libraryList: [],
       booksList: [],
@@ -310,7 +323,7 @@ export default {
       handler () {
         window.scrollTo({ top: 0 })
         this.pageChange()
-        this.searchQuery.fileNameLike = this.queryTitle
+        this.searchQuery.fullText = this.queryTitle
         this.search(true)
       },
       deep: true
@@ -328,7 +341,7 @@ export default {
       handler () {
         window.scrollTo({ top: 0 })
         this.pageChange()
-        this.searchQuery.library = this.queryLibrary
+        this.searchQuery.libraryId = this.queryLibrary
         this.search()
       },
       deep: true
@@ -418,7 +431,8 @@ export default {
       axios
         .request({
           method: 'patch',
-          url: '/media/library'
+          url: '/media/library',
+          data: { state: 'load' }
         })
         .then((response) => {
           this.$_pushNotice('ライブラリのリロードを開始' + response.data.status, 'success')
@@ -434,7 +448,7 @@ export default {
         rate: null,
         genre: null,
         library: library,
-        fileNameLike: ''
+        fullText: ''
       }
       this.search()
     },
@@ -546,7 +560,7 @@ export default {
     // クエリから戻す
     this.serachEnable = false
     this.page = Math.ceil(this.searchQuery.offset / this.searchQuery.limit + 1)
-    this.queryTitle = this.searchQuery.fileNameLike
+    this.queryTitle = this.searchQuery.fullText
     this.serachEnable = true
 
     // 初期ロード

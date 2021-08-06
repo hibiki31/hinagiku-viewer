@@ -33,14 +33,14 @@ async def get_api_library(
         LibraryModel.name.label("name"),
         LibraryModel.id.label("id")
     ).outerjoin(LibraryModel).group_by(
-        LibraryModel.name
+        LibraryModel.name,
+        LibraryModel.id.label("id")
     )
     
     return query.all()
 
 
-#, response_model=BookGet
-@app.get("/api/books", tags=["book"])
+@app.get("/api/books", tags=["book"], response_model=BookGet)
 async def get_api_books(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user),
@@ -96,9 +96,9 @@ async def get_api_books(
     
     if rate != None:
         if rate == 0:
-            query = query.filter(or_(BookModel.rate == 0, BookModel.rate == None))
+            query = query.filter(user_data.rate == None)
         else:
-            query = query.filter(BookModel.rate == rate)
+            query = query.filter(user_data.rate == rate)
     
     if genreId != None:
         query = query.filter(BookModel.genre_id == genreId)

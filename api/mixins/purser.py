@@ -43,6 +43,8 @@ def book_result_mapper(rows):
         if dic["user_data"] != []:
             dic["user_data"] = dic["user_data"][0].__dict__
             # del dic["user_data"]["book_uuid"], dic["user_data"]["user_id"]
+        else:
+            dic["user_data"] = { "rate": None }
         result.append(dic)
     return result
     

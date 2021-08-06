@@ -124,7 +124,7 @@ def post_api_users(
 
 
 @app.post("/api/auth", response_model=TokenRFC6749Response, tags=["auth"])
-async def login_for_access_token(
+def login_for_access_token(
         form_data: OAuth2PasswordRequestForm = Depends(), 
         db: Session = Depends(get_db)
     ):
