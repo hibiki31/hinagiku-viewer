@@ -11,6 +11,7 @@ from mixins.settings import DATA_ROOT, APP_ROOT
 from books.router import app as books_router
 from users.router import app as users_router
 from media.router import app as media_router
+from tags.router import app as tags_router
 
 from media.router import library_pool, converter_pool
 
@@ -44,6 +45,7 @@ app.add_middleware(
 app.include_router(router=users_router)
 app.include_router(router=books_router)
 app.include_router(router=media_router)
+app.include_router(router=tags_router)
 
 
 @app.on_event("startup")

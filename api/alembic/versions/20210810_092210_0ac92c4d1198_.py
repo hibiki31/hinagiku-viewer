@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 944b9daf34ef
+Revision ID: 0ac92c4d1198
 Revises: 
-Create Date: 2021-08-05 07:03:58.336232
+Create Date: 2021-08-10 09:22:10.225355
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '944b9daf34ef'
+revision = '0ac92c4d1198'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -26,12 +26,6 @@ def upgrade():
     sa.UniqueConstraint('name')
     )
     op.create_table('genre',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('name', sa.String(length=255), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('name')
-    )
-    op.create_table('library',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=255), nullable=False),
     sa.PrimaryKeyConstraint('id'),
@@ -61,6 +55,14 @@ def upgrade():
     sa.Column('is_admin', sa.Boolean(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('library',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('name', sa.String(length=255), nullable=False),
+    sa.Column('user_id', sa.String(), nullable=True),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], onupdate='CASCADE', ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name')
+    )
     op.create_table('book',
     sa.Column('uuid', sa.String(), nullable=False),
     sa.Column('user_id', sa.String(), nullable=True),
@@ -86,6 +88,12 @@ def upgrade():
     sa.PrimaryKeyConstraint('uuid')
     )
     op.create_index(op.f('ix_book_uuid'), 'book', ['uuid'], unique=False)
+    op.create_table('library_to_user',
+    sa.Column('library_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.String(), nullable=True),
+    sa.ForeignKeyConstraint(['library_id'], ['library.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], )
+    )
     op.create_table('book_to_author',
     sa.Column('book_uuid', sa.String(), nullable=True),
     sa.Column('author_id', sa.Integer(), nullable=True),
@@ -117,13 +125,14 @@ def downgrade():
     op.drop_table('tag_to_book')
     op.drop_table('books_metadata')
     op.drop_table('book_to_author')
+    op.drop_table('library_to_user')
     op.drop_index(op.f('ix_book_uuid'), table_name='book')
     op.drop_table('book')
+    op.drop_table('library')
     op.drop_table('user')
     op.drop_table('tag')
     op.drop_table('series')
     op.drop_table('publisher')
-    op.drop_table('library')
     op.drop_table('genre')
     op.drop_table('author')
     # ### end Alembic commands ###

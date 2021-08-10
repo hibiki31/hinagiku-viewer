@@ -1,6 +1,6 @@
 import os, uuid, datetime, shutil, glob, json
 
-from sqlalchemy.sql.functions import mode
+from sqlalchemy import or_, and_
 
 from mixins.settings import APP_ROOT, DATA_ROOT
 from mixins.log import setup_logger
@@ -90,8 +90,8 @@ def book_import(send_book, user_model, db):
     # サムネイルの作成とページ数取得
     pre_model.page = make_thum(send_book, pre_model.uuid)
     
-    if not (library_model := db.query(LibraryModel).filter(LibraryModel.name==pre_model.library).one_or_none()):
-        library_model = LibraryModel(name=pre_model.library)
+    if not (library_model := db.query(LibraryModel).filter(and_(LibraryModel.name==pre_model.library,LibraryModel.user_id==user_model.id)).one_or_none()):
+        library_model = LibraryModel(name=pre_model.library, user_id=user_model.id)
         db.add(library_model)
         db.commit()
     pre_model.library_id = library_model.id

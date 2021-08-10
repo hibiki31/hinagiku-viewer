@@ -22,33 +22,19 @@
         <v-divider></v-divider>
         <v-card-text style="height: 300px">
           <v-rating v-model="openItem.userData.rate" small class="pa-1"></v-rating>
-          <v-row class="mt-1">
+          <v-row>
             <v-text-field label="Title" v-model="openItem.title"></v-text-field>
-            <v-btn small icon class="mt-3"><v-icon>mdi-magnify</v-icon></v-btn>
+            <v-btn small icon><v-icon>mdi-magnify</v-icon></v-btn>
+          </v-row>
+          <v-row>
+            <div>Author</div>
           </v-row>
           <v-row v-for="author in openItem.authors" :key="author.name">
-            <v-chip
-                class="ma-2"
-                close
-                color="black"
-                label
-                outlined
-                @click="searchQuery.fullText=author.name; search()"
-                @click:close="chip4 = false"
-              >{{author.name}}</v-chip>
             <v-text-field
-              class="mt-0"
-              label="Author"
               v-model="author.name"
             ></v-text-field>
-            <v-btn small icon class="mt-3" @click="openItemSearchAuthor()"
-              ><v-icon>mdi-magnify</v-icon></v-btn
-            >
+            <v-btn @click="searchQuery.fullText=author.name; search()" small icon><v-icon>mdi-magnify</v-icon></v-btn>
           </v-row>
-          <v-text-field
-            label="Publisher"
-            v-model="openItem.publisher"
-          ></v-text-field>
           <v-btn small class="pa-1" @click="showJson = !showJson">Json</v-btn>
           <div v-if="showJson" class="selectable">{{ this.openItem }}</div>
         </v-card-text>
@@ -397,17 +383,14 @@ export default {
       axios
         .request({
           method: 'put',
-          url: '/api/books',
+          url: '/api/books/user-data',
           data: {
             uuids: [this.openItem.uuid],
-            rate: this.openItem.rate,
-            publisher: this.openItem.publisher,
-            title: this.openItem.title,
-            author: this.openItem.author
+            rate: this.openItem.userData.rate
           }
         })
         .then((response) =>
-          this.$_pushNotice('書籍情報を更新しました', 'success')
+          this.$_pushNotice('評価を更新しました', 'success')
         )
     },
     bookInfoSubmitButton (item) {

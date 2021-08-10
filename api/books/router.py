@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Request, HTTPException
-from sqlalchemy.orm import Session, aliased, exc, selectinload
+from sqlalchemy.orm import Session, aliased, exc, query, selectinload
 from sqlalchemy import func
 from sqlalchemy import or_, and_
 
@@ -31,7 +31,8 @@ async def get_api_library(
     query = db.query(
         func.count(BookModel.uuid).label("count"),
         LibraryModel.name.label("name"),
-        LibraryModel.id.label("id")
+        LibraryModel.id.label("id"),
+        LibraryModel.user_id
     ).outerjoin(LibraryModel).group_by(
         LibraryModel.name,
         LibraryModel.id.label("id")
@@ -147,7 +148,8 @@ async def get_api_books(
     
     count = query.count()
 
-    query = query.limit(limit).offset(offset)
+    if limit != 0:
+        query = query.limit(limit).offset(offset)
 
     rows = query.all()
     rows = book_result_mapper(rows)
@@ -159,7 +161,8 @@ async def get_api_books(
 
 @app.get("/api/authors", tags=["author"])
 def read_api_authors(
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_db),
+        current_user: UserCurrent = Depends(get_current_user)
     ):
     row = db.query(AuthorModel).all()
     return row
@@ -169,7 +172,8 @@ def read_api_authors(
 @app.put("/api/books", tags=["book"])
 def change_book_data(
         db: Session = Depends(get_db),
-        model: BookPut = None
+        model: BookPut = None,
+        current_user: UserCurrent = Depends(get_current_user)
     ):
     for book_uuid in model.uuids:
         try:
@@ -265,64 +269,3 @@ def signal_book_status(
         db.merge(metadata_model)
     db.commit()
     return resulet_data
-
-@app.post("/api/books/tag", tags=["book"])
-def append_tag(
-        model: BookTagBase,
-        db: Session = Depends(get_db),
-        current_user: UserCurrent = Depends(get_current_user)
-    ):
-    result_data = []
-    for book_uuid in model.uuids:
-        try:
-            book: BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
-        except exc.NoResultFound:
-            raise HTTPException(
-                status_code=404,
-                detail=f"本が存在しません,操作は全て取り消されました: {book_uuid}",
-            )
-        try:
-            tags_model: TagsModel = db.query(TagsModel).filter(TagsModel.name==model.name).one()
-        except exc.NoResultFound:
-            tags_model = TagsModel(name=model.name)
-        book.tags.append(tags_model)
-
-        
-        result_data.append(get_model_dict(book))
-        db.merge(book)
-    db.commit()
-    return result_data
-
-@app.delete("/api/books/tag", tags=["book"])
-def delete_tag(
-        model: BookTagBase,
-        db: Session = Depends(get_db),
-        current_user: UserCurrent = Depends(get_current_user)
-    ):
-    result_data = []
-    for book_uuid in model.uuids:
-        try:
-            book: BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
-        except exc.NoResultFound:
-            raise HTTPException(
-                status_code=404,
-                detail=f"本が存在しません,操作は全て取り消されました: {book_uuid}",
-            )
-        try:
-            tags_model: TagsModel = db.query(TagsModel).filter(TagsModel.name==model.name).one()
-        except exc.NoResultFound:
-            pass
-        book.tags.remove(tags_model)
-        
-        result_data.append(get_model_dict(book))
-        db.merge(book)
-    db.commit()
-    return result_data
-
-@app.get("/api/books/tag", tags=["book"])
-def show_tag(
-    db: Session = Depends(get_db),
-    current_user: UserCurrent = Depends(get_current_user)
-    ):
-    tags = db.query(TagsModel).filter(TagsModel.books.any(user_id=current_user.id)).all()
-    return tags

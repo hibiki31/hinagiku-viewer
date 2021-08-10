@@ -37,7 +37,7 @@ async def run(cmd):
 
 
 @app.get("/media/books/{uuid}")
-async def get_media_books_uuid(
+def get_media_books_uuid(
         uuid: str
     ):
     file_path = f"{DATA_ROOT}book_cache/thum/{uuid}.jpg"
@@ -50,29 +50,34 @@ async def get_media_books_uuid(
 
 
 @app.get("/media/books/{uuid}/{page}")
-async def media_books_uuid_page(
+def media_books_uuid_page(
         uuid: str,
         page: int,
-        direct: bool = True,
         height: int = 1080,
     ):
-    # 非同期
-    if True:
-        cache_file = f"{DATA_ROOT}book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
-        if await AsyncPath(cache_file).exists():
-            logger.debug(f"キャッシュから読み込み{uuid} {page}")
-        else:
-            cmd = f"python3 {APP_ROOT}worker.py page {uuid} {str(height)} {str(page)}"
-            await run(cmd)
-        return FileResponse(path=cache_file)
-    # 同期
-    if False:
-        cache_file = f"{DATA_ROOT}book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
-        if os.path.exists(cache_file):
-            logger.debug(f"キャッシュから読み込み{uuid} {page}")
-        else:
-            create_book_page_cache(uuid, page, height, 85)
-        return FileResponse(path=cache_file)
+    
+    cache_file = f"{DATA_ROOT}book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
+    if os.path.exists(cache_file):
+        logger.debug(f"キャッシュから読み込み{uuid} {page}")
+    else:
+        create_book_page_cache(uuid, page, height, 85)
+    return FileResponse(path=cache_file)
+
+
+@app.get("/media/books/async/{uuid}/{page}")
+async def media_books_async_uuid_page(
+        uuid: str,
+        page: int,
+        height: int = 1080,
+    ):
+    
+    cache_file = f"{DATA_ROOT}book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
+    if await AsyncPath(cache_file).exists():
+        logger.debug(f"キャッシュから読み込み{uuid} {page}")
+    else:
+        cmd = f"python3 {APP_ROOT}worker.py page {uuid} {str(height)} {str(page)}"
+        await run(cmd)
+    return FileResponse(path=cache_file)
 
 
 @app.patch("/media/books")

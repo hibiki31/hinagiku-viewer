@@ -2,10 +2,12 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, T
 from sqlalchemy.orm import relationship
 from mixins.database import Base, Engine
 
+
 books_to_tags = Table('tag_to_book', Base.metadata,
     Column('book_uuid', String, ForeignKey('book.uuid')),
     Column('tags_id', Integer, ForeignKey('tag.id'))
 )
+
 
 books_to_authors = Table('book_to_author', Base.metadata,
     Column('book_uuid', String, ForeignKey('book.uuid')),
@@ -13,22 +15,25 @@ books_to_authors = Table('book_to_author', Base.metadata,
 )
 
 
-class TagsModel(Base):
-    __tablename__ = 'tag'
-    id = Column(Integer, primary_key=True)
-    name = Column(String(255), nullable=False, unique=True)
-    books = relationship(
-        'BookModel',
-        secondary=books_to_tags,
-        back_populates='tags',
-        lazy=False,
-    )
+librarys_to_users = Table('library_to_user', Base.metadata,
+    Column('library_id', Integer, ForeignKey('library.id')),
+    Column('user_id', String, ForeignKey('user.id'))
+)
+
 
 class LibraryModel(Base):
     __tablename__ = 'library'
     id = Column(Integer, primary_key=True)
-    name = Column(String(255), nullable=False, unique=True)
+    name = Column(String(255), nullable=False)
     books = relationship('BookModel',lazy=False, back_populates='library')
+    user_id = Column(String, ForeignKey('user.id', onupdate='CASCADE', ondelete='CASCADE'), nullable=False)
+    shered_users = relationship(
+        'UserModel',
+        secondary=librarys_to_users,
+        back_populates='librarys',
+        lazy=False,
+    )
+
 
 class AuthorModel(Base):
     __tablename__ = 'author'
@@ -62,7 +67,6 @@ class SeriesModel(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False, unique=True)
     books = relationship('BookModel',lazy=False, back_populates='series')
-
 
 
 class BookModel(Base):
@@ -110,6 +114,7 @@ class BookModel(Base):
     state = Column(String)
     user_data = relationship('BookUserMetaDataModel',lazy=False)
 
+
 class BookUserMetaDataModel(Base):
     __tablename__ = "books_metadata"
     user_id = Column(String, ForeignKey('user.id', onupdate='CASCADE', ondelete='CASCADE'), primary_key=True)
@@ -118,3 +123,15 @@ class BookUserMetaDataModel(Base):
     read_times = Column(Integer)
     open_page = Column(Integer)
     rate = Column(Integer)
+
+
+class TagsModel(Base):
+    __tablename__ = 'tag'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False, unique=True)
+    books = relationship(
+        'BookModel',
+        secondary=books_to_tags,
+        back_populates='tags',
+        lazy=False,
+    )
