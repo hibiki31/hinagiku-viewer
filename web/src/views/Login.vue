@@ -4,7 +4,7 @@
     <v-container class="fill-height" fluid>
       <v-row align="center" justify="center">
         <v-col cols="12" sm="8" md="4">
-          <v-card v-if="$route.query.redirect && !$_userData.isLoaded" flat>
+          <v-card v-if="$store.state.userData.isLoaded" flat>
             <v-card-text class="text-center">
               <div class="body-1 mb-3">Now loading...</div>
               <v-progress-circular indeterminate color="primary" />
@@ -18,7 +18,7 @@
             <v-form ref="form" v-model="isFormValid">
               <v-card-text>
                 <v-text-field
-                  v-model="formData.userId"
+                  v-model="loginForm.username"
                   :rules="[rules.required]"
                   label="userId"
                   name="userId"
@@ -28,7 +28,7 @@
                 ></v-text-field>
 
                 <v-text-field
-                  v-model="formData.password"
+                  v-model="loginForm.password"
                   :rules="[rules.required]"
                   id="password"
                   label="Password"
@@ -86,8 +86,8 @@ export default {
   data: () => ({
     isFormValid: false,
     isLoadingLogin: false,
-    formData: {
-      userId: '',
+    loginForm: {
+      username: '',
       password: ''
     },
     rules: {
@@ -98,39 +98,43 @@ export default {
     openSetupVirtyDialog () {
       this.$refs.setupVirtyDialog.openDialog()
     },
+    async doLogio () {
+      this.$store.dispatch('auth', this.loginForm.username, this.loginForm.password)
+    },
     async doLogin () {
-      this.isLoadingLogin = true
+      this.isLoadingLogin = false
+      const loginForm = new FormData()
+      loginForm.append('username', this.loginForm.username)
+      loginForm.append('password', this.loginForm.password)
 
-      const params = new FormData()
-      params.append('username', this.formData.userId)
-      params.append('password', this.formData.password)
-
-      await axios
-        .post(
-          '/api/auth', params,
-          {
-            headers: {
-              'content-type': 'multipart/form-data'
-            }
+      // トークン取得
+      const accessToken = await axios
+        .post('/api/auth', loginForm)
+        .then(res => {
+          if (res.status === 200) {
+            this.$pushNotice('ログイン成功', 'success')
+            return res.data.access_token
+          } else {
+            this.$pushNotice('エラーが発生しました', 'error')
+            return false
           }
-        )
-        .then((res) => {
-          if (res.status === 401) {
-            this.$_pushNotice('Wrong userID or password', 'error')
-          } else if (res.status !== 200) {
-            this.$_pushNotice('An error occurred', 'error')
-            return
-          }
-          this.$store.dispatch('updateAuthState', res.data)
-          this.$_pushNotice('Login success', 'success')
-          this.$router.push({ name: 'BooksList' })
-          this.isLoadingLogin = false
         })
         .catch(error => {
-          console.log(error)
-          this.$_pushNotice('アプリケーションエラーが発生しました', 'error')
-          this.isLoadingLogin = false
+          if (error.response.status === 401) {
+            this.$pushNotice('ユーザ名またはパスワードが違います', 'error')
+          } else {
+            this.$pushNotice('サーバエラーが発生しました', 'error')
+          }
+          return false
         })
+      // トークン取得が取得できていたら格納
+      if (accessToken) {
+        this.$store.dispatch('authenticaitonSuccessful', accessToken)
+        this.$router.push({
+          name: 'BooksList'
+        })
+      }
+      this.isLoadingLogin = false
     }
   }
 }

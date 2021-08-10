@@ -23,9 +23,6 @@
 </template>
 
 <script>
-import axios from '@/axios/index'
-import Cookies from 'js-cookie'
-
 export default {
   name: 'App',
   data: () => ({
@@ -33,35 +30,15 @@ export default {
     userId: ''
   }),
   mounted: async function () {
-    const token = Cookies.get('token')
-    axios.interceptors.request.use(
-      (config) => {
-        config.headers.Authorization = 'Bearer ' + token
-        return config
-      },
-      (err) => {
-        return Promise.reject(err)
-      }
-    )
   }
 }
 </script>
 
 <style lang="scss">
 html {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
   -webkit-touch-callout: none;
 }
 .selectable {
-  -webkit-user-select: text;
-  -moz-user-select: text;
-  -ms-user-select: text;
-  -khtml-user-select: text;
-  -webkit-user-select: text;
   -webkit-touch-callout: text;
 }
 </style>

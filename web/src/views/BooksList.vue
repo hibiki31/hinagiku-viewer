@@ -92,12 +92,11 @@
       flat
       app
       clipped-left
-      v-if="this.$store.state.showMenuBer"
     >
       <v-app-bar-nav-icon
         @click="showDrawer = !showDrawer"
       ></v-app-bar-nav-icon>
-      <v-toolbar-title>HinaV</v-toolbar-title>
+      <v-toolbar-title></v-toolbar-title>
       <v-spacer></v-spacer>
       <v-text-field
         v-model="queryTitle"

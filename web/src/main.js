@@ -26,40 +26,33 @@ Vue.use(VueCookies)
 Vue.use(VueScrollTo)
 Vue.use(VueForceNextTick)
 
-new Vue({
-  router,
-  store,
-  vuetify,
-  render: h => h(App)
-}).$mount('#app')
+const createApp = async () => {
+  new Vue({
+    router,
+    store,
+    vuetify,
+    render: h => h(App)
+  }).$mount('#app')
 
-const appInit = async () => {
-  const token = Cookies.get('token')
+  // トークン取得
+  const accessToken = Cookies.get('accessToken')
 
-  if (!token) {
-    store.dispatch('updateAuthState', {})
-    if (router.app._route.name === 'Login' && router.app._route.query.redirect) {
-      router.push({ name: 'Login' })
-    }
-  } else {
+  if (accessToken) {
     await axios
-      .get('/api/auth/validate',
-        {
-          headers: {
-            Authorization: 'Bearer ' + token
-          }
+      .get('/api/auth/validate', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
         }
-      )
+      })
       .then(res => {
-        store.dispatch('updateAuthState', res.data)
+        store.dispatch('authenticaitonSuccessful', accessToken)
         if (router.app._route.name === 'Login') {
           router.push(router.app._route.query.redirect || { name: 'BooksList' })
         }
       })
-      .catch(() => {
-        store.dispatch('updateAuthState', {})
-      })
+  } else {
+    store.dispatch('authenticaitonFail')
   }
 }
 
-appInit()
+createApp()

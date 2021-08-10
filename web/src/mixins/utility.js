@@ -49,6 +49,15 @@ Vue.mixin({
         data: { icon, color }
       })
     },
+    $pushNotice (text, type, color, icon, group = 'default') {
+      this.$notify({
+        group,
+        text,
+        type,
+        duration: 600,
+        data: { icon, color }
+      })
+    },
     // バリデータ
     required: (value) => !!value || 'Required.',
     limitLength64: (value) => value.length <= 64 || '64 characters maximum.',
