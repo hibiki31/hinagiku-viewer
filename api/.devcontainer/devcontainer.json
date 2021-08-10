@@ -1,5 +1,5 @@
 {
-	"name": "HinaV-API",
+	"name": "hinav-api",
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "app",
 	"workspaceFolder": "/workspace/api/",
