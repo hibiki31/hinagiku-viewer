@@ -49,6 +49,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
+        # 指定が無ければ24時間
         expire = datetime.utcnow() + timedelta(hours=24)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -132,10 +133,10 @@ def login_for_access_token(
     try:
         user = db.query(UserModel).filter(UserModel.id==form_data.username).one()
     except:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
     
     if not pwd_context.verify(form_data.password, user.password):
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
@@ -146,7 +147,7 @@ def login_for_access_token(
             },
         expires_delta=access_token_expires,
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "Bearer"}
 
 
 @app.post("/api/auth/setup", tags=["auth"])
@@ -177,4 +178,4 @@ async def api_auth_setup(
 async def read_auth_validate(
         current_user: UserCurrent = Depends(get_current_user)
     ):
-    return {"access_token": current_user.token, "token_type": "bearer"}
+    return {"access_token": current_user.token, "username": current_user.id, "token_type": "Bearer"}
