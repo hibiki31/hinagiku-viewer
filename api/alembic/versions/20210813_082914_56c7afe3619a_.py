@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 0ac92c4d1198
+Revision ID: 56c7afe3619a
 Revises: 
-Create Date: 2021-08-10 09:22:10.225355
+Create Date: 2021-08-13 08:29:14.245316
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '0ac92c4d1198'
+revision = '56c7afe3619a'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -58,26 +58,25 @@ def upgrade():
     op.create_table('library',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=255), nullable=False),
-    sa.Column('user_id', sa.String(), nullable=True),
+    sa.Column('user_id', sa.String(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], onupdate='CASCADE', ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('name')
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('book',
     sa.Column('uuid', sa.String(), nullable=False),
-    sa.Column('user_id', sa.String(), nullable=True),
+    sa.Column('user_id', sa.String(), nullable=False),
+    sa.Column('size', sa.Integer(), nullable=False),
+    sa.Column('sha1', sa.String(), nullable=False),
+    sa.Column('page', sa.Integer(), nullable=False),
+    sa.Column('add_date', sa.DateTime(), nullable=False),
+    sa.Column('file_date', sa.DateTime(), nullable=False),
+    sa.Column('import_file_name', sa.String(), nullable=False),
     sa.Column('title', sa.String(), nullable=True),
+    sa.Column('series_no', sa.Integer(), nullable=True),
     sa.Column('library_id', sa.Integer(), nullable=False),
     sa.Column('genre_id', sa.Integer(), nullable=True),
     sa.Column('publisher_id', sa.Integer(), nullable=True),
     sa.Column('series_id', sa.Integer(), nullable=True),
-    sa.Column('series_no', sa.Integer(), nullable=True),
-    sa.Column('size', sa.Integer(), nullable=True),
-    sa.Column('sha1', sa.String(), nullable=True),
-    sa.Column('page', sa.Integer(), nullable=True),
-    sa.Column('add_date', sa.DateTime(), nullable=True),
-    sa.Column('file_date', sa.DateTime(), nullable=True),
-    sa.Column('import_file_name', sa.String(), nullable=True),
     sa.Column('is_shered', sa.Boolean(), nullable=True),
     sa.Column('state', sa.String(), nullable=True),
     sa.ForeignKeyConstraint(['genre_id'], ['genre.id'], ),
