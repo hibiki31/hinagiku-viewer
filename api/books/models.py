@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Table
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Table, Numeric
 from sqlalchemy.orm import relationship
 from mixins.database import Base, Engine
 
@@ -76,7 +76,7 @@ class BookModel(Base):
     user_id = Column(String, ForeignKey('user.id', onupdate='CASCADE', ondelete='CASCADE'), nullable=False)
     
     # ハードメタデータ
-    size = Column(Integer, nullable=False)
+    size = Column(Numeric, nullable=False)
     sha1 = Column(String, nullable=False)
     page = Column(Integer, nullable=False)
     add_date = Column(DateTime, nullable=False)
