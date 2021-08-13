@@ -157,6 +157,15 @@ import router from '../router'
 
 export default {
   name: 'Books',
+  head: {
+    title: function () {
+      return {
+        inner: 'HinaV',
+        separator: '|',
+        complement: this.bookInfo.title
+      }
+    }
+  },
   data: function () {
     return {
       dict: {
@@ -410,6 +419,8 @@ export default {
     })
       .then((response) => {
         this.bookInfo = response.data.rows[0]
+        // タイトル更新
+        this.$emit('updateHead')
         Array.prototype.push.apply(this.pageBlob, Array(this.bookInfo.page - 4))
       })
 

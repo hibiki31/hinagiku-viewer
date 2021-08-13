@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import VueHead from 'vue-head'
 
 import store from '../store'
 
@@ -8,6 +9,7 @@ import BookReader from '../views/BookReader.vue'
 import Login from '../views/Login.vue'
 
 Vue.use(VueRouter)
+Vue.use(VueHead)
 
 const routes = [
   {

@@ -248,6 +248,15 @@ export default {
   components: {
     SearchDialog
   },
+  head: {
+    title: function () {
+      return {
+        inner: 'HinaV',
+        separator: '|',
+        complement: 'ホーム'
+      }
+    }
+  },
   data: function () {
     return {
       // 監視パラーメータで重複を避けるため検索を行うかのフラグ
