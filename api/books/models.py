@@ -71,30 +71,39 @@ class SeriesModel(Base):
 
 class BookModel(Base):
     __tablename__ = "book"
+    # ID
     uuid = Column(String, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey('user.id', onupdate='CASCADE', ondelete='CASCADE'))
+    user_id = Column(String, ForeignKey('user.id', onupdate='CASCADE', ondelete='CASCADE'), nullable=False)
+    
+    # ハードメタデータ
+    size = Column(Integer, nullable=False)
+    sha1 = Column(String, nullable=False)
+    page = Column(Integer, nullable=False)
+    add_date = Column(DateTime, nullable=False)
+    file_date = Column(DateTime, nullable=False)
+    import_file_name = Column(String, nullable=False)
+    
     # ソフトメタデータ
     title = Column(String)
+    series_no = Column(Integer)
     
+    # ソフトメタデータ 多対一
     library_id = Column(Integer, ForeignKey('library.id'), nullable=False)
     library = relationship('LibraryModel',lazy=False, back_populates='books')
+    genre_id = Column(Integer, ForeignKey('genre.id'))
+    genre = relationship('GenreModel',lazy=False, back_populates='books')
+    publisher_id = Column(Integer, ForeignKey('publisher.id'))
+    publisher = relationship('PublisherModel',lazy=False, back_populates='books')
+    series = relationship('SeriesModel',lazy=False, back_populates='books')
+    series_id = Column(Integer, ForeignKey('series.id'))
     
+    # ソフトメタデータ 多対多
     authors = relationship(
         'AuthorModel',
         secondary=books_to_authors,
         back_populates='books',
         lazy=False,
     )
-
-    genre_id = Column(Integer, ForeignKey('genre.id'))
-    genre = relationship('GenreModel',lazy=False, back_populates='books')
-    publisher_id = Column(Integer, ForeignKey('publisher.id'))
-    publisher = relationship('PublisherModel',lazy=False, back_populates='books')
-    series_id = Column(Integer, ForeignKey('series.id'))
-    series = relationship('SeriesModel',lazy=False, back_populates='books')
-    series_no = Column(Integer)
-
-    # タグ
     tags = relationship(
         'TagsModel',
         secondary=books_to_tags,
@@ -102,17 +111,14 @@ class BookModel(Base):
         lazy=False,
     )
     
-    # ハードメタデータ
-    size = Column(Integer)
-    sha1 = Column(String)
-    page = Column(Integer)
-    add_date = Column(DateTime)
-    file_date = Column(DateTime)
-    import_file_name = Column(String)
     # 設定
     is_shered = Column(Boolean)
-    state = Column(String)
+    
+    # ユーザ固有データ
     user_data = relationship('BookUserMetaDataModel',lazy=False)
+    
+    # 処理用
+    state = Column(String)
 
 
 class BookUserMetaDataModel(Base):

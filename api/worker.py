@@ -9,6 +9,7 @@ from mixins.database import SessionLocal
 from mixins.convertor import task_convert, task_export, export_library, create_book_page_cache
 
 from tasks.library_import import main as task_library_import
+from tasks.library_export import main as task_library_export
 
 from books.models import BookModel 
 
@@ -71,7 +72,14 @@ if __name__ == "__main__":
     if args[1] == "export":
         db = SessionLocal()
         logger.info(f'別プロセスでライブラリエクスポート開始')
-        export_library(db=db)
+        task_library_export(db=db, export_uuid=False)
+        logger.info(f'別プロセスでライブラリエクスポート終了')
+    
+    if args[1] == "export_uuid":
+        print("aaaaaaaaaaaaaaaa")
+        db = SessionLocal()
+        logger.info(f'別プロセスでライブラリエクスポート開始')
+        task_library_export(db=db, export_uuid=True)
         logger.info(f'別プロセスでライブラリエクスポート終了')
 
     if args[1] == "load":

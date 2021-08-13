@@ -76,6 +76,7 @@ class BookCacheCreate(CamelModel):
 class LibraryPatchEnum(str, Enum):
     export = "export"
     load = "load"
+    export_uuid = "export_uuid"
 
 class LibraryPatch(CamelModel):
     state: LibraryPatchEnum = LibraryPatchEnum.load

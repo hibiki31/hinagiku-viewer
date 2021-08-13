@@ -82,7 +82,8 @@ async def media_books_async_uuid_page(
 
 @app.patch("/media/books")
 def patch_media_books_(
-        model: BookCacheCreate
+        model: BookCacheCreate,
+        current_user:UserCurrent = Depends(get_current_user)
     ):
     for w in converter_pool:
         w.terminate()
@@ -105,5 +106,7 @@ def patch_media_library(
         library_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "load", current_user.id]))
     elif model.state == "export":
         library_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "export"]))
+    elif model.state == "export_uuid":
+        library_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "export_uuid"]))
 
     return { "status": "ok" }
