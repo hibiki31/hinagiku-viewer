@@ -53,7 +53,7 @@ async def get_api_books(
         rate: int = None,
         seriesId: str = None,
         genreId: str = None,
-        libraryId: int = None,
+        libraryId: int = 1,
         tag: str = None,
         state: str = None,
         limit:int = 50,
@@ -144,7 +144,9 @@ async def get_api_books(
     elif sortKey == "date":
         query = query.order_by(BookModel.add_date.desc())
     elif sortKey == "author-title":
-        query = query.order_by(BookModel.title)
+        query = query.join(
+            BookModel.authors
+        ).order_by(AuthorModel.name, BookModel.title)
     
     count = query.count()
 
@@ -184,8 +186,8 @@ def change_book_data(
                 detail=f"本が存在しません,操作は全て取り消されました: {book_uuid}",
             )
 
-        if model.library != None:
-            book.library = model.library
+        if model.library_id != None:
+            book.library_id = model.library_id
 
         if model.publisher != None:
             book.publisher = model.publisher

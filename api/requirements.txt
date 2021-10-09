@@ -16,3 +16,6 @@ SQLAlchemy==1.4.22
 uvicorn==0.13.3
 # SQLAlchemy PostgreSQL用
 psycopg2==2.9.1
+# Sim
+matplotlib==3.4.3
+opencv-contrib-python==4.5.3.56

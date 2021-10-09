@@ -55,7 +55,7 @@ class BookPut(CamelModel):
     title: str = None
     publisher: str = None
     genre: str = None
-    library: str = None
+    library_id: int = None
     class Config:
         orm_mode  =  True
 

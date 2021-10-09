@@ -1,5 +1,8 @@
 FROM python:3.9.4-buster
 
+RUN apt update
+RUN apt install -y libgl1-mesa-dev
+
 COPY ./requirements.txt /tmp/
 RUN pip3 install -r /tmp/requirements.txt
 
