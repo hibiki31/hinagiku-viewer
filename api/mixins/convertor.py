@@ -35,6 +35,9 @@ import hashlib
 logger = setup_logger(__name__)
 
 
+os.makedirs(f"{APP_ROOT}temp/", exist_ok=True)
+
+
 class DebugTimer():
     def __init__(self):
         self.time = time()
