@@ -91,49 +91,49 @@ async def get_api_books(
 
     if uuid != None:
         query = query.filter(BookModel.uuid==uuid)
-
-    if titleLike != None:
-        query = query.filter(BookModel.title.like(f'%{titleLike}%'))
-    
-    if rate != None:
-        if rate == 0:
-            query = query.filter(user_data.rate == None)
-        else:
-            query = query.filter(user_data.rate == rate)
-    
-    if genreId != None:
-        query = query.filter(BookModel.genre_id == genreId)
-    
-    if libraryId != None:
-        query = query.filter(BookModel.library_id == libraryId)
-    
-    if authorLike != None:
-        query = query.join(BookModel.authors).filter(
-            AuthorModel.name.like(f'%{authorLike}%')
-        )
-    
-    if fileNameLike != None:
-        query = query.filter(BookModel.import_file_name.like(f'%{fileNameLike}%'))
-    
-    if tag != None:
-        query = query.filter(BookModel.tags.any(name=tag))
-    
-    if fullText != None:
-        query = query.join(
-            BookModel.authors
-        ).filter(or_(
-            BookModel.title.like(f'%{fullText}%'),
-            BookModel.import_file_name.like(f'%{fullText}%'),
-            AuthorModel.name.like(f'%{fullText}%')
-        )).union(
-            db.query(
-                    BookModel,
+    else:
+        if titleLike != None:
+            query = query.filter(BookModel.title.like(f'%{titleLike}%'))
+        
+        if rate != None:
+            if rate == 0:
+                query = query.filter(user_data.rate == None)
+            else:
+                query = query.filter(user_data.rate == rate)
+        
+        if genreId != None:
+            query = query.filter(BookModel.genre_id == genreId)
+        
+        if libraryId != None:
+            query = query.filter(BookModel.library_id == libraryId)
+        
+        if authorLike != None:
+            query = query.join(BookModel.authors).filter(
+                AuthorModel.name.like(f'%{authorLike}%')
+            )
+        
+        if fileNameLike != None:
+            query = query.filter(BookModel.import_file_name.like(f'%{fileNameLike}%'))
+        
+        if tag != None:
+            query = query.filter(BookModel.tags.any(name=tag))
+        
+        if fullText != None:
+            query = query.join(
+                BookModel.authors
+            ).filter(or_(
+                BookModel.title.like(f'%{fullText}%'),
+                BookModel.import_file_name.like(f'%{fullText}%'),
+                AuthorModel.name.like(f'%{fullText}%')
+            )).union(
+                db.query(
+                        BookModel,
+                        user_data,
+                    ).outerjoin(
                     user_data,
-                ).outerjoin(
-                user_data,
-                BookModel.uuid==user_data.book_uuid
-            ).filter(BookModel.tags.any(name=tag))
-        )
+                    BookModel.uuid==user_data.book_uuid
+                ).filter(BookModel.tags.any(name=tag))
+            )
 
     if sortKey == "file":
         query = query.order_by(BookModel.import_file_name)
