@@ -178,6 +178,7 @@ export default {
       subMenu: false,
       heightOffcet: 0,
       uuid: '',
+      page: 0,
       nowPage: 1,
       nowLoading: 0,
       pageMove: false,
