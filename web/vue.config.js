@@ -15,7 +15,8 @@ module.exports = {
     iconPaths: {
       favicon32: 'favicon.ico',
       favicon16: 'favicon.ico',
-      appleTouchIcon: 'icon-apple.png'
+      appleTouchIcon: 'icon-apple.png',
+      msTileImage: 'icon-512x512.png'
     },
     workboxOptions: {
       skipWaiting: true
