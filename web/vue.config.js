@@ -3,6 +3,15 @@ module.exports = {
     'vuetify'
   ],
   pwa: {
+    name: 'HinaV',
+    themeColor: '#ffffff',
+    msTileColor: '#000000',
+    appleMobileWebAppCapable: 'yes',
+    appleMobileWebAppStatusBarStyle: 'black',
+    manifestOptions: {
+      display: 'standalone',
+      background_color: "#ffffff"
+    },
     iconPaths: {
       favicon32: 'favicon.ico',
       favicon16: 'favicon.ico',
