@@ -1,0 +1,17 @@
+# Django
+Django==3.2.9
+django-filter==21.1
+django-cors-headers==3.10.0
+djangorestframework==3.12.4
+djangorestframework-simplejwt==5.0.0
+requests==2.26.0
+uwsgi==2.0.20
+# PostgreSQL
+psycopg2==2.9.2
+# Develop
+autopep8
+flake8
+# Image
+Pillow==8.4.0
+
+# pip list -o

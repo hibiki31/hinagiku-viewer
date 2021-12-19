@@ -1,0 +1,18 @@
+{
+    "sqltools.connections": [
+        {
+            "name": "Container database",
+            "driver": "PostgreSQL",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "database": "postgres",
+            "username": "postgres",
+            "password": "postgres"
+        }
+    ],
+    "python.analysis.extraPaths": [
+        "/workspace/api",
+    ],
+    "workbench.editor.enablePreview": false,
+}

@@ -129,6 +129,7 @@ class BookUserMetaDataModel(Base):
     read_times = Column(Integer)
     open_page = Column(Integer)
     rate = Column(Integer)
+    ratea = Column(Integer)
 
 
 class TagsModel(Base):
