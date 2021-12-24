@@ -40,7 +40,7 @@ async def run(cmd):
 def get_media_books_uuid(
         uuid: str
     ):
-    file_path = f"{DATA_ROOT}book_cache/thum/{uuid}.jpg"
+    file_path = f"{DATA_ROOT}book_thum/{uuid}.jpg"
     if not os.path.exists(file_path):
         raise HTTPException(
             status_code=404,
