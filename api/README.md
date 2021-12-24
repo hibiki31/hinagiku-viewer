@@ -25,3 +25,11 @@ alembic revision --autogenerate
 alembic upgrade head
 alembic downgrade base
 ```
+
+## Develop
+
+```
+apt update
+apt install -y postgresql-client
+psql -h db -U postgres -d mydatabase -f inset.sql
+```
