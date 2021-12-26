@@ -1,6 +1,6 @@
 import Axios from 'axios'
 
-export default Axios.create({
+const axios = Axios.create({
   baseURL: process.env.VUE_APP_API_HOST,
   headers: {
     'Content-Type': 'application/json',
@@ -8,3 +8,5 @@ export default Axios.create({
   },
   responseType: 'json'
 })
+
+export default axios

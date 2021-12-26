@@ -1,5 +1,6 @@
 <template>
   <v-app>
+    <!-- 通知 -->
     <notifications group="default" animation-type="velocity">
       <template slot="body" slot-scope="props">
         <v-alert
@@ -14,6 +15,7 @@
         </v-alert>
       </template>
     </notifications>
+    <!-- メイン -->
     <v-main>
       <transition name="fade">
       <router-view />
@@ -23,6 +25,11 @@
 </template>
 
 <script>
+import store from './store'
+import axios from './axios/index'
+import router from './router'
+import Cookies from 'js-cookie'
+
 export default {
   name: 'App',
   data: () => ({
@@ -30,6 +37,38 @@ export default {
     userId: ''
   }),
   mounted: async function () {
+    axios.interceptors.response.use(response => {
+      return response
+    }, error => {
+      if (!error.response) {
+        this.$_pushNotice('エラーが発生しました', 'error')
+        return
+      }
+      if (error.response.status === 401) {
+        this.$_pushNotice('認証エラーが発生したためログアウトします', 'error')
+        store.dispatch('authenticaitonFail')
+        router.push(router.app._route.query.redirect || { name: 'BooksList' })
+      }
+    })
+    // トークン取得
+    const accessToken = Cookies.get('accessToken')
+
+    if (accessToken) {
+      await axios
+        .get('/api/auth/validate', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        })
+        .then(res => {
+          store.dispatch('authenticaitonSuccessful', accessToken)
+          if (router.app._route.name === 'Login') {
+            router.push(router.app._route.query.redirect || { name: 'BooksList' })
+          }
+        })
+    } else {
+      store.dispatch('authenticaitonFail')
+    }
   }
 }
 </script>

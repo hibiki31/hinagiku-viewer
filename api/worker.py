@@ -76,7 +76,6 @@ if __name__ == "__main__":
         logger.info(f'別プロセスでライブラリエクスポート終了')
     
     if args[1] == "export_uuid":
-        print("aaaaaaaaaaaaaaaa")
         db = SessionLocal()
         logger.info(f'別プロセスでライブラリエクスポート開始')
         task_library_export(db=db, export_uuid=True)

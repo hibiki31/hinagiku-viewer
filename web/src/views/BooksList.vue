@@ -175,7 +175,12 @@
         >
       </div>
     </v-navigation-drawer>
-    <v-container>
+    <v-progress-linear
+      indeterminate
+      color="yellow darken-2"
+      v-show="isLoading"
+    ></v-progress-linear>
+    <v-container v-show="!isLoading">
       <v-row v-if="!showListMode">
         <v-col
           :cols="4"
@@ -232,6 +237,7 @@
         v-model="page"
         :length="Math.ceil(totalItems / searchQuery.limit)"
         :total-visible="7"
+        class="pt-5"
       ></v-pagination>
     </v-container>
   </div>
@@ -267,6 +273,7 @@ export default {
       exportDialog: false,
       mulchBooksDialog: false,
       showDrawer: false,
+      isLoading: true,
       // ダイアログで使用
       showJson: false,
       // モード
@@ -445,6 +452,7 @@ export default {
     },
     async search () {
       if (this.serachEnable) {
+        this.isLoading = true
         await axios
           .get('/api/books', {
             params: this.searchQuery
@@ -453,6 +461,7 @@ export default {
             this.booksList = response.data.rows
             this.totalItems = response.data.count
             this.$_pushNotice(this.totalItems + '件', 'info')
+            this.isLoading = false
           })
         // ローカルストレージにパラメータ格納
         const parsed = JSON.stringify(this.searchQuery)

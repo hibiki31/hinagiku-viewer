@@ -10,7 +10,7 @@ module.exports = {
     appleMobileWebAppStatusBarStyle: 'black',
     manifestOptions: {
       display: 'standalone',
-      background_color: "#ffffff"
+      background_color: '#ffffff'
     },
     iconPaths: {
       favicon32: 'favicon.ico',

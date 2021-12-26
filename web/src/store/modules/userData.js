@@ -27,6 +27,7 @@ const mutations = {
   authenticaitonFail (state) {
     state.isAuthed = false
     state.isLoaded = false
+    Cookies.remove('accessToken')
   }
 }
 
