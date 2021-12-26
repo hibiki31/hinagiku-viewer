@@ -37,19 +37,6 @@ export default {
     userId: ''
   }),
   mounted: async function () {
-    axios.interceptors.response.use(response => {
-      return response
-    }, error => {
-      if (!error.response) {
-        this.$_pushNotice('エラーが発生しました', 'error')
-        return
-      }
-      if (error.response.status === 401) {
-        this.$_pushNotice('認証エラーが発生したためログアウトします', 'error')
-        store.dispatch('authenticaitonFail')
-        router.push(router.app._route.query.redirect || { name: 'BooksList' })
-      }
-    })
     // トークン取得
     const accessToken = Cookies.get('accessToken')
 
@@ -64,6 +51,19 @@ export default {
           store.dispatch('authenticaitonSuccessful', accessToken)
           if (router.app._route.name === 'Login') {
             router.push(router.app._route.query.redirect || { name: 'BooksList' })
+          }
+        }).catch(error => {
+          if (!error.response) {
+            this.$_pushNotice('エラーが発生しました', 'error')
+            return
+          }
+          const status = error.response.status
+          if (status === 401 || status === 400) {
+            this.$_pushNotice('認証エラーが発生したためログアウトします', 'error')
+            store.dispatch('authenticaitonFail')
+            router.push({
+              name: 'Login'
+            })
           }
         })
     } else {

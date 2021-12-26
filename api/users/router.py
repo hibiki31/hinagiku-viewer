@@ -77,7 +77,7 @@ def get_current_user(
         # もはやサーバー側のエラー
         user = db.query(UserModel).filter(UserModel.id==user_id).one()
     except:
-        raise HTTPException(status_code=400, detail="Illegal credentials")
+        raise HTTPException(status_code=401, detail="Illegal credentials")
 
     return UserCurrent(id=user_id, token=token, is_admin=user.is_admin)
 
@@ -155,6 +155,11 @@ async def api_auth_setup(
         user: UserPost, 
         db: Session = Depends(get_db)
     ):
+    if user.id == None or user.id == "":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User id is brank"
+        )
 
     # ユーザがいる場合はセットアップ済みなのでイジェクト
     if not db.query(UserModel).all() == []:

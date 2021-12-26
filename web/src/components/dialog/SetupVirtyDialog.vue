@@ -4,9 +4,9 @@
         <v-form ref="nodeAddForm">
           <v-card-title>Setup Virty</v-card-title>
           <v-card-text>
-            Virtyの初期設定を行います。管理者ユーザが存在する場合実行できません。
+            初期設定を行います。管理者ユーザが存在する場合実行できません。
             <v-text-field
-              v-model="postData.userId"
+              v-model="postData.id"
               label="Admin user name"
               :rules="[$required, $limitLength64, $characterRestrictions, $firstCharacterRestrictions]"
               counter="64"
@@ -36,11 +36,11 @@
 import axios from '@/axios/index'
 
 export default {
-  name: 'NodeAddDialog',
+  name: 'SetUpDialog',
   data: function () {
     return {
       postData: {
-        userId: '',
+        id: '',
         password: ''
       },
       show1: false,

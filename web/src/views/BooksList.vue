@@ -533,7 +533,7 @@ export default {
       router.push({
         name: 'BookReader',
         params: { uuid: uuid },
-        query: { page: page }
+        query: { startPage: page }
       })
       return
     } else {

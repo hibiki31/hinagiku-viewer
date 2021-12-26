@@ -53,40 +53,24 @@ class DebugTimer():
 
 
 def get_hash(path):
-    # ハッシュアルゴリズムを決めます
+    # ハッシュアルゴリズム決定
     algo = 'sha1'
-
-    # ハッシュオブジェクトを作ります
+    # ハッシュオブジェクト作成
     h = hashlib.new(algo)
-
-    # 分割する長さをブロックサイズの整数倍に決めます
+    # 分割する長さをブロックサイズの整数倍で指定
     Length = hashlib.new(algo).block_size * 0x800
 
-    # 大きなバイナリデータを用意します
     with open(path,'rb') as f:
         BinaryData = f.read(Length)
 
-        # データがなくなるまでループします
+        # データがなくなるまでループ
         while BinaryData:
-
-            # ハッシュオブジェクトに追加して計算します。
+            # ハッシュオブジェクトに追加して計算
             h.update(BinaryData)
-
             # データの続きを読み込む
             BinaryData = f.read(Length)
 
-    # ハッシュオブジェクトを16進数で出力します
     return h.hexdigest()
-
-def main():
-    # unzip(unzip_file=zip_name, to_dir=dir_name)
-
-    file_list = list_dir_files(search_dir=dir_name)
-
-    new_list = [p for p in file_list if os.path.splitext(p)[1] in [".png", ".jpeg", ".jpg"]]
-
-    for index, image_path in enumerate(new_list):
-        image_convertor(image_path,f"temp/aaa_con/{str(index+1).zfill(4)}.jpg",to_height=1080,quality=90)
 
 
 
@@ -163,7 +147,7 @@ def make_thum(send_book, book_uuid):
             # サムネイル作成
             cover_path = zip_content[0]
             existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
-            image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_cache/thum/{book_uuid}.jpg',to_height=600,quality=85)
+            image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_thum/{book_uuid}.jpg',to_height=600,quality=85)
     except:
         logger.error(f'{send_book} エラーが発生したため除外されました', exc_info=True)
         shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
@@ -464,26 +448,6 @@ def create_book_page_cache(book_uuid, page, to_height, quality):
         shutil.move(f'{temp_file}.page_temp{temp_ext}', dst_path)
         timer.rap("変換")
 
-def task_export(book_model):
-    book_uuid = book_model.uuid
-    file_name = book_model.import_file_name
-    logger.info(f'{book_uuid}をエクスポートします')
-    export_file = f'{DATA_ROOT}book_library/{book_uuid}.zip'
-    export_dir = f"{DATA_ROOT}book_export/"
-
-    os.makedirs(export_dir, exist_ok=True)
-
-    try:
-        shutil.move(export_file, export_dir+file_name)
-    except FileNotFoundError:
-        logger.warn(f'{book_uuid}は存在しないためデータベースから消去します')
-    
-    try:
-        os.remove(f'{DATA_ROOT}book_cache/thum/{book_uuid}.jpg')
-    except:
-        logger.warn(f'{book_uuid}のサムネイルが削除出来ませんでした')
-
-    os.chmod(export_dir+file_name,777)
     
 
 
@@ -508,38 +472,9 @@ def image_convertor(src_path, dst_path, to_height, quality):
     shutil.move(f'{temp_file}.temp{temp_ext}', dst_path)
 
 
-
-def list_dir_files(search_dir):
-
-    return glob.glob(f"./temp/{search_dir}/**", recursive=True)
-
-
-
-def hash():
-    # BUF_SIZE is totally arbitrary, change for your app!
-    BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
-
-    md5 = hashlib.md5()
-    sha1 = hashlib.sha1()
-
-    with open(sys.argv[1], 'rb') as f:
-        while True:
-            data = f.read(BUF_SIZE)
-            if not data:
-                break
-            md5.update(data)
-            sha1.update(data)
-
-    print("MD5: {0}".format(md5.hexdigest()))
-    print("SHA1: {0}".format(sha1.hexdigest()))
-
-
-
-def unzip(unzip_file, to_dir):
-    with zipfile.ZipFile(f'send_books/{unzip_file}') as existing_zip:
-        existing_zip.extractall(f'temp/{to_dir}')
-
+def debug():
+    pass
 
 
 if __name__ == "__main__":
-    main()
+    debug()

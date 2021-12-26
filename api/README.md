@@ -19,10 +19,11 @@
 
 ## Alembic
 
-```
+```bash
 docker-compose run api alembic upgrade head
 alembic revision --autogenerate
 alembic upgrade head
+# データリセット
 alembic downgrade base
 ```
 

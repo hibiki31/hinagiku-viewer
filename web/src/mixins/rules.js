@@ -5,7 +5,13 @@ Vue.mixin({
     // 必須
     $required: (value) => !!value || 'Required.',
     // 64文字以下
-    $limitLength64: (value) => value.length <= 64 || '64 characters maximum.',
+    $limitLength64: (value) => {
+      if (value === undefined) {
+        return false || 'requird'
+      } else {
+        return value.length <= 64 || '64 characters maximum.'
+      }
+    },
     // 文字種制限
     $characterRestrictions (value) {
       const regex = new RegExp(/^[A-Za-z0-9-_]*$/)
@@ -20,17 +26,6 @@ Vue.mixin({
     $intValueRestrictions (value) {
       const regex = new RegExp(/^[0-9]*$/)
       return regex.test(value) || 'Only Int value'
-    },
-    // バリデータ
-    required: (value) => !!value || 'Required.',
-    limitLength64: (value) => value.length <= 64 || '64 characters maximum.',
-    characterRestrictions (value) {
-      const regex = new RegExp(/^[A-Za-z0-9-_]*$/)
-      return regex.test(value) || 'Can use character A-Z, a-z, 0-9, -, _'
-    },
-    firstCharacterRestrictions (value) {
-      const regex = new RegExp(/^[A-Za-z].*/)
-      return regex.test(value) || 'Can use first character A-Z, a-z'
     }
   }
 })

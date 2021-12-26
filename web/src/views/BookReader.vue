@@ -207,9 +207,9 @@ export default {
     nowPage: function (newPage, oldPage) {
       this.getDLoadingPage()
       localStorage.openBookPage = newPage
-      if (Number(this.$route.query.page) !== newPage) {
-        this.$router.push({ query: { page: newPage } })
-      }
+      // if (Number(this.$route.query.page) !== newPage) {
+      //   this.$router.replace({ query: { page: newPage } })
+      // }
     },
     settings: {
       handler: function (val, oldVal) {
@@ -395,10 +395,14 @@ export default {
           this.viewerPage2TowPage = true
         }
       }
+      this.settings.showBaseWidth = (width < height)
       this.settings.showTowPage = this.viewerPage1TowPage & this.viewerPage2TowPage
     }
   },
   mounted: function () {
+    // ウインドウ変更検出リスナー登録
+    window.addEventListener('resize', this.handleResize)
+    this.settings.showBaseWidth = (this.width < this.height)
     // 拡大率修正
     document.body.style.zoom = 1.0
     // パスからUUIDを取得して，ローカルストレージに保存
@@ -406,8 +410,8 @@ export default {
     localStorage.openBookUUID = this.uuid
 
     // ページの指定はあるか？
-    if (this.$route.query.page) {
-      this.nowPage = Number(this.$route.query.page)
+    if (this.$route.query.startPage) {
+      this.nowPage = Number(this.$route.query.startPage)
     }
 
     // 4ページ決め打ちで先読み用アレイ
@@ -429,8 +433,6 @@ export default {
 
     // メニューを非表示
     this.$store.dispatch('hideMenuBer')
-    // ウインドウ変更検出リスナー登録
-    window.addEventListener('resize', this.handleResize)
   },
   beforeDestroy: function () {
     // 再帰処理を止めてる
