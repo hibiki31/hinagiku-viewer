@@ -6,10 +6,11 @@ from sqlalchemy import desc
 from mixins.settings import APP_ROOT, DATA_ROOT
 from mixins.log import setup_logger
 from mixins.database import SessionLocal
-from mixins.convertor import task_convert, task_export, export_library, create_book_page_cache
+from mixins.convertor import task_convert, create_book_page_cache
 
 from tasks.library_import import main as task_library_import
 from tasks.library_export import main as task_library_export
+from tasks.library_fixmetadata import main as task_library_fixmetadata
 
 from books.models import BookModel 
 
@@ -17,34 +18,8 @@ from books.models import BookModel
 logger = setup_logger(__name__)
 
 
-def endless_eight():
-    logger.info("Worker起動")
-    db = SessionLocal()
-    while True:
-        task_library_import()
-
-        for request in db.query(BookModel).filter(BookModel.state=="request").all():
-            request: BookModel
-            logger.info("キャッシュを作成開始: "+request.uuid)
-            task_convert(book_uuid=request.uuid)
-            request.state = "cached"
-            logger.info("キャッシュを作成終了: "+request.uuid)
-            break
-        
-        for request in db.query(BookModel).filter(BookModel.state=="export"):
-            request: BookModel
-            task_export(request)
-            break
-        
-        db.query(BookModel).filter(BookModel.state=="export").delete()
-        db.commit()
-        sleep(0.1)
-
-
 if __name__ == "__main__":
     args = sys.argv
-    if len(args) == 1:
-        endless_eight()
 
     if args[1] == "convert":
         book_uuid = args[2]
@@ -87,3 +62,10 @@ if __name__ == "__main__":
         logger.info(f'別プロセスでライブラリ追加処理開始')
         task_library_import(db=db, user_id=user_id)
         logger.info(f'別プロセスでライブラリ追加処理終了')
+    
+    if args[1] == "fixmetadata":
+        user_id = args[2]
+        db = SessionLocal()
+        logger.info(f'別プロセスでメタデータ更新開始')
+        task_library_fixmetadata(db=db, user_id=user_id)
+        logger.info(f'別プロセスでメタデータ更新完了')

@@ -104,6 +104,8 @@ def patch_media_library(
             return { "status": "allredy" }
     if model.state == "load":
         library_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "load", current_user.id]))
+    elif model.state == "fixmetadata":
+        library_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "fixmetadata", current_user.id]))
     elif model.state == "export":
         library_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "export"]))
     elif model.state == "export_uuid":

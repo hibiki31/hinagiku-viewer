@@ -94,14 +94,6 @@
     </v-app-bar>
     <!-- ドロワー -->
     <v-navigation-drawer v-model="showDrawer" app clipped>
-      <v-list-item>
-        <v-list-item-content>
-          <v-list-item-title class="title"></v-list-item-title>
-          <v-list-item-subtitle></v-list-item-subtitle>
-        </v-list-item-content>
-      </v-list-item>
-
-      <v-divider></v-divider>
       <v-list nav dense>
         <v-list-item-group>
           <v-select
@@ -111,7 +103,7 @@
             item-text="name"
             item-value="id"
             dense
-            class="pr-2 pl-2"
+            class="pr-2 pl-2 pt-3"
           ></v-select>
         </v-list-item-group>
       </v-list>
@@ -438,14 +430,14 @@ export default {
     },
     reload () {
       this.pageChange()
-      const library = this.searchQuery.library
+      const oldsearchQuery = Object.assign({}, this.searchQuery)
       this.searchQuery = {
         limit: 60,
         offset: 0,
         title: null,
         rate: null,
         genre: null,
-        library: library,
+        library: oldsearchQuery.library,
         fullText: ''
       }
       this.search()

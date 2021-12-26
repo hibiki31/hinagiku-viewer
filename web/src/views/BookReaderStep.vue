@@ -210,12 +210,10 @@ export default {
   mounted: function () {
     this.uuid = this.$route.params.uuid
     this.showTowPage = !this.$vuetify.breakpoint.mobile
-    this.$store.dispatch('hideMenuBer')
     axios.get('/api/books', { params: { uuid: this.uuid } }).then((response) => (this.bookInfo = response.data[0]))
     window.addEventListener('resize', this.handleResize)
   },
   beforeDestroy: function () {
-    this.$store.dispatch('showMenuBer')
     window.removeEventListener('resize', this.handleResize)
   }
 }

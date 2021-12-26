@@ -430,15 +430,10 @@ export default {
       })
 
     this.loadSettings()
-
-    // メニューを非表示
-    this.$store.dispatch('hideMenuBer')
   },
   beforeDestroy: function () {
     // 再帰処理を止めてる
     this.pageMove = true
-    // メニューを表示
-    this.$store.dispatch('showMenuBer')
     // ウインドウ変更検出リスナー解除
     window.removeEventListener('resize', this.handleResize)
   }

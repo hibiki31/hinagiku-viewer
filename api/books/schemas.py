@@ -25,7 +25,7 @@ class BookBase(CamelModel):
     user_id: str
     title: str = None
     authors: Any
-    publisher_id: str = None
+    publisher: Any
     is_shered: bool
     library_id: int
     genre_id: str = None
@@ -77,6 +77,7 @@ class LibraryPatchEnum(str, Enum):
     export = "export"
     load = "load"
     export_uuid = "export_uuid"
+    fixmetadata = "fixmetadata"
 
 class LibraryPatch(CamelModel):
     state: LibraryPatchEnum = LibraryPatchEnum.load
