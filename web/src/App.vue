@@ -73,12 +73,17 @@ export default {
     axios
       .get('/api/version')
       .then(res => {
-        if (this.version !== res.apiVersion) {
-          this.$_pushNotice('バージョンアップを行います', 'info')
-          this.$_sleep(3)
-          location.reload(true)
+        if (this.version !== res.data.apiVersion) {
+          if (localStorage.apiVersion === res.data.apiVersion) {
+            this.$_pushNotice('クライアントとAPIでバージョン齟齬があります', 'error')
+            return
+          }
+          this.$_pushNotice(res.data.apiVersion + 'にバージョンアップを行います', 'info')
+          localStorage.apiVersion = res.data.apiVersion
+          setTimeout(() => {
+            location.reload(true)
+          }, 3000)
         }
-        store.dispatch('authenticaitonSuccessful', accessToken)
       })
   }
 }
