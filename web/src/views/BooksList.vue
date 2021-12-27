@@ -437,7 +437,7 @@ export default {
         title: null,
         rate: null,
         genre: null,
-        library: oldsearchQuery.library,
+        libraryId: oldsearchQuery.libraryId,
         fullText: ''
       }
       this.search()

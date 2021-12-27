@@ -446,7 +446,13 @@ export default {
   height: auto;
   width: auto;
 }
+
 .image-base-height > img {
+  max-height: 100vh;
+  height: 100vh;
+}
+
+.image-base-height{
   max-height: 100vh;
   height: 100vh;
 }
