@@ -454,6 +454,7 @@ export default {
             this.totalItems = response.data.count
             this.$_pushNotice(this.totalItems + '件', 'info')
             this.isLoading = false
+            this.scrollToUUID()
           })
         // ローカルストレージにパラメータ格納
         const parsed = JSON.stringify(this.searchQuery)
@@ -557,9 +558,6 @@ export default {
 
     // 初期ロード
     this.search()
-
-    // 開いていた本へジャンプ
-    this.scrollToUUID()
   }
 }
 </script>
