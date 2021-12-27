@@ -69,6 +69,17 @@ export default {
     } else {
       store.dispatch('authenticaitonFail')
     }
+
+    axios
+      .get('/api/version')
+      .then(res => {
+        if (this.version !== res.apiVersion) {
+          this.$_pushNotice('バージョンアップを行います', 'info')
+          this.$_sleep(3)
+          location.reload(true)
+        }
+        store.dispatch('authenticaitonSuccessful', accessToken)
+      })
   }
 }
 </script>

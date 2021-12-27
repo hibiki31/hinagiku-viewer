@@ -6,7 +6,7 @@ from starlette.requests import Request
 
 from mixins.log import setup_logger
 from mixins.database import SessionLocal
-from mixins.settings import DATA_ROOT, APP_ROOT
+from mixins.settings import DATA_ROOT, APP_ROOT, API_VERSION
 
 from books.router import app as books_router
 from users.router import app as users_router
@@ -27,7 +27,7 @@ tags_metadata = [
 app = FastAPI(
     title="Hinagiku-Viewer",
     description="",
-    version="2.0.1",
+    version=API_VERSION,
     openapi_tags=tags_metadata,
     docs_url="/api",
     redoc_url="/api/redoc",
@@ -79,6 +79,11 @@ async def db_session_middleware(request: Request, call_next):
 
     # 結果を返す
     return response
+
+
+@app.get("/api/version")
+def read_api_users_me():
+    return {"apiVersion": API_VERSION}
 
 
 if __name__ == "__main__":
