@@ -78,14 +78,14 @@
       <template v-if="settings.showTowPage">
         <img
           v-hammer:swipe="onSwipe"
-          v-hammer:press="openSubMenu"
-          v-hammer:tap="pageNext"
+          v-hammer:press="actionSubMenuOpen"
+          v-hammer:tap="actionPageNext"
           :src="this.pageBlob[this.nowPage+0]"
         />
         <img
           v-hammer:swipe="onSwipe"
-          v-hammer:press="openSubMenu"
-          v-hammer:tap="pageNext"
+          v-hammer:press="actionSubMenuOpen"
+          v-hammer:tap="actionPageNext"
           :src="this.pageBlob[this.nowPage-1]"
         />
       </template>
@@ -93,21 +93,21 @@
       <template v-else>
         <img
           v-hammer:swipe="onSwipe"
-          v-hammer:press="openSubMenu"
-          v-hammer:tap="pageNext"
+          v-hammer:press="actionSubMenuOpen"
+          v-hammer:tap="actionPageNext"
           :src="this.pageBlob[this.nowPage-1]"
         />
       </template>
       <!-- 確認用 -->
       <div style="display: none;">
         <img
-          id="viewer-page-1"
-          v-on:load="imageLoad('viewer-page-1')"
+          id="viewer-page-2"
+          v-on:load="imageLoad()"
           :src="this.pageBlob[this.nowPage+0]"
         />
         <img
-          id="viewer-page-2"
-          v-on:load="imageLoad('viewer-page-2')"
+          id="viewer-page-1"
+          v-on:load="imageLoad()"
           :src="this.pageBlob[this.nowPage-1]"
         />
       </div>
@@ -153,7 +153,7 @@
 <script>
 import axios from '@/axios/index'
 import LoadingImage from '@/assets/loading.gif'
-import router from '../router'
+import router from '@/router'
 
 export default {
   name: 'Books',
@@ -168,6 +168,7 @@ export default {
   },
   data: function () {
     return {
+      // hummer用
       dict: {
         2: 'left',
         4: 'right',
@@ -219,7 +220,7 @@ export default {
     }
   },
   methods: {
-    // ライブラリに戻るときに
+    // ライブラリに戻る
     goLibrary () {
       localStorage.removeItem('openBookUUID')
       localStorage.removeItem('openBookPage')
@@ -270,7 +271,7 @@ export default {
       let height = this.settings.customHeight
       if (this.settings.showWindwSize) { height = this.settings.windowHeight }
 
-      await axios
+      axios
         .get(`/media/books/${uuid}/${page}`, {
           responseType: 'blob',
           params: {
@@ -293,15 +294,20 @@ export default {
           setTimeout(this.getDLoadingPage, 1000)
         })
     },
-    openSubMenu (event, item, i) {
-      if (this.subMenu) {
-        this.subMenu = false
-      } else {
-        this.subMenu = true
+    // hummerアクションハンドラ
+    onSwipe (e) {
+      const swipe = this.dict[e.direction]
+      if (swipe === 'left') {
+        this.actionPageBack()
+      } else if (swipe === 'right') {
+        this.actionPageNext()
+      } else if (swipe === 'bottom') {
+        this.actionMenuOpen()
+      } else if (swipe === 'top') {
+        this.goLibrary()
       }
-      document.body.style.zoom = 1.0
     },
-    pageNext () {
+    actionPageNext () {
       if (this.settings.showTowPage) {
         this.nowPage += 2
       } else {
@@ -312,7 +318,7 @@ export default {
         this.menuDialog = true
       }
     },
-    pageBack () {
+    actionPageBack () {
       if (this.settings.showTowPage) {
         this.nowPage -= 2
       } else {
@@ -322,20 +328,16 @@ export default {
         this.nowPage = 1
       }
     },
-    onSwipe (e) {
-      const swipe = this.dict[e.direction]
-      if (swipe === 'left') {
-        this.pageBack()
-      } else if (swipe === 'right') {
-        this.pageNext()
-      } else if (swipe === 'bottom') {
-        this.menuDialog = true
-      } else if (swipe === 'top') {
-        this.goLibrary()
-      }
-    },
-    openMenu () {
+    actionMenuOpen () {
       this.menuDialog = true
+    },
+    actionSubMenuOpen (event, item, i) {
+      if (this.subMenu) {
+        this.subMenu = false
+      } else {
+        this.subMenu = true
+      }
+      document.body.style.zoom = 1.0
     },
     getPageUrl (index) {
       const api = process.env.VUE_APP_API_HOST
@@ -345,13 +347,13 @@ export default {
         return '/media/books/' + this.uuid + '/' + index
       }
     },
-    handleResize: function () {
+    handleResize () {
       // resizeのたびにこいつが発火するので、ここでやりたいことをやる
       this.width = window.innerWidth
       this.height = window.innerHeight
-    },
-    onImgError: function (event) {
-      console.log(event)
+      // 拡大率修正
+      document.body.style.zoom = 1.0
+      this.imageLoad()
     },
     reCache () {
       axios.request({
@@ -359,9 +361,6 @@ export default {
         url: '/api/books',
         data: { uuids: [this.uuid], state: 'request' }
       })
-    },
-    parseBoolean (str) {
-      return (str === 'true')
     },
     loadSettings () {
       // 設定の復元
@@ -376,35 +375,23 @@ export default {
         this.settings.showBaseWidth = !this.settings.showTowPage
       }
     },
-    imageLoad (id) {
-      const element = document.getElementById(id)
-      const width = element.naturalWidth
-      const height = element.naturalHeight
-      const fitWidth = width * this.height / height * 2
-      // console.log([width, height, this.width, this.height])
-      if (id === 'viewer-page-1') {
-        if (fitWidth > this.width) {
-          this.viewerPage1TowPage = false
-        } else {
-          this.viewerPage1TowPage = true
-        }
-      } else {
-        if (fitWidth > this.width) {
-          this.viewerPage2TowPage = false
-        } else {
-          this.viewerPage2TowPage = true
-        }
-      }
-      this.settings.showBaseWidth = (width < height)
-      this.settings.showTowPage = this.viewerPage1TowPage & this.viewerPage2TowPage
+    imageLoad () {
+      const elementPage1 = document.getElementById('viewer-page-1')
+      const elementPage2 = document.getElementById('viewer-page-2')
+      const width1 = elementPage1.naturalWidth
+      const width2 = elementPage2.naturalWidth
+      const height1 = elementPage1.naturalHeight
+      const height2 = elementPage2.naturalHeight
+      const fitWidth = (width1 * this.height / height1) + (width2 * this.height / height2)
+
+      this.settings.showBaseWidth = elementPage1.naturalWidth / elementPage1.naturalHeight > this.width / this.height
+      this.settings.showTowPage = (fitWidth <= this.width)
     }
   },
   mounted: function () {
     // ウインドウ変更検出リスナー登録
     window.addEventListener('resize', this.handleResize)
-    this.settings.showBaseWidth = (this.width < this.height)
-    // 拡大率修正
-    document.body.style.zoom = 1.0
+
     // パスからUUIDを取得して，ローカルストレージに保存
     this.uuid = this.$route.params.uuid
     localStorage.openBookUUID = this.uuid
