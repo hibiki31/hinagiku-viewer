@@ -197,7 +197,7 @@ export default {
         cachePage: 32,
         mulchLoad: 4,
         showTowPage: false,
-        showBaseWidth: false,
+        showBaseWidth: true,
         showWindwSize: false,
         customHeight: 1024,
         windowHeight: window.innerHeight * window.devicePixelRatio

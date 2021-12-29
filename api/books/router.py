@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.orm import Session, aliased, exc, query, selectinload
-from sqlalchemy import func
+from sqlalchemy import func, select, join, table, literal_column, text
 from sqlalchemy import or_, and_
 
 from .models import *
@@ -60,6 +60,42 @@ async def get_api_books(
         offset:int = 0,
         sortKey:str = "author-title",
     ):
+
+    book = select("*").limit(2).select_from(table('books')).alias('book')
+    meta = select(
+            "*"
+        ).select_from(
+            table('book_metadatas')
+        ).where(
+            literal_column('user_id') >= current_user.id
+        ).alias('meta')
+    
+    pub = table('publishers').alias('pub')
+
+    
+    main_query = select([
+            literal_column('book.uuid'),
+            literal_column('meta.rate'),
+            literal_column('pub.name')
+        ]).select_from(
+        book.outerjoin(
+            meta, text('book.uuid = meta.book_uuid')
+        ).outerjoin(
+            pub, text('book.publisher_id = pub.id')
+        )
+    )
+
+    import pprint
+
+    print(main_query)
+
+    vle = db.execute(main_query).fetchone()
+    clm = db.execute(main_query).keys()  #列名取得
+
+    dc = dict(zip(clm , vle)) #辞書作成
+
+    pprint.pprint(dc)
+
 
     # ユーザデータのサブクエリ
     user_metadata_subquery = db.query(
@@ -190,7 +226,13 @@ def change_book_data(
             book.library_id = model.library_id
 
         if model.publisher != None:
-            book.publisher = model.publisher
+            if publisher_model := db.query(PublisherModel).filter(PublisherModel.name==model.publisher).one_or_none():
+                book.publisher_id = publisher_model.id
+            else:
+                publisher_model = PublisherModel(name=model.publisher)
+                db.add(publisher_model)
+                db.commit()
+                book.publisher_id = publisher_model.id
         
         if model.series != None:
             book.series = model.series
@@ -206,6 +248,28 @@ def change_book_data(
         
         if model.genre != None:
             book.genre = model.genre
+    
+    db.commit()
+    return book
+
+@app.delete("/api/books", tags=["book"])
+def delete_book_data(
+        db: Session = Depends(get_db),
+        model: BookPut = None,
+        current_user: UserCurrent = Depends(get_current_user)
+    ):
+    for book_uuid in model.uuids:
+        try:
+            book: BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
+        except:
+            raise HTTPException(
+                status_code=404,
+                detail=f"本が存在しません,操作は全て取り消されました: {book_uuid}",
+            )
+
+        if model.author != None:
+            author_model = db.query(AuthorModel).filter(AuthorModel.id==model.author).one()
+            book.authors.remove(author_model)
     
     db.commit()
     return book

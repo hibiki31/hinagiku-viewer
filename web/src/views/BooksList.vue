@@ -173,7 +173,82 @@
       v-show="isLoading"
     ></v-progress-linear>
     <v-container v-show="!isLoading">
-      <v-row v-if="!showListMode">
+      <div v-if="showListMode">
+        <v-data-table
+          :headers="headers"
+          :items="booksList"
+          :items-per-page="searchQuery.limit"
+          hide-default-footer
+        >
+        <template v-slot:item.title="props">
+          <v-edit-dialog
+            :return-value.sync="props.item.title"
+            @save="save(props.item)"
+            @cancel="cancel"
+            @open="open"
+            @close="close"
+          >
+            {{ props.item.title }}
+            <template v-slot:input>
+              <v-text-field
+                v-model="props.item.title"
+                label="Edit"
+                single-line
+                counter
+              ></v-text-field>
+            </template>
+          </v-edit-dialog>
+        </template>
+        <template v-slot:item.publisher.name="props">
+          <v-edit-dialog
+            :return-value.sync="props.item.publisher.name"
+            @save="savePublisher(props.item)"
+            @cancel="cancel"
+            @open="open"
+            @close="close"
+          >
+            {{ props.item.publisher.name }}
+            <template v-slot:input>
+              <v-text-field
+                v-model="props.item.publisher.name"
+                label="Edit"
+                single-line
+                counter
+              ></v-text-field>
+            </template>
+          </v-edit-dialog>
+        </template>
+         <template v-slot:item.actions="{ item }">
+          <v-icon
+            small
+            class="mr-2"
+            @click="toReaderPage(item)"
+          >
+            mdi-book-open-blank-variant
+          </v-icon>
+          <v-icon
+            small
+            class="mr-2"
+            @click="openMenu(item)"
+          >
+            mdi-tooltip-edit-outline
+          </v-icon>
+        </template>
+         <template v-slot:item.authors="{ item }">
+          <v-chip
+            v-for="author in item.authors"
+            :key="author.id"
+            class="ma-2"
+            small
+            close
+            @click:close="deleteAuthor(item, author.id)"
+          >
+            {{ author.name }}
+          </v-chip>
+        </template>
+        </v-data-table>
+      </div>
+      <v-row v-else>
         <v-col
           :cols="4"
           :xs="4"
@@ -193,38 +268,6 @@
           </v-card>
         </v-col>
       </v-row>
-      <div v-if="showListMode">
- <v-card
-        v-for="item in booksList"
-        :key="item.uuid"
-        :id="item.uuid"
-        class="ma-2"
-      >
-        <v-row>
-          <v-col cols="12" md="3">
-            <v-text-field
-              hide-details="auto"
-              v-model="item.author"
-              label="著者"
-              dense
-              class="ma-1"
-            ></v-text-field>
-          </v-col>
-          <v-col cols="12" md="8">
-            <v-text-field
-              hide-details="auto"
-              v-model="item.title"
-              label="タイトル"
-              dense
-              class="ma-1"
-            ></v-text-field>
-          </v-col>
-          <v-col>
-            <v-btn @click="bookInfoSubmitButton(item)"> 保存 </v-btn>
-          </v-col>
-        </v-row>
-      </v-card>
-      </div>
       <v-pagination
         v-model="page"
         :length="Math.ceil(totalItems / searchQuery.limit)"
@@ -269,7 +312,7 @@ export default {
       // ダイアログで使用
       showJson: false,
       // モード
-      showListMode: false,
+      showListMode: true,
       // ローカルクエリ
       page: 1,
       queryTitle: '',
@@ -297,6 +340,12 @@ export default {
       booksList: [],
       totalItems: 0,
       // バージョン固定値
+      headers: [
+        { text: 'title', value: 'title' },
+        { text: 'authors', value: 'authors' },
+        { text: 'publisher', value: 'publisher.name' },
+        { text: 'actions', value: 'actions' }
+      ],
       version: require('../../package.json').version
     }
   },
@@ -342,6 +391,45 @@ export default {
   },
 
   methods: {
+    deleteAuthor (book, id) {
+      axios
+        .request({
+          method: 'delete',
+          url: '/api/books',
+          data: { uuids: [book.uuid], author: id }
+        })
+        .then((response) =>
+          this.$_pushNotice('著者削除', 'success')
+        )
+    },
+    saveTitle (book) {
+      axios
+        .request({
+          method: 'put',
+          url: '/api/books',
+          data: { uuids: [book.uuid], title: book.title }
+        })
+        .then((response) =>
+          this.$_pushNotice('タイトル更新', 'success')
+        )
+    },
+    savePublisher (book) {
+      axios
+        .request({
+          method: 'put',
+          url: '/api/books',
+          data: { uuids: [book.uuid], publisher: book.publisher.name }
+        })
+        .then((response) =>
+          this.$_pushNotice('発行者更新', 'success')
+        )
+    },
+    cancel () {
+    },
+    open () {
+    },
+    close () {
+    },
     async searchBooksPut () {
       // 全件取得
       this.mulchBooksDialog = false
