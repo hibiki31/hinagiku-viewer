@@ -312,7 +312,7 @@ export default {
       // ダイアログで使用
       showJson: false,
       // モード
-      showListMode: true,
+      showListMode: false,
       // ローカルクエリ
       page: 1,
       queryTitle: '',
