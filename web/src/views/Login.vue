@@ -1,6 +1,6 @@
 <template>
   <div class="Login">
-    <setup-virty-dialog ref="setupVirtyDialog"/>
+    <setup-dialog ref="SetupDialog"/>
     <v-container class="fill-height" fluid>
       <v-row align="center" justify="center">
         <v-col cols="12" sm="8" md="4">
@@ -41,7 +41,7 @@
               <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn
-                  v-on:click="this.openSetupVirtyDialog"
+                  v-on:click="this.openSetupDialog"
                   depressed
                   text
                   color="secondary"
@@ -73,7 +73,7 @@
 
 <script>
 import axios from '@/axios/index'
-import SetupVirtyDialog from '../components/dialog/SetupVirtyDialog.vue'
+import SetupDialog from '../components/dialog/SetupDialog.vue'
 
 export default {
   name: 'Login',
@@ -81,7 +81,7 @@ export default {
     source: String
   },
   components: {
-    SetupVirtyDialog
+    SetupDialog
   },
   data: () => ({
     isFormValid: false,
@@ -95,8 +95,8 @@ export default {
     }
   }),
   methods: {
-    openSetupVirtyDialog () {
-      this.$refs.setupVirtyDialog.openDialog()
+    openSetupDialog () {
+      this.$refs.SetupDialog.openDialog()
     },
     async doLogio () {
       this.$store.dispatch('auth', this.loginForm.username, this.loginForm.password)

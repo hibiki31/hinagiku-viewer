@@ -2,7 +2,7 @@
  <v-dialog width="400" v-model="dialogState">
       <v-card>
         <v-form ref="nodeAddForm">
-          <v-card-title>Setup Virty</v-card-title>
+          <v-card-title>Setup</v-card-title>
           <v-card-text>
             初期設定を行います。管理者ユーザが存在する場合実行できません。
             <v-text-field
