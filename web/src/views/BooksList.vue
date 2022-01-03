@@ -199,7 +199,7 @@
             </template>
           </v-edit-dialog>
         </template>
-        <template v-slot:item.publisher.name="props">
+        <template v-slot:item.publisher="props">
           <v-edit-dialog
             :return-value.sync="props.item.publisher.name"
             @save="savePublisher(props.item)"
