@@ -61,42 +61,6 @@ async def get_api_books(
         sortKey:str = "author-title",
     ):
 
-    book = select("*").limit(2).select_from(table('books')).alias('book')
-    meta = select(
-            "*"
-        ).select_from(
-            table('book_metadatas')
-        ).where(
-            literal_column('user_id') >= current_user.id
-        ).alias('meta')
-    
-    pub = table('publishers').alias('pub')
-
-    
-    main_query = select([
-            literal_column('book.uuid'),
-            literal_column('meta.rate'),
-            literal_column('pub.name')
-        ]).select_from(
-        book.outerjoin(
-            meta, text('book.uuid = meta.book_uuid')
-        ).outerjoin(
-            pub, text('book.publisher_id = pub.id')
-        )
-    )
-
-    import pprint
-
-    print(main_query)
-
-    vle = db.execute(main_query).fetchone()
-    clm = db.execute(main_query).keys()  #列名取得
-
-    dc = dict(zip(clm , vle)) #辞書作成
-
-    pprint.pprint(dc)
-
-
     # ユーザデータのサブクエリ
     user_metadata_subquery = db.query(
         BookUserMetaDataModel
@@ -144,7 +108,7 @@ async def get_api_books(
             query = query.filter(BookModel.library_id == libraryId)
         
         if authorLike != None:
-            query = query.join(BookModel.authors).filter(
+            query = query.outerjoin(BookModel.authors).filter(
                 AuthorModel.name.like(f'%{authorLike}%')
             )
         
@@ -155,7 +119,7 @@ async def get_api_books(
             query = query.filter(BookModel.tags.any(name=tag))
         
         if fullText != None:
-            query = query.join(
+            query = query.outerjoin(
                 BookModel.authors
             ).filter(or_(
                 BookModel.title.like(f'%{fullText}%'),
@@ -180,7 +144,7 @@ async def get_api_books(
     elif sortKey == "date":
         query = query.order_by(BookModel.add_date.desc())
     elif sortKey == "author-title":
-        query = query.join(
+        query = query.outerjoin(
             BookModel.authors
         ).order_by(AuthorModel.name, BookModel.title)
     

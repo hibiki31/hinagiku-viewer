@@ -2,10 +2,13 @@ from mixins.database import SessionLocal
 from sqlalchemy import func, select, join, table, literal_column, text
 
 
-def select_books(user_id, title=None, limit=2):
+def select_books(user_id, title=None, limit=None, count=False):
     db = SessionLocal()
 
-    book = select("*").limit(limit).select_from(table('books'))
+    if limit:
+        book = select("*").limit(limit).select_from(table('books'))
+    else:
+        book = select("*").select_from(table('books'))
     if title:
         book = book.where(literal_column('title').like(f'%{title}%'))
     
@@ -24,8 +27,11 @@ def select_books(user_id, title=None, limit=2):
     book_to_aut = table('book_to_author').alias('book_to_aut')
 
     aut = table('authors').alias('aut')
-    
-    main_query = select([
+
+    if count:
+        main_query = select([func.count()])
+    else:
+        main_query = select([
             literal_column('book.uuid').label('uuid'),
             literal_column('book.page').label('page'),
             literal_column('book.title').label('title'),
@@ -34,7 +40,9 @@ def select_books(user_id, title=None, limit=2):
             literal_column('pub.id').label('pub_id'),
             literal_column('aut.name').label('author_name'),
             literal_column('aut.id').label('author_id')
-        ]).select_from(
+        ])
+    
+    main_query = main_query.select_from(
         book.outerjoin(
             meta, text('book.uuid = meta.book_uuid')
         ).outerjoin(
@@ -53,12 +61,13 @@ def select_books(user_id, title=None, limit=2):
     vle = db.execute(main_query).fetchall()
     clm = db.execute(main_query).keys()
 
-    
+    res = []
 
     for i in vle:
-        dc = dict(zip(clm , vle))
+        dc = dict(zip(clm , i))
 
-    pprint.pprint(dc)
+        pprint.pprint(dc)
+
 
 
 
