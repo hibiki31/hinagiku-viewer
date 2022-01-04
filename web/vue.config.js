@@ -2,6 +2,10 @@ module.exports = {
   transpileDependencies: [
     'vuetify'
   ],
+  devServer: {
+    port: 8080,
+    host: 'localhost'
+  },
   pwa: {
     name: 'HinaV',
     themeColor: '#ffffff',

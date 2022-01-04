@@ -5,7 +5,10 @@
 	"forwardPorts": [
 		8080, // App
 	  ],
-	"extensions":["octref.vetur"],
+	"extensions":[
+		"octref.vetur",
+		"donjayamanne.githistory"
+	],
 	"mounts": [
 		"source=try-hinav_node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume"
 	],

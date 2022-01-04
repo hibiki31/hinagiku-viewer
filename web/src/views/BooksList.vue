@@ -1,6 +1,7 @@
 <template>
-  <div class="books">
-    <search-dialog ref="searchDialog" />
+  <div class="booksList">
+    <SearchDialog ref="searchDialog" />
+    <BookDetailDialog ref="bookDetailDialog" />
     <!-- エクスポート確認 -->
     <v-dialog v-model="exportDialog" persistent max-width="290">
       <v-card>
@@ -12,42 +13,6 @@
             キャンセル
           </v-btn>
           <v-btn color="error" text @click="searchBooksPut()"> OK </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <!-- ダイアログ -->
-    <v-dialog v-model="menuDialog" scrollable max-width="500px">
-      <v-card>
-        <v-card-title>Select Editor</v-card-title>
-        <v-divider></v-divider>
-        <v-card-text style="height: 300px">
-          <v-rating v-model="openItem.userData.rate" small class="pa-1"></v-rating>
-          <v-row>
-            <v-text-field label="Title" v-model="openItem.title"></v-text-field>
-            <v-btn small icon><v-icon>mdi-magnify</v-icon></v-btn>
-          </v-row>
-          <v-row>
-            <div>Author</div>
-          </v-row>
-          <v-row v-for="author in openItem.authors" :key="author.name">
-            <v-text-field
-              v-model="author.name"
-            ></v-text-field>
-            <v-btn @click="searchQuery.fullText=author.name; search()" small icon><v-icon>mdi-magnify</v-icon></v-btn>
-          </v-row>
-          <v-btn small class="pa-1" @click="showJson = !showJson">Json</v-btn>
-          <div v-if="showJson" class="selectable">{{ this.openItem }}</div>
-        </v-card-text>
-        <v-divider></v-divider>
-        <v-card-actions>
-          <v-btn color="blue darken-1" text @click="menuDialog = false"
-            >閉じる</v-btn
-          >
-          <v-btn color="blue darken-1" text @click="bookInfoSubmit">保存</v-btn>
-          <v-spacer></v-spacer>
-          <v-btn color="red darken-1" text @click="bookExport" class="ml-3"
-            >エクスポート</v-btn
-          >
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -89,7 +54,7 @@
         hide-details
         single-line
       ></v-text-field>
-      <v-btn icon @click="search()"><v-icon>mdi-magnify</v-icon></v-btn>
+      <v-btn icon @click="$refs.searchDialog.openDialog()"><v-icon>mdi-magnify</v-icon></v-btn>
       <v-btn icon @click="reload()"><v-icon>mdi-reload</v-icon></v-btn>
     </v-app-bar>
     <!-- ドロワー -->
@@ -173,101 +138,8 @@
       v-show="isLoading"
     ></v-progress-linear>
     <v-container v-show="!isLoading">
-      <div v-if="showListMode">
-        <v-data-table
-          :headers="headers"
-          :items="booksList"
-          :items-per-page="searchQuery.limit"
-          hide-default-footer
-        >
-        <template v-slot:item.title="props">
-          <v-edit-dialog
-            :return-value.sync="props.item.title"
-            @save="save(props.item)"
-            @cancel="cancel"
-            @open="open"
-            @close="close"
-          >
-            {{ props.item.title }}
-            <template v-slot:input>
-              <v-text-field
-                v-model="props.item.title"
-                label="Edit"
-                single-line
-                counter
-              ></v-text-field>
-            </template>
-          </v-edit-dialog>
-        </template>
-        <template v-slot:item.publisher="props">
-          <v-edit-dialog
-            :return-value.sync="props.item.publisher.name"
-            @save="savePublisher(props.item)"
-            @cancel="cancel"
-            @open="open"
-            @close="close"
-          >
-            {{ props.item.publisher.name }}
-            <template v-slot:input>
-              <v-text-field
-                v-model="props.item.publisher.name"
-                label="Edit"
-                single-line
-                counter
-              ></v-text-field>
-            </template>
-          </v-edit-dialog>
-        </template>
-         <template v-slot:item.actions="{ item }">
-          <v-icon
-            small
-            class="mr-2"
-            @click="toReaderPage(item)"
-          >
-            mdi-book-open-blank-variant
-          </v-icon>
-          <v-icon
-            small
-            class="mr-2"
-            @click="openMenu(item)"
-          >
-            mdi-tooltip-edit-outline
-          </v-icon>
-        </template>
-         <template v-slot:item.authors="{ item }">
-          <v-chip
-            v-for="author in item.authors"
-            :key="author.id"
-            class="ma-2"
-            small
-            close
-            @click:close="deleteAuthor(item, author.id)"
-          >
-            {{ author.name }}
-          </v-chip>
-        </template>
-        </v-data-table>
-      </div>
-      <v-row v-else>
-        <v-col
-          :cols="4"
-          :xs="4"
-          :sm="3"
-          :md="2"
-          :lg="2"
-          v-for="item in booksList"
-          :key="item.uuid"
-          :id="item.uuid"
-        >
-          <v-card @click="toReaderPage(item)">
-            <v-img
-              aspect-ratio="0.7"
-              :src="getCoverURL(item.uuid)"
-              v-hammer:press="(event) => openMenu(item)"
-            ></v-img>
-          </v-card>
-        </v-col>
-      </v-row>
+      <BooksListTable v-if="showListMode" @toReaderPage="toReaderPage" @openMenu="openMenu"/>
+      <BooksListThum v-else @toReaderPage="toReaderPage" @openMenu="openMenu"/>
       <v-pagination
         v-model="page"
         :length="Math.ceil(totalItems / searchQuery.limit)"
@@ -282,12 +154,20 @@
 import axios from '@/axios/index'
 import router from '../router'
 import VueScrollTo from 'vue-scrollto'
-import SearchDialog from '../components/SearchDialog'
+import SearchDialog from '../components/dialog/SearchDialog'
+import BookDetailDialog from '../components/dialog/BookDetailDialog'
+
+import BooksListTable from '../components/BooksListTable'
+import BooksListThum from '../components/BooksListThum'
+import store from '@/store'
 
 export default {
-  name: 'Books',
+  name: 'BooksList',
   components: {
-    SearchDialog
+    SearchDialog,
+    BooksListTable,
+    BooksListThum,
+    BookDetailDialog
   },
   head: {
     title: function () {
@@ -296,6 +176,14 @@ export default {
         separator: '|',
         complement: 'ホーム'
       }
+    }
+  },
+  computed: {
+    booksList () {
+      return store.getters.booksList
+    },
+    booksCount () {
+      return store.getters.booksCount
     }
   },
   data: function () {
@@ -337,15 +225,8 @@ export default {
       },
       // ライブラリ情報
       libraryList: [],
-      booksList: [],
       totalItems: 0,
       // バージョン固定値
-      headers: [
-        { text: 'title', value: 'title' },
-        { text: 'authors', value: 'authors' },
-        { text: 'publisher', value: 'publisher.name' },
-        { text: 'actions', value: 'actions' }
-      ],
       version: require('../../package.json').version
     }
   },
@@ -391,45 +272,6 @@ export default {
   },
 
   methods: {
-    deleteAuthor (book, id) {
-      axios
-        .request({
-          method: 'delete',
-          url: '/api/books',
-          data: { uuids: [book.uuid], author: id }
-        })
-        .then((response) =>
-          this.$_pushNotice('著者削除', 'success')
-        )
-    },
-    saveTitle (book) {
-      axios
-        .request({
-          method: 'put',
-          url: '/api/books',
-          data: { uuids: [book.uuid], title: book.title }
-        })
-        .then((response) =>
-          this.$_pushNotice('タイトル更新', 'success')
-        )
-    },
-    savePublisher (book) {
-      axios
-        .request({
-          method: 'put',
-          url: '/api/books',
-          data: { uuids: [book.uuid], publisher: book.publisher.name }
-        })
-        .then((response) =>
-          this.$_pushNotice('発行者更新', 'success')
-        )
-    },
-    cancel () {
-    },
-    open () {
-    },
-    close () {
-    },
     async searchBooksPut () {
       // 全件取得
       this.mulchBooksDialog = false
@@ -531,23 +373,11 @@ export default {
       this.search()
     },
     async search () {
-      if (this.serachEnable) {
-        this.isLoading = true
-        await axios
-          .get('/api/books', {
-            params: this.searchQuery
-          })
-          .then((response) => {
-            this.booksList = response.data.rows
-            this.totalItems = response.data.count
-            this.$_pushNotice(this.totalItems + '件', 'info')
-            this.isLoading = false
-            this.scrollToUUID()
-          })
-        // ローカルストレージにパラメータ格納
-        const parsed = JSON.stringify(this.searchQuery)
-        localStorage.setItem('searchQuery', parsed)
-      }
+      this.isLoading = true
+      await store.dispatch('serachBooks', this.searchQuery)
+      this.isLoading = false
+      this.scrollToUUID()
+      this.$_pushNotice(store.getters.booksCount + '件', 'info')
     },
     pageChange () {
       this.pageWatchEnable = false
@@ -578,14 +408,6 @@ export default {
           height: window.innerHeight * window.devicePixelRatio
         }
       })
-    },
-    getCoverURL (uuid) {
-      const api = process.env.VUE_APP_API_HOST
-      if (api) {
-        return process.env.VUE_APP_API_HOST + '/media/books/' + uuid
-      } else {
-        return '/media/books/' + uuid
-      }
     },
     scrollToUUID () {
       setTimeout(() => {
