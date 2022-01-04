@@ -137,13 +137,14 @@
       color="yellow darken-2"
       v-show="isLoading"
     ></v-progress-linear>
+    <!-- メインの一覧 -->
     <v-container v-show="!isLoading">
       <BooksListTable v-if="showListMode" @toReaderPage="toReaderPage" @openMenu="openMenu"/>
       <BooksListThum v-else @toReaderPage="toReaderPage" @openMenu="openMenu"/>
       <v-pagination
         v-model="page"
-        :length="Math.ceil(totalItems / searchQuery.limit)"
-        :total-visible="7"
+        :length="maxPage"
+        :total-visible="9"
         class="pt-5"
       ></v-pagination>
     </v-container>
@@ -184,6 +185,9 @@ export default {
     },
     booksCount () {
       return store.getters.booksCount
+    },
+    maxPage () {
+      return Math.ceil(store.getters.booksCount / store.getters.searchQuery.limit)
     }
   },
   data: function () {
@@ -197,8 +201,6 @@ export default {
       mulchBooksDialog: false,
       showDrawer: false,
       isLoading: true,
-      // ダイアログで使用
-      showJson: false,
       // モード
       showListMode: false,
       // ローカルクエリ
@@ -316,21 +318,6 @@ export default {
       this.pageChange()
       this.search()
     },
-    bookInfoSubmit () {
-      this.menuDialog = false
-      axios
-        .request({
-          method: 'put',
-          url: '/api/books/user-data',
-          data: {
-            uuids: [this.openItem.uuid],
-            rate: this.openItem.userData.rate
-          }
-        })
-        .then((response) =>
-          this.$_pushNotice('評価を更新しました', 'success')
-        )
-    },
     bookInfoSubmitButton (item) {
       this.openItem = item
       this.bookInfoSubmit()
@@ -375,9 +362,9 @@ export default {
     async search () {
       this.isLoading = true
       await store.dispatch('serachBooks', this.searchQuery)
+      this.$_pushNotice(store.getters.booksCount + '件', 'info')
       this.isLoading = false
       this.scrollToUUID()
-      this.$_pushNotice(store.getters.booksCount + '件', 'info')
     },
     pageChange () {
       this.pageWatchEnable = false

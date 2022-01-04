@@ -5,6 +5,7 @@ const state = {
   isLoading: false,
   booksList: [],
   booksCount: 0,
+  readerPage: 1,
   searchQuery: {
     limit: 60,
     offset: 0,
@@ -48,7 +49,7 @@ const mutations = {
     Cookies.remove('accessToken')
   },
   setBooksResult (state, res) {
-    state.booksList = res.books
+    state.booksList = res.rows
     state.booksCount = res.count
   },
   setSearchQuery (state, searchQuery) {

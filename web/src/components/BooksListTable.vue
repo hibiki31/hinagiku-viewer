@@ -4,6 +4,7 @@
           :items="booksList"
           :items-per-page="searchQuery.limit"
           hide-default-footer
+          dense
         >
         <template v-slot:[`item.title`]="props">
           <v-edit-dialog
@@ -82,7 +83,6 @@ export default {
   data: function () {
     return {
       dialogState: false,
-      searchQuery: {},
       topBerQuery: null,
       headers: [
         { text: 'title', value: 'title' },
@@ -93,6 +93,9 @@ export default {
     }
   },
   computed: {
+    searchQuery () {
+      return store.getters.searchQuery
+    },
     booksList () {
       return store.getters.booksList
     },

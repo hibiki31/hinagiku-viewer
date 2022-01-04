@@ -34,6 +34,7 @@
 </template>
 
 <script>
+import axios from '@/axios/index'
 
 export default {
   data: function () {
@@ -41,18 +42,38 @@ export default {
       dialogState: false,
       searchQuery: {},
       topBerQuery: null,
-      userData: {
-        rate: null
+      // ダイアログで使用
+      showJson: false,
+      openItem: {
+        userData: {
+          rate: null
+        }
       }
     }
   },
   methods: {
-    openDialog () {
+    openDialog (book) {
+      this.openItem = book
       this.dialogState = true
       this.searchQuery = this.$store.getters.searchQuery
     },
     async submitDialog () {
       await this.$store.dispatch('serachBooks', this.searchQuery)
+    },
+    bookInfoSubmit () {
+      this.dialogState = false
+      axios
+        .request({
+          method: 'put',
+          url: '/api/books/user-data',
+          data: {
+            uuids: [this.openItem.uuid],
+            rate: this.openItem.userData.rate
+          }
+        })
+        .then((response) =>
+          this.$_pushNotice('評価を更新しました', 'success')
+        )
     }
   }
 }

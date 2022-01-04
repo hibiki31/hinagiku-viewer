@@ -1,24 +1,25 @@
 <template>
   <v-row >
-      <v-col
-        :cols="4"
-        :xs="4"
-        :sm="3"
-        :md="2"
-        :lg="2"
-        v-for="item in booksList"
-        :key="item.uuid"
-        :id="item.uuid"
-      >
-        <v-card @click="$emit('toReaderPage', item)">
-          <v-img
-            aspect-ratio="0.7"
-            :src="getCoverURL(item.uuid)"
-            v-hammer:press="(event) => $emit('openMenu',item)"
-          ></v-img>
-        </v-card>
-      </v-col>
-    </v-row>
+    <v-col
+      :cols="4"
+      :xs="4"
+      :sm="3"
+      :md="2"
+      :lg="2"
+      v-for="item in booksList"
+      :key="item.uuid"
+      :id="item.uuid"
+    >
+      <v-card @click="$emit('toReaderPage', item)">
+        <v-img
+          aspect-ratio="0.7"
+          eager
+          :src="getCoverURL(item.uuid)"
+          v-hammer:press="(event) => $emit('openMenu',item)"
+        ></v-img>
+      </v-card>
+    </v-col>
+  </v-row>
 </template>
 
 <script>

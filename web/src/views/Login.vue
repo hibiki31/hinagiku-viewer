@@ -80,6 +80,15 @@ export default {
   props: {
     source: String
   },
+  head: {
+    title: () => {
+      return {
+        inner: 'HinaV',
+        separator: '|',
+        complement: 'ログイン'
+      }
+    }
+  },
   components: {
     SetupDialog
   },
