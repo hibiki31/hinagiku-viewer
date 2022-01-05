@@ -1,11 +1,10 @@
 import axios from '@/axios/index'
-import Cookies from 'js-cookie'
 
 const state = {
-  isLoading: false,
   booksList: [],
   booksCount: 0,
   readerPage: 1,
+  showListMode: false,
   searchQuery: {
     limit: 60,
     offset: 0,
@@ -31,23 +30,6 @@ try {
 }
 
 const mutations = {
-  authenticaitonSuccessful (state, accessToken, username) {
-    Cookies.set('accessToken', accessToken)
-    axios.interceptors.request.use(
-      config => {
-        config.headers.Authorization = `Bearer ${accessToken}`
-        return config
-      })
-    state.accessToken = accessToken
-    state.username = username
-    state.isAuthed = true
-    state.isLoaded = false
-  },
-  authenticaitonFail (state) {
-    state.isAuthed = false
-    state.isLoaded = false
-    Cookies.remove('accessToken')
-  },
   setBooksResult (state, res) {
     state.booksList = res.rows
     state.booksCount = res.count
@@ -55,21 +37,20 @@ const mutations = {
   setSearchQuery (state, searchQuery) {
     state.searchQuery = searchQuery
     localStorage.setItem('searchQuery', JSON.stringify(searchQuery))
+  },
+  setShowListMode (state, showListMode) {
+    state.showListMode = showListMode
   }
 }
 
 const actions = {
-  authenticaitonSuccessful (context, accessToken, username) {
-    context.commit('authenticaitonSuccessful', accessToken, username)
-  },
-  authenticaitonFail (context) {
-    context.commit('authenticaitonFail')
-  },
   setSearchQuery (context, searchQuery) {
     context.commit('setSearchQuery', searchQuery)
   },
   async serachBooks (context, searchQuery) {
     if (searchQuery !== undefined) {
+      searchQuery.limit = 60
+      searchQuery.offset = 0
       context.commit('setSearchQuery', searchQuery)
     }
     await axios
@@ -80,38 +61,16 @@ const actions = {
         context.commit('setBooksResult', response.data)
       })
   },
-  async auth (context, username, password) {
-    this.$notify({
-      group: 'default',
-      text: 'a',
-      type: 'error',
-      duration: 600
-    })
-    // フォームデータ作成
-    const loginForm = new FormData()
-    loginForm.append('username', username)
-    loginForm.append('password', password)
-    // トークン取得
-    await axios
-      .post('/api/auth', loginForm)
-      .then(res => {
-        if (res.status !== 200) {
-          this.$_pushNotice('ユーザ名またはパスワードが違います', 'error')
-          return false
-        }
-        context.commit('setToken', res.data.access_token)
-      })
-      .catch(async () => {
-        this.$_pushNotice('サーバエラーが発生しました', 'error')
-        return false
-      })
+  setShowListMode (context, showListMode) {
+    context.commit('setShowListMode', showListMode)
   }
 }
 
 const getters = {
   booksList: state => state.booksList,
   booksCount: state => state.booksCount,
-  searchQuery: state => state.searchQuery
+  searchQuery: state => state.searchQuery,
+  showListMode: state => state.showListMode
 }
 
 export default {

@@ -62,7 +62,7 @@ export default {
       this.searchQuery = this.$store.getters.searchQuery
     },
     async submitDialog () {
-      await this.$store.dispatch('serachBooks', this.searchQuery)
+      await this.$store.dispatch('setSearchQuery', this.searchQuery)
     }
   }
 }
