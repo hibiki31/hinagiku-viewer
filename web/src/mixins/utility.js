@@ -60,6 +60,14 @@ Vue.mixin({
       } else {
         this.$_pushNotice(error.response.data, 'error')
       }
+    },
+    $_getCoverURL (uuid) {
+      const api = process.env.VUE_APP_API_HOST
+      if (api) {
+        return process.env.VUE_APP_API_HOST + '/media/books/' + uuid
+      } else {
+        return '/media/books/' + uuid
+      }
     }
   }
 })

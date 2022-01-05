@@ -31,7 +31,23 @@
             @open="open"
             @close="close"
           >
-            {{ props.item.title }}
+            <v-tooltip left nudge-right=100>
+              <template v-slot:activator="{ on, attrs }">
+                <div
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  {{ props.item.title }}
+                </div>
+              </template>
+              <v-img
+                aspect-ratio="0.7"
+                eager
+                width="150"
+                :src="$_getCoverURL(props.item.uuid)"
+              ></v-img>
+              <span></span>
+            </v-tooltip>
             <template v-slot:input>
               <v-text-field
                 v-model="props.item.title"
