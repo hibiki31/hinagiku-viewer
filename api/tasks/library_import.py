@@ -105,13 +105,16 @@ def book_import(send_book, user_model, db):
     elif (pre_model.genre != None):
         pre_model.genre_id = genre_model.id
     
-    if (pre_model.publisher != None) and not (publisher_model := db.query(PublisherModel).filter(PublisherModel.name==pre_model.publisher).one_or_none()):
-        publisher_model = PublisherModel(name=pre_model.publisher)
-        db.add(publisher_model)
-        db.commit()
-        pre_model.publisher_id = publisher_model.id
-    elif (pre_model.publisher != None):
-        pre_model.publisher = publisher_model.id
+    if pre_model.publisher != None:
+        publisher_model = db.query(PublisherModel).filter(PublisherModel.name==pre_model.publisher).one_or_none()
+    
+        if publisher_model == None:
+            publisher_model = PublisherModel(name=pre_model.publisher)
+            db.add(publisher_model)
+            db.commit()
+            pre_model.publisher_id = publisher_model.id
+        else:
+            pre_model.publisher_id = publisher_model.id
 
     if (pre_model.series != None) and not (series_model := db.query(SeriesModel).filter(SeriesModel.name==pre_model.series).one_or_none()):
         series_model = SeriesModel(name=pre_model.series)
