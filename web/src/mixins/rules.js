@@ -3,9 +3,9 @@ import Vue from 'vue'
 Vue.mixin({
   methods: {
     // 必須
-    $required: (value) => !!value || 'Required.',
+    $_required: (value) => !!value || 'Required.',
     // 64文字以下
-    $limitLength64: (value) => {
+    $_limitLength64: (value) => {
       if (value === undefined) {
         return false || 'requird'
       } else {
@@ -13,17 +13,17 @@ Vue.mixin({
       }
     },
     // 文字種制限
-    $characterRestrictions (value) {
+    $_characterRestrictions (value) {
       const regex = new RegExp(/^[A-Za-z0-9-_]*$/)
       return regex.test(value) || 'Can use character A-Z, a-z, 0-9, -, _'
     },
     // 先頭文字制限
-    $firstCharacterRestrictions (value) {
+    $_firstCharacterRestrictions (value) {
       const regex = new RegExp(/^[A-Za-z].*/)
       return regex.test(value) || 'Can use first character A-Z, a-z'
     },
     // 数字だけ
-    $intValueRestrictions (value) {
+    $_intValueRestrictions (value) {
       const regex = new RegExp(/^[0-9]*$/)
       return regex.test(value) || 'Only Int value'
     }

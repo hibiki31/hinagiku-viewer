@@ -1,6 +1,6 @@
 <template>
   <div class="booksList">
-    <SearchDialog ref="searchDialog" />
+    <SearchDialog ref="searchDialog" @search="search" />
     <BookDetailDialog ref="bookDetailDialog" />
     <!-- エクスポート確認 -->
     <v-dialog v-model="exportDialog" persistent max-width="290">
@@ -105,7 +105,7 @@
             Load
           </v-btn>
           <v-switch
-            v-model="showListMode"
+            @change="$store.dispatch('setShowListMode', $event)"
             class="ma-1"
             label="リスト表示"
             dense
@@ -139,7 +139,12 @@
     ></v-progress-linear>
     <!-- メインの一覧 -->
     <v-container v-show="!isLoading">
-      <BooksListTable v-if="showListMode" @toReaderPage="toReaderPage" @openMenu="openMenu"/>
+      <BooksListTable
+        v-if="showListMode"
+        @toReaderPage="toReaderPage"
+        @openMenu="openMenu"
+        @search="search"
+      />
       <BooksListThum v-else @toReaderPage="toReaderPage" @openMenu="openMenu"/>
       <v-pagination
         v-model="page"
@@ -180,15 +185,10 @@ export default {
     }
   },
   computed: {
-    booksList () {
-      return store.getters.booksList
-    },
-    booksCount () {
-      return store.getters.booksCount
-    },
-    maxPage () {
-      return Math.ceil(store.getters.booksCount / store.getters.searchQuery.limit)
-    }
+    booksList: () => store.getters.booksList,
+    booksCount: () => store.getters.booksCount,
+    maxPage: () => Math.ceil(store.getters.booksCount / store.getters.searchQuery.limit),
+    showListMode: () => store.getters.showListMode
   },
   data: function () {
     return {
@@ -201,8 +201,6 @@ export default {
       mulchBooksDialog: false,
       showDrawer: false,
       isLoading: true,
-      // モード
-      showListMode: false,
       // ローカルクエリ
       page: 1,
       queryTitle: '',
@@ -372,8 +370,7 @@ export default {
       this.pageWatchEnable = true
     },
     openMenu (item) {
-      this.openItem = item
-      this.menuDialog = true
+      this.$refs.bookDetailDialog.openDialog(item)
     },
     async toReaderPage (item) {
       // ローカルストレージにパラメータ格納

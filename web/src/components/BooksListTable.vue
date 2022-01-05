@@ -1,4 +1,21 @@
 <template>
+  <div>
+    <v-dialog width="400" v-model="postDialogState">
+      <v-card>
+        <v-card-title>著者追加</v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="postAuthorName"
+            :rules="[$_required, $_limitLength64]"
+            counter="64"
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" v-on:click="postAuthor">追加</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-data-table
           :headers="headers"
           :items="booksList"
@@ -64,15 +81,21 @@
           <v-chip
             v-for="author in item.authors"
             :key="author.id"
-            class="ma-2"
+            class="mt-2 mb-2 mr-2"
             small
             close
+            @click="searchAuthor(author.name)"
             @click:close="deleteAuthor(item, author.id)"
           >
             {{ author.name }}
           </v-chip>
+          <v-icon
+            small
+            @click="openPostDialog(item)"
+          >mdi-plus-circle</v-icon>
         </template>
     </v-data-table>
+  </div>
 </template>
 
 <script>
@@ -82,8 +105,10 @@ import axios from '@/axios/index'
 export default {
   data: function () {
     return {
-      dialogState: false,
       topBerQuery: null,
+      postDialogState: false,
+      postAuthorName: '',
+      oepnBook: null,
       headers: [
         { text: 'title', value: 'title' },
         { text: 'authors', value: 'authors' },
@@ -93,27 +118,49 @@ export default {
     }
   },
   computed: {
-    searchQuery () {
-      return store.getters.searchQuery
-    },
-    booksList () {
-      return store.getters.booksList
-    },
-    booksCount () {
-      return store.getters.booksCount
-    }
+    searchQuery: () => store.getters.searchQuery,
+    booksList: () => store.getters.booksList,
+    booksCount: () => store.getters.booksCount
   },
   methods: {
+    openPostDialog (book) {
+      this.oepnBook = book
+      this.postDialogState = true
+    },
+    searchAuthor (authorName) {
+      const query = store.getters.searchQuery
+      query.fullText = authorName
+      this.$store.dispatch('setSearchQuery', this.searchQuery)
+      this.$emit('search')
+    },
+    postAuthor () {
+      axios
+        .request({
+          method: 'post',
+          url: `/api/books/${this.oepnBook.uuid}/authors`,
+          data: { authorName: this.postAuthorName }
+        })
+        .then((response) => {
+          this.$_pushNotice('著者追加成功', 'success')
+          store.dispatch('serachBooks')
+        }).catch(error => {
+          this.$_apiErrorHandler(error)
+        })
+      this.postDialogState = false
+    },
     deleteAuthor (book, id) {
       axios
         .request({
           method: 'delete',
-          url: '/api/books',
-          data: { uuids: [book.uuid], author: id }
+          url: `/api/books/${book.uuid}/authors`,
+          data: { authorId: id }
         })
-        .then((response) =>
+        .then((response) => {
           this.$_pushNotice('著者削除', 'success')
-        )
+          store.dispatch('serachBooks')
+        }).catch(error => {
+          this.$_apiErrorHandler(error)
+        })
     },
     saveTitle (book) {
       axios
