@@ -185,6 +185,7 @@ export default {
     }
   },
   computed: {
+    searchQuery: () => store.getters.searchQuery,
     booksList: () => store.getters.booksList,
     booksCount: () => store.getters.booksCount,
     maxPage: () => Math.ceil(store.getters.booksCount / store.getters.searchQuery.limit),
@@ -206,17 +207,6 @@ export default {
       queryTitle: '',
       queryRate: null,
       queryLibrary: 0,
-      // 検索クエリ
-      searchQuery: {
-        limit: 60,
-        offset: 0,
-        title: null,
-        rate: null,
-        genre: null,
-        libraryId: null,
-        fullText: '',
-        authorLike: null
-      },
       // ダイアログで開いているアイテム
       openItem: {
         userData: {
@@ -235,9 +225,11 @@ export default {
     page: {
       handler () {
         window.scrollTo({ top: 0 })
-        this.searchQuery.offset = this.searchQuery.limit * (this.page - 1)
+        const query = store.getters.searchQuery
+        query.offset = query.limit * (this.page - 1)
+        store.dispatch('setSearchQuery', query)
         if (this.pageWatchEnable) {
-          this.search()
+          this.search(false)
         }
       },
       deep: true
@@ -357,9 +349,12 @@ export default {
       }
       this.search()
     },
-    async search () {
+    async search (resetOffset = true) {
       this.isLoading = true
-      await store.dispatch('serachBooks', this.searchQuery)
+      if (resetOffset) {
+        this.page = 1
+      }
+      await store.dispatch('serachBooks')
       this.$_pushNotice(store.getters.booksCount + '件', 'info')
       this.isLoading = false
       this.scrollToUUID()

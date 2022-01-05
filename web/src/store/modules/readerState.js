@@ -49,8 +49,6 @@ const actions = {
   },
   async serachBooks (context, searchQuery) {
     if (searchQuery !== undefined) {
-      searchQuery.limit = 60
-      searchQuery.offset = 0
       context.commit('setSearchQuery', searchQuery)
     }
     await axios
