@@ -26,7 +26,7 @@
         <template v-slot:[`item.title`]="props">
           <v-edit-dialog
             :return-value.sync="props.item.title"
-            @save="save(props.item)"
+            @save="saveTitle(props.item)"
             @cancel="cancel"
             @open="open"
             @close="close"
