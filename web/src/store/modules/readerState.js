@@ -1,6 +1,6 @@
 import axios from '@/axios/index'
 
-const state = {
+const baseState = {
   booksList: [],
   booksCount: 0,
   readerPage: 1,
@@ -18,8 +18,10 @@ const state = {
   }
 }
 
-// 検索パラメータを復元
+const state = Object.assign({}, baseState)
+
 try {
+  console.log('検索パラメータを復元')
   const getParam = JSON.parse(localStorage.getItem('searchQuery'))
   // 上書きじゃなくてあったKeyを追加
   for (const key in getParam) {
@@ -47,13 +49,15 @@ const actions = {
   setSearchQuery (context, searchQuery) {
     context.commit('setSearchQuery', searchQuery)
   },
-  async serachBooks (context, searchQuery) {
-    if (searchQuery !== undefined) {
-      context.commit('setSearchQuery', searchQuery)
+  async serachBooks (context, resetOffset) {
+    const query = context.state.searchQuery
+    if (resetOffset) {
+      query.offset = 0
+      context.commit('setSearchQuery', query)
     }
     await axios
       .get('/api/books', {
-        params: context.state.searchQuery
+        params: query
       })
       .then((response) => {
         context.commit('setBooksResult', response.data)

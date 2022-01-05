@@ -184,13 +184,6 @@ export default {
       }
     }
   },
-  computed: {
-    searchQuery: () => store.getters.searchQuery,
-    booksList: () => store.getters.booksList,
-    booksCount: () => store.getters.booksCount,
-    maxPage: () => Math.ceil(store.getters.booksCount / store.getters.searchQuery.limit),
-    showListMode: () => store.getters.showListMode
-  },
   data: function () {
     return {
       // 監視パラーメータで重複を避けるため検索を行うかのフラグ
@@ -202,11 +195,6 @@ export default {
       mulchBooksDialog: false,
       showDrawer: false,
       isLoading: true,
-      // ローカルクエリ
-      page: 1,
-      queryTitle: '',
-      queryRate: null,
-      queryLibrary: 0,
       // ダイアログで開いているアイテム
       openItem: {
         userData: {
@@ -220,50 +208,91 @@ export default {
       version: require('../../package.json').version
     }
   },
-
-  watch: {
+  computed: {
+    searchQuery: () => store.getters.searchQuery,
+    booksList: () => store.getters.booksList,
+    booksCount: () => store.getters.booksCount,
+    maxPage: () => Math.ceil(store.getters.booksCount / store.getters.searchQuery.limit),
+    showListMode: () => store.getters.showListMode,
     page: {
-      handler () {
-        window.scrollTo({ top: 0 })
-        const query = store.getters.searchQuery
-        query.offset = query.limit * (this.page - 1)
-        store.dispatch('setSearchQuery', query)
-        if (this.pageWatchEnable) {
-          this.search(false)
-        }
+      get () {
+        const query = this.searchQuery
+        return Number((query.offset / query.limit) + 1)
       },
-      deep: true
+      set (value) {
+        const query = this.searchQuery
+        query.offset = query.limit * (value - 1)
+        store.dispatch('setSearchQuery', query)
+        this.search(false)
+      }
     },
     queryTitle: {
-      handler () {
-        window.scrollTo({ top: 0 })
-        this.pageChange()
-        this.searchQuery.fullText = this.queryTitle
+      get () {
+        return this.searchQuery.fullText
+      },
+      set (value) {
+        const query = this.searchQuery
+        query.fullText = value
+        store.dispatch('setSearchQuery', query)
         this.search(true)
-      },
-      deep: true
-    },
-    queryRate: {
-      handler () {
-        window.scrollTo({ top: 0 })
-        this.pageChange()
-        this.searchQuery.rate = this.queryRate
-        this.search()
-      },
-      deep: true
+      }
     },
     queryLibrary: {
-      handler () {
-        window.scrollTo({ top: 0 })
-        this.pageChange()
-        this.searchQuery.libraryId = this.queryLibrary
-        this.search()
+      get () {
+        return this.searchQuery.libraryId
       },
-      deep: true
+      set (value) {
+        const query = this.searchQuery
+        query.libraryId = value
+        store.dispatch('setSearchQuery', query)
+        this.search(true)
+      }
+    },
+    queryRate: {
+      get () {
+        return this.searchQuery.rate
+      },
+      set (value) {
+        const query = this.searchQuery
+        query.rate = value
+        store.dispatch('setSearchQuery', query)
+        this.search(true)
+      }
     }
   },
-
+  watch: {
+  },
   methods: {
+    async search (resetOffset = false) {
+      this.isLoading = true
+      await store.dispatch('serachBooks', resetOffset)
+      this.$_pushNotice(store.getters.booksCount + '件', 'info')
+      this.isLoading = false
+      this.scrollToUUID()
+    },
+    reload () {
+      const query = this.searchQuery
+      query.fullText = ''
+      query.rate = 0
+      store.dispatch('setSearchQuery', query)
+      this.search(true)
+    },
+    scrollToUUID () {
+      setTimeout(() => {
+        const backBookUUID = localStorage.backBookUUID
+        this.$forceNextTick(() => {
+          if (backBookUUID) {
+            const options = { offset: -300 }
+            VueScrollTo.scrollTo(
+              document.getElementById(backBookUUID),
+              400,
+              options
+            )
+          }
+        })
+        localStorage.removeItem('backBookUUID')
+      }, 300)
+    },
     async searchBooksPut () {
       // 全件取得
       this.mulchBooksDialog = false
@@ -335,30 +364,6 @@ export default {
           this.$_pushNotice('ライブラリのリロードを開始' + response.data.status, 'success')
         })
     },
-    reload () {
-      this.pageChange()
-      const oldsearchQuery = Object.assign({}, this.searchQuery)
-      this.searchQuery = {
-        limit: 60,
-        offset: 0,
-        title: null,
-        rate: null,
-        genre: null,
-        libraryId: oldsearchQuery.libraryId,
-        fullText: ''
-      }
-      this.search()
-    },
-    async search (resetOffset = true) {
-      this.isLoading = true
-      if (resetOffset) {
-        this.page = 1
-      }
-      await store.dispatch('serachBooks')
-      this.$_pushNotice(store.getters.booksCount + '件', 'info')
-      this.isLoading = false
-      this.scrollToUUID()
-    },
     pageChange () {
       this.pageWatchEnable = false
       this.page = 1
@@ -387,22 +392,6 @@ export default {
           height: window.innerHeight * window.devicePixelRatio
         }
       })
-    },
-    scrollToUUID () {
-      setTimeout(() => {
-        const backBookUUID = localStorage.backBookUUID
-        this.$forceNextTick(() => {
-          if (backBookUUID) {
-            const options = { offset: -300 }
-            VueScrollTo.scrollTo(
-              document.getElementById(backBookUUID),
-              400,
-              options
-            )
-          }
-        })
-        localStorage.removeItem('backBookUUID')
-      }, 300)
     }
   },
 
@@ -427,23 +416,6 @@ export default {
     axios
       .get('/api/library')
       .then((response) => (this.libraryList = response.data))
-
-    // 検索パラメータを復元
-    try {
-      const getParam = JSON.parse(localStorage.getItem('searchQuery'))
-      // 上書きじゃなくてあったKeyを追加
-      for (const key in getParam) {
-        this.searchQuery[key] = getParam[key]
-      }
-    } catch (e) {
-      localStorage.removeItem('searchQuery')
-    }
-
-    // クエリから戻す
-    this.serachEnable = false
-    this.page = Math.ceil(this.searchQuery.offset / this.searchQuery.limit + 1)
-    this.queryTitle = this.searchQuery.fullText
-    this.serachEnable = true
 
     // 初期ロード
     this.search()
