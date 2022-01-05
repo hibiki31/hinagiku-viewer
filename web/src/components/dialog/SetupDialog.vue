@@ -8,13 +8,13 @@
             <v-text-field
               v-model="postData.id"
               label="Admin user name"
-              :rules="[$required, $limitLength64, $characterRestrictions, $firstCharacterRestrictions]"
+              :rules="[$_required, $_limitLength64, $_characterRestrictions, $_firstCharacterRestrictions]"
               counter="64"
             ></v-text-field>
             <v-text-field
               v-model="postData.password"
               :append-icon="show1 ? 'mdi-eye' : 'mdi-eye-off'"
-              :rules="[$required]"
+              :rules="[$_required]"
               :type="show1 ? 'text' : 'password'"
               name="input-10-1"
               label="Password"

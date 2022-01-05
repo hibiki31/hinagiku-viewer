@@ -63,6 +63,7 @@ export default {
     },
     async submitDialog () {
       await this.$store.dispatch('setSearchQuery', this.searchQuery)
+      this.$emit('search')
     }
   }
 }

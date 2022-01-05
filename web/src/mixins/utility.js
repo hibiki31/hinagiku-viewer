@@ -48,6 +48,18 @@ Vue.mixin({
         duration: 600,
         data: { icon, color }
       })
+    },
+    $_apiErrorHandler (error) {
+      if (!error.response) {
+        this.$_pushNotice('サーバーエラーが発生しました', 'error')
+        return
+      }
+      const status = error.response.status
+      if (status === 401 || status === 400) {
+        this.$_pushNotice('認証エラーが発生しました', 'error')
+      } else {
+        this.$_pushNotice(error.response.data, 'error')
+      }
     }
   }
 })

@@ -139,7 +139,12 @@
     ></v-progress-linear>
     <!-- メインの一覧 -->
     <v-container v-show="!isLoading">
-      <BooksListTable v-if="showListMode" @toReaderPage="toReaderPage" @openMenu="openMenu"/>
+      <BooksListTable
+        v-if="showListMode"
+        @toReaderPage="toReaderPage"
+        @openMenu="openMenu"
+        @search="search"
+      />
       <BooksListThum v-else @toReaderPage="toReaderPage" @openMenu="openMenu"/>
       <v-pagination
         v-model="page"
@@ -365,8 +370,7 @@ export default {
       this.pageWatchEnable = true
     },
     openMenu (item) {
-      this.openItem = item
-      this.menuDialog = true
+      this.$refs.bookDetailDialog.openDialog(item)
     },
     async toReaderPage (item) {
       // ローカルストレージにパラメータ格納
