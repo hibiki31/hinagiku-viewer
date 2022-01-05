@@ -12,6 +12,7 @@ from books.router import app as books_router
 from users.router import app as users_router
 from media.router import app as media_router
 from tags.router import app as tags_router
+from authors.router import app as authors_router
 
 from media.router import library_pool, converter_pool
 
@@ -46,6 +47,7 @@ app.include_router(router=users_router)
 app.include_router(router=books_router)
 app.include_router(router=media_router)
 app.include_router(router=tags_router)
+app.include_router(router=authors_router)
 
 
 @app.on_event("startup")

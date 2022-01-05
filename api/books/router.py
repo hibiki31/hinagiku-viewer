@@ -161,15 +161,6 @@ async def get_api_books(
     return {"count": count, "limit": limit, "offset": offset, "rows": rows}
 
 
-@app.get("/api/authors", tags=["author"])
-def read_api_authors(
-        db: Session = Depends(get_db),
-        current_user: UserCurrent = Depends(get_current_user)
-    ):
-    row = db.query(AuthorModel).all()
-    return row
-
-
 
 @app.put("/api/books", tags=["book"])
 def change_book_data(
@@ -203,9 +194,6 @@ def change_book_data(
 
         if model.series_no != None:
             book.series_no = model.series_no
-
-        if model.author != None:
-            book.author = model.author
 
         if model.title != None:
             book.title = model.title
