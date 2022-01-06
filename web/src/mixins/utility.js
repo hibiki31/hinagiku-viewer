@@ -14,22 +14,15 @@ Vue.mixin({
       const formatNum = String(num).slice(0, -3)
       return formatNum[0] + '.' + formatNum[1] + '万'
     },
-    $_convertDateFormat (date, time = false) {
+    $_convertDateFormat (date) {
       if (!date) {
         return undefined
-      } else if (typeof date !== 'object') {
-        date = new Date(date)
       }
-      const dateFormat = date.getFullYear() + '/' +
-             ('0' + (date.getMonth() + 1)).slice(-2) + '/' +
-             ('0' + date.getDate()).slice(-2)
-      if (time) {
-        const timeFormat = ('0' + date.getHours()).slice(-2) + ':' +
-               ('0' + date.getMinutes()).slice(-2)
-        return dateFormat + ' ' + timeFormat
-      } else {
-        return dateFormat
-      }
+      const dt = new Date(Date.parse(date))
+      const y = dt.getFullYear()
+      const m = ('00' + (dt.getMonth() + 1)).slice(-2)
+      const d = ('00' + dt.getDate()).slice(-2)
+      return (y + '-' + m + '-' + d)
     },
     $_pushNotice (text, type, color, icon, group = 'default') {
       this.$notify({
@@ -67,6 +60,13 @@ Vue.mixin({
         return process.env.VUE_APP_API_HOST + '/media/books/' + uuid
       } else {
         return '/media/books/' + uuid
+      }
+    },
+    $_fitByte (size) {
+      if (size >= Math.pow(1024, 2)) {
+        return Math.floor(size / Math.pow(1024, 2)).toFixed(1) + 'MB'
+      } else {
+        return size
       }
     }
   }

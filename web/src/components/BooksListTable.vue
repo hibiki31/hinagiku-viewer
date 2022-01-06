@@ -1,115 +1,91 @@
 <template>
   <div>
-    <v-dialog width="400" v-model="postDialogState">
-      <v-card>
-        <v-card-title>著者追加</v-card-title>
-        <v-card-text>
-          <v-text-field
-            v-model="postAuthorName"
-            :rules="[$_required, $_limitLength64]"
-            counter="64"
-          ></v-text-field>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" v-on:click="postAuthor">追加</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
     <v-data-table
-          :headers="headers"
-          :items="booksList"
-          :items-per-page="searchQuery.limit"
-          hide-default-footer
-          dense
+      :headers="headers"
+      :items="booksList"
+      :items-per-page="searchQuery.limit"
+      hide-default-footer
+      dense
+    >
+      <template v-slot:[`item.title`]="props">
+        <v-edit-dialog
+          :return-value.sync="props.item.title"
+          @save="saveTitle(props.item)"
+          @cancel="cancel"
+          @open="open"
+          @close="close"
         >
-        <template v-slot:[`item.title`]="props">
-          <v-edit-dialog
-            :return-value.sync="props.item.title"
-            @save="saveTitle(props.item)"
-            @cancel="cancel"
-            @open="open"
-            @close="close"
-          >
-            <v-tooltip left nudge-right=100>
-              <template v-slot:activator="{ on, attrs }">
-                <div
-                  v-bind="attrs"
-                  v-on="on"
-                >
-                  {{ props.item.title }}
-                </div>
-              </template>
-              <v-img
-                aspect-ratio="0.7"
-                eager
-                width="150"
-                :src="$_getCoverURL(props.item.uuid)"
-              ></v-img>
-              <span></span>
-            </v-tooltip>
-            <template v-slot:input>
-              <v-text-field
-                v-model="props.item.title"
-                label="Edit"
-                single-line
-                counter
-              ></v-text-field>
+          <v-tooltip left nudge-right=100>
+            <template v-slot:activator="{ on, attrs }">
+              <div
+                v-bind="attrs"
+                v-on="on"
+              >
+                {{ props.item.title }}
+              </div>
             </template>
-          </v-edit-dialog>
-        </template>
-        <template v-slot:[`item.publisher`]="props">
-          <v-edit-dialog
-            :return-value.sync="props.item.publisher.name"
-            @save="savePublisher(props.item)"
-            @cancel="cancel"
-            @open="open"
-            @close="close"
-          >
-            {{ props.item.publisher.name }}
-            <template v-slot:input>
-              <v-text-field
-                v-model="props.item.publisher.name"
-                label="Edit"
-                single-line
-                counter
-              ></v-text-field>
-            </template>
-          </v-edit-dialog>
-        </template>
-         <template v-slot:[`item.actions`]="{ item }">
-          <v-icon
-            small
-            class="mr-2"
-            @click="$emit('toReaderPage', item)"
-          >
-            mdi-book-open-blank-variant
-          </v-icon>
-          <v-icon
-            small
-            class="mr-2"
-            @click="$emit('openMenu',item)"
-          >
-            mdi-tooltip-edit-outline
-          </v-icon>
-        </template>
-         <template v-slot:[`item.authors`]="{ item }">
-          <v-chip
-            v-for="author in item.authors"
-            :key="author.id"
-            class="mt-2 mb-2 mr-2"
-            small
-            close
-            @click="searchAuthor(author.name)"
-            @click:close="deleteAuthor(item, author.id)"
-          >
-            {{ author.name }}
-          </v-chip>
-          <v-icon
-            small
-            @click="openPostDialog(item)"
-          >mdi-plus-circle</v-icon>
-        </template>
+            <v-img
+              aspect-ratio="0.7"
+              eager
+              width="150"
+              :src="$_getCoverURL(props.item.uuid)"
+            ></v-img>
+            <span></span>
+          </v-tooltip>
+          <template v-slot:input>
+            <v-text-field
+              v-model="props.item.title"
+              label="Edit"
+              single-line
+              counter
+            ></v-text-field>
+          </template>
+        </v-edit-dialog>
+      </template>
+      <template v-slot:[`item.publisher`]="props">
+        <v-edit-dialog
+          :return-value.sync="props.item.publisher.name"
+          @save="savePublisher(props.item)"
+          @cancel="cancel"
+          @open="open"
+          @close="close"
+        >
+          {{ props.item.publisher.name }}
+          <template v-slot:input>
+            <v-text-field
+              v-model="props.item.publisher.name"
+              label="Edit"
+              single-line
+              counter
+            ></v-text-field>
+          </template>
+        </v-edit-dialog>
+      </template>
+      <template v-slot:[`item.actions`]="{ item }">
+        <v-icon
+          small
+          class="mr-2"
+          @click="$emit('toReaderPage', item)"
+        >
+          mdi-book-open-blank-variant
+        </v-icon>
+        <v-icon
+          small
+          class="mr-2"
+          @click="$emit('openMenu',item)"
+        >
+          mdi-tooltip-edit-outline
+        </v-icon>
+      </template>
+      <template v-slot:[`item.authors`]="{ item }">
+        <BaseAuthorChip :openBook="item" @search="$emit('search')" />
+      </template>
+      <template v-slot:[`item.size`]="{ item }">
+        {{ $_fitByte(item.size) }}
+      </template>
+      <template v-slot:[`item.addDate`]="{ item }">
+        {{ $_convertDateFormat(item.addDate) }}
+      </template>
     </v-data-table>
   </div>
 </template>
@@ -117,21 +93,28 @@
 <script>
 import store from '@/store'
 import axios from '@/axios/index'
+import BaseAuthorChip from './BaseAuthorChip'
 
 export default {
   data: function () {
     return {
       topBerQuery: null,
-      postDialogState: false,
-      postAuthorName: '',
       oepnBook: null,
       headers: [
         { text: 'title', value: 'title' },
         { text: 'authors', value: 'authors' },
         { text: 'publisher', value: 'publisher.name' },
+        { text: 'rate', value: 'userData.rate' },
+        { text: 'addDate', value: 'addDate', width: '110' },
+        { text: 'last', value: 'userData.lastOpenDate', width: '110' },
+        { text: 'size', value: 'size', width: '60' },
+        { text: 'page', value: 'page', width: '20' },
         { text: 'actions', value: 'actions' }
       ]
     }
+  },
+  components: {
+    BaseAuthorChip
   },
   computed: {
     searchQuery: () => store.getters.searchQuery,
@@ -139,10 +122,6 @@ export default {
     booksCount: () => store.getters.booksCount
   },
   methods: {
-    openPostDialog (book) {
-      this.oepnBook = book
-      this.postDialogState = true
-    },
     searchAuthor (authorName) {
       const query = store.getters.searchQuery
       query.fullText = authorName

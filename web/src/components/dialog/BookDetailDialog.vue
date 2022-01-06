@@ -1,25 +1,17 @@
 <template>
   <v-dialog v-model="dialogState">
     <v-card>
-      <v-card-title>Select Editor</v-card-title>
+      <v-card-title>詳細</v-card-title>
       <v-divider></v-divider>
-      <v-card-text style="height: 300px">
-        <v-rating v-model="openItem.userData.rate" small class="pa-1"></v-rating>
+      <v-card-text>
+        <!-- <v-rating v-model="openBook.userData.rate" small class="pa-1"></v-rating> -->
         <v-row>
-          <v-text-field label="Title" v-model="openItem.title"></v-text-field>
+          <v-text-field label="Title" v-model="openBook.title"></v-text-field>
           <v-btn small icon><v-icon>mdi-magnify</v-icon></v-btn>
         </v-row>
         <v-row>
-          <div>Author</div>
+          <BaseAuthorChip :openBook="openBook" @search="$emit('search')" />
         </v-row>
-        <v-row v-for="author in openItem.authors" :key="author.name">
-          <v-text-field
-            v-model="author.name"
-          ></v-text-field>
-          <v-btn @click="searchQuery.fullText=author.name; search()" small icon><v-icon>mdi-magnify</v-icon></v-btn>
-        </v-row>
-        <v-btn small class="pa-1" @click="showJson = !showJson">Json</v-btn>
-        <div v-if="showJson" class="selectable">{{ this.openItem }}</div>
       </v-card-text>
       <v-divider></v-divider>
       <v-card-actions>
@@ -35,25 +27,27 @@
 
 <script>
 import axios from '@/axios/index'
+import store from '@/store'
+
+import BaseAuthorChip from '../BaseAuthorChip'
 
 export default {
+  components: {
+    BaseAuthorChip
+  },
+  computed: {
+    openBook: () => store.getters.openBook
+  },
   data: function () {
     return {
       dialogState: false,
       searchQuery: {},
-      topBerQuery: null,
-      // ダイアログで使用
-      showJson: false,
-      openItem: {
-        userData: {
-          rate: null
-        }
-      }
+      topBerQuery: null
     }
   },
   methods: {
     openDialog (book) {
-      this.openItem = book
+      this.$store.dispatch('setOpenBook', book)
       this.dialogState = true
       this.searchQuery = this.$store.getters.searchQuery
     },
@@ -67,8 +61,8 @@ export default {
           method: 'put',
           url: '/api/books/user-data',
           data: {
-            uuids: [this.openItem.uuid],
-            rate: this.openItem.userData.rate
+            uuids: [this.openBook.uuid],
+            rate: this.openBook.userData.rate
           }
         })
         .then((response) =>

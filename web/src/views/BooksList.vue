@@ -1,7 +1,7 @@
 <template>
   <div class="booksList">
     <SearchDialog ref="searchDialog" @search="search" />
-    <BookDetailDialog ref="bookDetailDialog" />
+    <BookDetailDialog ref="bookDetailDialog" @search="search" />
     <!-- エクスポート確認 -->
     <v-dialog v-model="exportDialog" persistent max-width="290">
       <v-card>

@@ -5,6 +5,8 @@ const baseState = {
   booksCount: 0,
   readerPage: 1,
   showListMode: false,
+  openBook: {
+  },
   searchQuery: {
     limit: 60,
     offset: 0,
@@ -40,6 +42,9 @@ const mutations = {
     state.searchQuery = searchQuery
     localStorage.setItem('searchQuery', JSON.stringify(searchQuery))
   },
+  setOpenBook (state, openBook) {
+    state.openBook = openBook
+  },
   setShowListMode (state, showListMode) {
     state.showListMode = showListMode
   }
@@ -48,6 +53,9 @@ const mutations = {
 const actions = {
   setSearchQuery (context, searchQuery) {
     context.commit('setSearchQuery', searchQuery)
+  },
+  setOpenBook (context, openBook) {
+    context.commit('setOpenBook', openBook)
   },
   async serachBooks (context, resetOffset) {
     const query = context.state.searchQuery
@@ -72,6 +80,7 @@ const getters = {
   booksList: state => state.booksList,
   booksCount: state => state.booksCount,
   searchQuery: state => state.searchQuery,
+  openBook: state => state.openBook,
   showListMode: state => state.showListMode
 }
 
