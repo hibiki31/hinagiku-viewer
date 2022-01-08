@@ -414,7 +414,7 @@ export default {
 
     // ライブラリ情報取得
     axios
-      .get('/api/library')
+      .get('/api/librarys')
       .then((response) => (this.libraryList = response.data))
 
     // 初期ロード

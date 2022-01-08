@@ -4,6 +4,7 @@
       :headers="headers"
       :items="booksList"
       :items-per-page="searchQuery.limit"
+      :custom-sort="updateSortQuery"
       hide-default-footer
       dense
     >
@@ -100,6 +101,8 @@ export default {
     return {
       topBerQuery: null,
       oepnBook: null,
+      sortedBy: null,
+      sortedDesc: false,
       headers: [
         { text: 'title', value: 'title' },
         { text: 'authors', value: 'authors' },
@@ -127,6 +130,22 @@ export default {
       query.fullText = authorName
       this.$store.dispatch('setSearchQuery', this.searchQuery)
       this.$emit('search')
+    },
+    updateSortQuery (items, sortBy, sortDesc) {
+      if (sortBy.length === 0) {
+        return items
+      }
+      if (sortBy[0] !== this.sortedBy || sortDesc[0] !== this.sortedDesc) {
+        this.sortedBy = sortBy[0]
+        this.sortedDesc = sortDesc[0]
+        const query = store.getters.searchQuery
+        query.sortKey = sortBy[0]
+        query.sortDesc = sortDesc[0]
+        console.log(query)
+        this.$store.dispatch('setSearchQuery', this.searchQuery)
+        this.$emit('search')
+      }
+      return items
     },
     postAuthor () {
       axios

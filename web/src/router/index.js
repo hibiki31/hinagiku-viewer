@@ -31,7 +31,10 @@ const routes = [
   {
     path: '/login',
     name: 'Login',
-    component: Login
+    component: Login,
+    meta: {
+      requiresAuth: false
+    }
   }
 ]
 
@@ -43,22 +46,20 @@ const router = new VueRouter({
 
 router.beforeEach((to, from, next) => {
   const isAuthed = store.state.userData.isAuthed
-  if (isAuthed || to.matched.some(record => !record.meta.requiresAuth)) {
-    if ((to.name === 'Login' && isAuthed) || (to.name === 'Logout' && !isAuthed)) {
-      // ログインしているのにログインページに行く場合
-      next({
-        name: 'BooksList'
-      })
-    } else {
-      // 認証済みか認証がいらないページにアクセスした場合
-      next()
-    }
-  } else {
-    // 認証が必要なページに未認証でアクセスした場合
+
+  // ログインしているのにログインページに行く場合
+  if (isAuthed && to.name === 'Login') {
+    next({
+      name: 'BooksList'
+    })
+  }
+  // 認証が必要なページに未認証でアクセスした場合
+  if (!isAuthed && to.matched.some(record => record.meta.requiresAuth)) {
     next({
       name: 'Login'
     })
   }
+  next()
 })
 
 export default router
