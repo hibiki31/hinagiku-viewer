@@ -58,7 +58,8 @@ async def get_api_books(
         state: str = None,
         limit:int = 50,
         offset:int = 0,
-        sortKey:str = "author",
+        sortKey:str = "authors",
+        sortDesc:bool = False
     ):
 
     # ユーザデータのサブクエリ
@@ -132,18 +133,34 @@ async def get_api_books(
             query = query.filter(BookModel.tags.any(name=tag))
         
         
-    if sortKey == "file":
-        query = query.order_by(BookModel.import_file_name)
-    elif sortKey == "title":
+    if sortKey == "title" and sortDesc == False:
         query = query.order_by(BookModel.title)
-    elif sortKey == "add-date":
+    elif sortKey == "title" and sortDesc == True:
+        query = query.order_by(BookModel.title.desc())
+    
+    elif sortKey == "addDate" and sortDesc == False:
         query = query.order_by(BookModel.add_date.desc())
-    elif sortKey == "last-open":
+    elif sortKey == "addDate" and sortDesc == True:
+        query = query.order_by(BookModel.add_date)
+    
+    elif sortKey == "size" and sortDesc == False:
+        query = query.order_by(BookModel.size.desc())
+    elif sortKey == "size" and sortDesc == True:
+        query = query.order_by(BookModel.size.add_date)
+
+    elif sortKey == "userData.lastOpenDate" and sortDesc == False:
+        query = query.order_by(user_data.last_open_date.desc())
+    elif sortKey == "userData.lastOpenDate" and sortDesc == True:
         query = query.order_by(user_data.last_open_date)
-    elif sortKey == "author":
+    
+    elif sortKey == "authors" and sortDesc == False:
         query = query.outerjoin(
             BookModel.authors
         ).order_by(AuthorModel.name, BookModel.title)
+    elif sortKey == "authors" and sortDesc == True:
+        query = query.outerjoin(
+            BookModel.authors
+        ).order_by(AuthorModel.name.desc(), BookModel.title)
     
     count = query.count()
 
