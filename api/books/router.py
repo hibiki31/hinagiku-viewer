@@ -95,17 +95,6 @@ async def get_api_books(
     # フィルター
     if uuid != None:
         query = query.filter(BookModel.uuid==uuid)
-    elif fullText != None:
-        query = query.filter(BookModel.library_id == libraryId)
-        query = query.outerjoin(
-            BookModel.authors
-        ).filter(or_(
-            BookModel.title.like(f'%{fullText}%'),
-            BookModel.import_file_name.like(f'%{fullText}%'),
-            AuthorModel.name.like(f'%{fullText}%')
-        )).union(
-            base_query.filter(BookModel.tags.any(name=tag))
-        )
     else:
         query = query.filter(BookModel.library_id == libraryId)
         if titleLike != None:
@@ -123,6 +112,17 @@ async def get_api_books(
         if authorLike != None:
             query = query.outerjoin(BookModel.authors).filter(
                 AuthorModel.name.like(f'%{authorLike}%')
+            )
+        
+        elif fullText != None:
+            query = query.outerjoin(
+                BookModel.authors
+            ).filter(or_(
+                BookModel.title.like(f'%{fullText}%'),
+                BookModel.import_file_name.like(f'%{fullText}%'),
+                AuthorModel.name.like(f'%{fullText}%')
+            )).union(
+                base_query.filter(BookModel.tags.any(name=tag))
             )
 
         if fileNameLike != None:

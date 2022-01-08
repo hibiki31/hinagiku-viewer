@@ -47,6 +47,9 @@ export default {
       if (status === 401) {
         this.$_pushNotice('認証エラーが発生したためログアウトします', 'error')
         store.dispatch('authenticaitonFail')
+        router.push({
+          name: 'Login'
+        })
         return false
       }
       throw error
@@ -93,8 +96,12 @@ export default {
 <style lang="scss">
 html {
   -webkit-touch-callout: none;
+  scrollbar-width: none;
 }
 .selectable {
   -webkit-touch-callout: text;
+}
+html::-webkit-scrollbar {
+  display:none;
 }
 </style>

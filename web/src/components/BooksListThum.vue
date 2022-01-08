@@ -9,8 +9,16 @@
       v-for="item in booksList"
       :key="item.uuid"
       :id="item.uuid"
+      class="pt-5"
     >
       <v-card @click="$emit('toReaderPage', item)">
+        <div fluid class="text-center" style="
+          position: absolute;
+          z-index: 1;
+          top: -15px;
+        ">
+          <v-icon :color="getBadge(item)" small>mdi-circle</v-icon>
+        </div>
         <v-img
           aspect-ratio="0.7"
           eager
@@ -45,6 +53,13 @@ export default {
         return process.env.VUE_APP_API_HOST + '/media/books/' + uuid
       } else {
         return '/media/books/' + uuid
+      }
+    },
+    getBadge (item) {
+      if (item.userData.readTimes === null) {
+        return 'rgba(245,175,44,0.7)'
+      } else {
+        return 'gray'
       }
     }
   }

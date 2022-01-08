@@ -6,6 +6,10 @@ const baseState = {
   readerPage: 1,
   showListMode: false,
   openBook: {
+    title: '',
+    userData: {
+      rate: null
+    }
   },
   searchQuery: {
     limit: 60,

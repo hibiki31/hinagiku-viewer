@@ -12,6 +12,12 @@ module.exports = {
     msTileColor: '#000000',
     appleMobileWebAppCapable: 'yes',
     appleMobileWebAppStatusBarStyle: 'black',
+    iconPaths: {
+      favicon32: 'favicon.ico',
+      favicon16: 'favicon.ico',
+      appleTouchIcon: 'icon-apple.png',
+      msTileImage: 'icon-512x512.png'
+    },
     manifestOptions: {
       display: 'standalone',
       background_color: '#ffffff',

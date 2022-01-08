@@ -70,15 +70,17 @@ def signal_book_status(
         if model.status == "open":
             metadata_model.open_page = 0
             metadata_model.last_open_date = datetime.now()
-            if metadata_model.read_times == None:
-                metadata_model.read_times = 0
-            metadata_model.read_times += 1
+
         elif model.status == "pause":
             metadata_model.open_page = model.page
             metadata_model.last_open_date = datetime.now()
+
         elif model.status == "close" :
             metadata_model.open_page = None
             metadata_model.last_open_date = datetime.now()
+            if metadata_model.read_times == None:
+                metadata_model.read_times = 0
+            metadata_model.read_times += 1
         resulet_data.append(get_model_dict(metadata_model))
         db.merge(metadata_model)
     db.commit()

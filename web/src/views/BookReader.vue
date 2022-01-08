@@ -416,6 +416,15 @@ export default {
         Array.prototype.push.apply(this.pageBlob, Array(this.bookInfo.page - 4))
       })
 
+    axios.request({
+      method: 'patch',
+      url: '/api/books/user-data',
+      data: {
+        uuids: [this.uuid],
+        status: 'open'
+      }
+    })
+
     this.loadSettings()
   },
   beforeDestroy: function () {

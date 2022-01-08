@@ -141,7 +141,6 @@ export default {
         const query = store.getters.searchQuery
         query.sortKey = sortBy[0]
         query.sortDesc = sortDesc[0]
-        console.log(query)
         this.$store.dispatch('setSearchQuery', this.searchQuery)
         this.$emit('search')
       }
