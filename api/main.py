@@ -13,6 +13,7 @@ from users.router import app as users_router
 from media.router import app as media_router
 from tags.router import app as tags_router
 from authors.router import app as authors_router
+from user_datas.router import app as user_datas_router
 
 from media.router import library_pool, converter_pool
 
@@ -21,8 +22,9 @@ logger = setup_logger(__name__)
 
 
 tags_metadata = [
-    { "name": "book", "description": "The book is managed by uuid and has an owner"},
-    { "name": "library", "description": "Books always belong to one library"}
+    { "name": "Library", "description": "本は必ずライブラリに所属する"},
+    { "name": "Book", "description": "本は必ず１人のユーザが所有する"},
+    { "name": "Author", "description": "本は著者を0以上持ちnullの場合もある"},
 ]
 
 app = FastAPI(
@@ -48,6 +50,7 @@ app.include_router(router=books_router)
 app.include_router(router=media_router)
 app.include_router(router=tags_router)
 app.include_router(router=authors_router)
+app.include_router(router=user_datas_router)
 
 
 @app.on_event("startup")

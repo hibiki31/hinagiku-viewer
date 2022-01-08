@@ -23,7 +23,7 @@ exception_notfund = HTTPException(
     detail="Object not fund."
 )
 
-@app.get("/api/library", tags=["library"])
+@app.get("/api/librarys", tags=["Library"])
 async def get_api_library(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
@@ -41,7 +41,7 @@ async def get_api_library(
     return query.all()
 
 
-@app.get("/api/books", tags=["book"], response_model=BookGet)
+@app.get("/api/books", tags=["Book"], response_model=BookGet)
 async def get_api_books(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user),
@@ -58,7 +58,7 @@ async def get_api_books(
         state: str = None,
         limit:int = 50,
         offset:int = 0,
-        sortKey:str = "author-title",
+        sortKey:str = "author",
     ):
 
     # ユーザデータのサブクエリ
@@ -70,7 +70,7 @@ async def get_api_books(
     user_data = aliased(BookUserMetaDataModel, user_metadata_subquery)
 
     # ユーザデータ結合
-    query = db.query(
+    base_query = db.query(
             BookModel,
             user_data,
         ).outerjoin(
@@ -82,15 +82,28 @@ async def get_api_books(
     # 管理者以外は自分ののみ
     # 共有は全員に表示
     if not current_user.is_admin:
-        query = query.filter(
+        base_query = base_query.filter(
             or_(
                 BookModel.is_shered==True,
                 BookModel.user_id==current_user.id,
             )
         )
+    
+    query = base_query
 
+    # フィルター
     if uuid != None:
         query = query.filter(BookModel.uuid==uuid)
+    elif fullText != None:
+        query = query.outerjoin(
+            BookModel.authors
+        ).filter(or_(
+            BookModel.title.like(f'%{fullText}%'),
+            BookModel.import_file_name.like(f'%{fullText}%'),
+            AuthorModel.name.like(f'%{fullText}%')
+        )).union(
+            base_query.filter(BookModel.tags.any(name=tag))
+        )
     else:
         if titleLike != None:
             query = query.filter(BookModel.title.like(f'%{titleLike}%'))
@@ -111,39 +124,23 @@ async def get_api_books(
             query = query.outerjoin(BookModel.authors).filter(
                 AuthorModel.name.like(f'%{authorLike}%')
             )
-        
+
         if fileNameLike != None:
             query = query.filter(BookModel.import_file_name.like(f'%{fileNameLike}%'))
         
         if tag != None:
             query = query.filter(BookModel.tags.any(name=tag))
         
-        if fullText != None:
-            query = query.outerjoin(
-                BookModel.authors
-            ).filter(or_(
-                BookModel.title.like(f'%{fullText}%'),
-                BookModel.import_file_name.like(f'%{fullText}%'),
-                AuthorModel.name.like(f'%{fullText}%')
-            )).union(
-                db.query(
-                        BookModel,
-                        user_data,
-                    ).outerjoin(
-                    user_data,
-                    BookModel.uuid==user_data.book_uuid
-                ).filter(BookModel.tags.any(name=tag))
-            )
-
+        
     if sortKey == "file":
         query = query.order_by(BookModel.import_file_name)
-    elif sortKey == "author":
-        query = query.order_by(BookModel.title)
     elif sortKey == "title":
         query = query.order_by(BookModel.title)
-    elif sortKey == "date":
+    elif sortKey == "add-date":
         query = query.order_by(BookModel.add_date.desc())
-    elif sortKey == "author-title":
+    elif sortKey == "last-open":
+        query = query.order_by(user_data.last_open_date)
+    elif sortKey == "author":
         query = query.outerjoin(
             BookModel.authors
         ).order_by(AuthorModel.name, BookModel.title)
@@ -225,65 +222,4 @@ def delete_book_data(
     
     db.commit()
     return book
-
-@app.put("/api/books/user-data", tags=["book"])
-def change_user_data(
-        db: Session = Depends(get_db),
-        model: BookUserMetaDataPut = None,
-        current_user: UserCurrent = Depends(get_current_user)
-    ):
-    for book_uuid in model.uuids:
-        try:
-            metadata_model: BookUserMetaDataModel = db.query(BookUserMetaDataModel).filter(
-                and_(
-                    BookUserMetaDataModel.book_uuid==book_uuid,
-                    BookUserMetaDataModel.user_id==current_user.id
-                )
-            ).one()
-            metadata_model.rate = model.rate
-        except exc.NoResultFound:
-            metadata_model = BookUserMetaDataModel(
-                user_id = current_user.id,
-                book_uuid = str(book_uuid),
-                rate = model.rate,
-            )
-        db.merge(metadata_model)
-    db.commit()
-    return metadata_model
-
-@app.patch("/api/books/user-data", tags=["book"])
-def signal_book_status(
-        db: Session = Depends(get_db),
-        model: BookUserMetaDataPatch = None,
-        current_user: UserCurrent = Depends(get_current_user)
-    ):
-    resulet_data = []
-    for book_uuid in model.uuids:
-        try:
-            metadata_model: BookUserMetaDataModel = db.query(BookUserMetaDataModel).filter(
-                and_(
-                    BookUserMetaDataModel.book_uuid==book_uuid,
-                    BookUserMetaDataModel.user_id==current_user.id
-                )
-            ).one()
-        except exc.NoResultFound:
-            metadata_model = BookUserMetaDataModel(
-                user_id = current_user.id,
-                book_uuid = str(book_uuid),
-            )
-        if model.status == "open":
-            metadata_model.open_page = 0
-            metadata_model.last_open_date = datetime.now()
-            if metadata_model.read_times == None:
-                metadata_model.read_times = 0
-            metadata_model.read_times += 1
-        elif model.status == "pause":
-            metadata_model.open_page = model.page
-            metadata_model.last_open_date = datetime.now()
-        elif model.status == "close" :
-            metadata_model.open_page = None
-            metadata_model.last_open_date = datetime.now()
-        resulet_data.append(get_model_dict(metadata_model))
-        db.merge(metadata_model)
-    db.commit()
-    return resulet_data
+    

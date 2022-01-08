@@ -15,7 +15,7 @@ app = APIRouter()
 logger = setup_logger(__name__)
 
 
-@app.get("/api/authors", tags=["authors"], response_model=List[AuthorGet])
+@app.get("/api/authors", tags=["Author"], response_model=List[AuthorGet])
 async def get_api_library(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user),
@@ -37,7 +37,7 @@ async def get_api_library(
     return query.all()
 
 
-@app.post("/api/books/{book_uuid}/authors", tags=["authors"])
+@app.post("/api/books/{book_uuid}/authors", tags=["Author"])
 def post_api_books_uuid_authors(
         request_model:BookAuthorPost,
         book_uuid: str,
@@ -74,7 +74,7 @@ def post_api_books_uuid_authors(
     return db.query(BookModel).filter(BookModel.uuid==book_uuid).one_or_none()
 
 
-@app.delete("/api/books/{book_uuid}/authors", tags=["authors"])
+@app.delete("/api/books/{book_uuid}/authors", tags=["Author"])
 def delete_api_books_uuid_authors(
         request_model: BookAuthorDelete,
         book_uuid: str,
