@@ -452,4 +452,8 @@ export default {
   max-height: 100vh;
   height: 100vh;
 }
+
+html {
+  touch-action: none;
+}
 </style>
