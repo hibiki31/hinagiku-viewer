@@ -93,11 +93,10 @@ async def get_api_books(
     query = base_query
 
     # フィルター
-    query = query.filter(BookModel.library_id == libraryId)
-    
     if uuid != None:
         query = query.filter(BookModel.uuid==uuid)
     elif fullText != None:
+        query = query.filter(BookModel.library_id == libraryId)
         query = query.outerjoin(
             BookModel.authors
         ).filter(or_(
@@ -108,6 +107,7 @@ async def get_api_books(
             base_query.filter(BookModel.tags.any(name=tag))
         )
     else:
+        query = query.filter(BookModel.library_id == libraryId)
         if titleLike != None:
             query = query.filter(BookModel.title.like(f'%{titleLike}%'))
         
