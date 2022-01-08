@@ -146,7 +146,7 @@ async def get_api_books(
     elif sortKey == "size" and sortDesc == False:
         query = query.order_by(BookModel.size.desc())
     elif sortKey == "size" and sortDesc == True:
-        query = query.order_by(BookModel.size.add_date)
+        query = query.order_by(BookModel.size)
 
     elif sortKey == "userData.lastOpenDate" and sortDesc == False:
         query = query.order_by(user_data.last_open_date.desc())
