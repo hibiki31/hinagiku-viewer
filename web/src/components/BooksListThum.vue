@@ -56,8 +56,10 @@ export default {
       }
     },
     getBadge (item) {
-      if (item.userData.readTimes === null) {
+      if (item.userData.openPage !== null) {
         return 'rgba(245,175,44,0.7)'
+      } else if (item.userData.readTimes === null) {
+        return 'rgba(81, 221, 30, 0.45)'
       } else {
         return 'gray'
       }

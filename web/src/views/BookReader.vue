@@ -1,5 +1,5 @@
 <template>
-  <div class="books">
+  <div class="books" style="height: 100%">
     <!-- ダイアログ -->
     <v-dialog v-model="menuDialog" scrollable max-width="500px">
       <v-card>
@@ -60,10 +60,6 @@
           ></v-slider>
         </v-card-text>
         <v-divider></v-divider>
-        <v-card-text style="height: 300px" class="selectable">
-          {{ bookInfo }}
-        </v-card-text>
-        <v-divider></v-divider>
         <v-card-actions>
           <v-btn color="blue darken-1" text @click="menuDialog = false">Close</v-btn>
         </v-card-actions>
@@ -72,31 +68,27 @@
     <!-- 画像表示ぶ-->
     <div
       v-bind:class="{ 'image-base-width': settings.showBaseWidth, 'image-base-height': !settings.showBaseWidth }"
-      class="text-center"
+      class="image-area"
+      v-hammer:press="actionSubMenuOpen"
+      v-hammer:tap="actionPageNext"
     >
-      <!-- 見開き表示 -->
-      <template v-if="settings.showTowPage">
+      <template v-if="this.pageBlob[this.nowPage-1]">
         <img
+          v-if="settings.showTowPage"
           v-hammer:swipe="onSwipe"
-          v-hammer:press="actionSubMenuOpen"
-          v-hammer:tap="actionPageNext"
           :src="this.pageBlob[this.nowPage+0]"
         />
         <img
           v-hammer:swipe="onSwipe"
-          v-hammer:press="actionSubMenuOpen"
-          v-hammer:tap="actionPageNext"
           :src="this.pageBlob[this.nowPage-1]"
         />
       </template>
-      <!-- スマホ用片面 -->
       <template v-else>
-        <img
-          v-hammer:swipe="onSwipe"
-          v-hammer:press="actionSubMenuOpen"
-          v-hammer:tap="actionPageNext"
-          :src="this.pageBlob[this.nowPage-1]"
-        />
+        <v-progress-circular
+          indeterminate
+          size="50"
+          color="primary"
+        ></v-progress-circular>
       </template>
       <!-- 確認用 -->
       <div style="display: none;">
@@ -152,7 +144,7 @@
 
 <script>
 import axios from '@/axios/index'
-import LoadingImage from '@/assets/loading.gif'
+// import LoadingImage from '@/assets/loading.gif'
 import router from '@/router'
 
 export default {
@@ -177,7 +169,6 @@ export default {
       },
       menuDialog: false,
       subMenu: false,
-      heightOffcet: 0,
       uuid: '',
       page: 0,
       nowPage: 1,
@@ -188,11 +179,10 @@ export default {
       height: window.innerHeight,
       bookInfo: {},
       pageBlob: [],
+      isCompletedRead: false,
       cachePageItems: [2, 4, 8, 16, 32, 64],
       loadSizeB: 0,
       loadSizeMB: 0,
-      viewerPage1TowPage: false,
-      viewerPage2TowPage: false,
       settings: {
         cachePage: 32,
         mulchLoad: 4,
@@ -208,9 +198,6 @@ export default {
     nowPage: function (newPage, oldPage) {
       this.getDLoadingPage()
       localStorage.openBookPage = newPage
-      // if (Number(this.$route.query.page) !== newPage) {
-      //   this.$router.replace({ query: { page: newPage } })
-      // }
     },
     settings: {
       handler: function (val, oldVal) {
@@ -222,6 +209,17 @@ export default {
   methods: {
     // ライブラリに戻る
     goLibrary () {
+      if (!this.isCompletedRead) {
+        axios.request({
+          method: 'patch',
+          url: '/api/books/user-data',
+          data: {
+            uuids: [this.uuid],
+            status: 'pause',
+            page: this.nowPage
+          }
+        })
+      }
       localStorage.removeItem('openBookUUID')
       localStorage.removeItem('openBookPage')
       router.push({ name: 'BooksList' })
@@ -264,7 +262,7 @@ export default {
       }
 
       this.nowLoading += 1
-      this.pageBlob[page - 1] = LoadingImage
+      // this.pageBlob[page - 1] = LoadingImage
 
       // console.log(`${page}ページを読みます`)
 
@@ -315,6 +313,19 @@ export default {
       }
       if (this.bookInfo.page <= this.nowPage) {
         this.nowPage = this.bookInfo.page
+        if (!this.isCompletedRead) {
+          axios.request({
+            method: 'patch',
+            url: '/api/books/user-data',
+            data: {
+              uuids: [this.uuid],
+              status: 'close'
+            }
+          })
+        } else {
+          this.isCompletedRead = true
+        }
+        this.isCompletedRead = true
         this.menuDialog = true
       }
     },
@@ -411,6 +422,9 @@ export default {
     })
       .then((response) => {
         this.bookInfo = response.data.rows[0]
+        if (this.bookInfo.userData.openPage !== null) {
+          this.nowPage = this.bookInfo.userData.openPage
+        }
         // タイトル更新
         this.$emit('updateHead')
         Array.prototype.push.apply(this.pageBlob, Array(this.bookInfo.page - 4))
@@ -437,6 +451,13 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.image-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
 .image-base-width > img {
   max-width: 100%;
   height: auto;
