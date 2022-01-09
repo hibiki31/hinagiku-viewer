@@ -146,14 +146,13 @@
         @search="search"
       />
       <BooksListThum v-else @toReaderPage="toReaderPage" @openMenu="openMenu"/>
-      <v-pagination
-        v-model="page"
-        :length="maxPage"
-        :total-visible="9"
-        class="pt-5"
-        style="width: 90%"
-      ></v-pagination>
     </v-container>
+  <v-pagination
+    v-model="page"
+    :length="maxPage"
+    :total-visible="7"
+    class="ma-3"
+  ></v-pagination>
   </div>
 </template>
 
