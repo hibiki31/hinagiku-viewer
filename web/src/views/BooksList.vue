@@ -151,6 +151,7 @@
         :length="maxPage"
         :total-visible="9"
         class="pt-5"
+        style="width: 90%"
       ></v-pagination>
     </v-container>
   </div>

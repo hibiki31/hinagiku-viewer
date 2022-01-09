@@ -41,17 +41,22 @@ export default {
       return response
     }, error => {
       if (!error.response) {
+        // それぞれの.catchに引継ぎ
         throw error
       }
       const status = error.response.status
       if (status === 401) {
-        this.$_pushNotice('認証エラーが発生したためログアウトします', 'error')
-        store.dispatch('authenticaitonFail')
-        router.push({
-          name: 'Login'
-        })
+        if (store.state.userData.isAuthed) {
+          this.$_pushNotice('認証エラーが発生したためログアウトします', 'error')
+          store.dispatch('authenticaitonFail')
+          router.push({
+            name: 'Login'
+          })
+        }
+        // .catch無効
         return false
       }
+      // それぞれの.catchに引継ぎ
       throw error
     })
     // トークン取得
@@ -74,21 +79,19 @@ export default {
       store.dispatch('authenticaitonFail')
     }
 
-    axios
-      .get('/api/version')
-      .then(res => {
-        if (this.version !== res.data.apiVersion) {
-          if (localStorage.apiVersion === res.data.apiVersion) {
-            this.$_pushNotice('クライアントとAPIでバージョン齟齬があります', 'error')
-            return
-          }
-          this.$_pushNotice(res.data.apiVersion + 'にバージョンアップを行います', 'info')
-          localStorage.apiVersion = res.data.apiVersion
-          setTimeout(() => {
-            location.reload(true)
-          }, 3000)
+    axios.get('/api/version').then(res => {
+      if (this.version !== res.data.apiVersion) {
+        if (localStorage.apiVersion === res.data.apiVersion) {
+          this.$_pushNotice('クライアントとAPIでバージョン齟齬があります', 'error')
+          return
         }
-      })
+        this.$_pushNotice(res.data.apiVersion + 'にバージョンアップを行います', 'info')
+        localStorage.apiVersion = res.data.apiVersion
+        setTimeout(() => {
+          location.reload(true)
+        }, 3000)
+      }
+    })
   }
 }
 </script>
