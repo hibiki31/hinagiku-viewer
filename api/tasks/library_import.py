@@ -50,7 +50,11 @@ def main(db, user_id):
         logger.info(str(len(send_books_list)) + "件の本をライブラリに追加します")
 
     for send_book in send_books_list:
-        book_import(send_book, user_model, db)
+        try:
+            book_import(send_book, user_model, db)
+        except Exception as e:
+            logger.error(e, exc_info=True)
+            return
     return
 
 def book_import(send_book, user_model, db):
