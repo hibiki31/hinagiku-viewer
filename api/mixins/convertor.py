@@ -138,20 +138,16 @@ def make_thum(send_book, book_uuid):
     """
     サムネイルの作成とページ数の取得 -> page_len
     """
-    try:
-        with zipfile.ZipFile(send_book) as existing_zip:
-            zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
-            # ページ数取得
-            page_len = len(zip_content)
-            zip_content.sort()
-            # サムネイル作成
-            cover_path = zip_content[0]
-            existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
-            image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_thum/{book_uuid}.jpg',to_height=600,quality=85)
-    except:
-        logger.error(f'{send_book} エラーが発生したため除外されました', exc_info=True)
-        shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
-        return
+    with zipfile.ZipFile(send_book) as existing_zip:
+        zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
+        # ページ数取得
+        page_len = len(zip_content)
+        zip_content.sort()
+        # サムネイル作成
+        cover_path = zip_content[0]
+        existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
+        image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_thum/{book_uuid}.jpg',to_height=600,quality=85)
+  
     return page_len
 
 

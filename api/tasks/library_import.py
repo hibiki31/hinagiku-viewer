@@ -1,5 +1,7 @@
 import os, uuid, datetime, shutil, glob, json
 
+import PIL
+
 from sqlalchemy import or_, and_
 
 from mixins.settings import APP_ROOT, DATA_ROOT
@@ -52,6 +54,11 @@ def main(db, user_id):
     for send_book in send_books_list:
         try:
             book_import(send_book, user_model, db)
+        
+        except PIL.Image.DecompressionBombError as e:
+            logger.error(e, exc_info=True)
+            logger.error(f'{send_book} エラーが発生したため除外されました', exc_info=True)
+            shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
         except Exception as e:
             logger.error(e, exc_info=True)
             return
