@@ -24,10 +24,7 @@ app = APIRouter()
 
 
 # JWTトークンの設定
-if settings.IS_DEV:
-    SECRET_KEY = "KEY"
-else:
-    SECRET_KEY = secrets.token_urlsafe(128)
+SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
 # 30日で失効
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 30
