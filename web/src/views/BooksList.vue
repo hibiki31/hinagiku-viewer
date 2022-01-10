@@ -2,6 +2,7 @@
   <div class="booksList">
     <SearchDialog ref="searchDialog" @search="search" />
     <BookDetailDialog ref="bookDetailDialog" @search="search" />
+    <range-change-dialog ref="rangeChangeDialog" />
     <!-- エクスポート確認 -->
     <v-dialog v-model="exportDialog" persistent max-width="290">
       <v-card>
@@ -13,25 +14,6 @@
             キャンセル
           </v-btn>
           <v-btn color="error" text @click="searchBooksPut()"> OK </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <!-- 複数選択ダイアログ -->
-    <v-dialog v-model="mulchBooksDialog" scrollable max-width="500px">
-      <v-card>
-        <v-card-title> Range Editor </v-card-title>
-        <v-divider></v-divider>
-        <v-card-text style="height: 300px">
-          <v-rating v-model="openItem.rate" small class="pa-3"></v-rating>
-        </v-card-text>
-        <v-divider></v-divider>
-        <v-card-actions>
-          <v-btn color="blue darken-1" text @click="mulchBooksDialog = false"
-            >閉じる</v-btn
-          >
-          <v-btn color="blue darken-1" text @click="searchBooksRate"
-            >保存</v-btn
-          >
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -98,7 +80,7 @@
           <v-btn class="ma-1" small @click="exportDialog = true"
             >Range Export<v-icon>mdi-export</v-icon></v-btn
           >
-          <v-btn class="ma-1" small @click="mulchBooksDialog = true"
+          <v-btn class="ma-1" small @click="$refs.rangeChangeDialog.openDialog()"
             >Range Change<v-icon>mdi-pen</v-icon></v-btn
           >
           <v-btn class="ma-1" small @click="loadLibrary">
@@ -167,13 +149,16 @@ import BooksListTable from '../components/BooksListTable'
 import BooksListThum from '../components/BooksListThum'
 import store from '@/store'
 
+import RangeChangeDialog from '../components/dialog/RangeChangeDialog.vue'
+
 export default {
   name: 'BooksList',
   components: {
     SearchDialog,
     BooksListTable,
     BooksListThum,
-    BookDetailDialog
+    BookDetailDialog,
+    RangeChangeDialog
   },
   head: {
     title: function () {

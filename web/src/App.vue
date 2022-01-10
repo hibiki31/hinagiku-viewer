@@ -49,9 +49,7 @@ export default {
         if (store.state.userData.isAuthed) {
           this.$_pushNotice('認証エラーが発生したためログアウトします', 'error')
           store.dispatch('authenticaitonFail')
-          router.push({
-            name: 'Login'
-          })
+          location.reload(true)
         }
         // .catch無効
         return false
