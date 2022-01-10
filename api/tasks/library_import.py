@@ -7,7 +7,7 @@ from sqlalchemy import or_, and_
 from mixins.settings import APP_ROOT, DATA_ROOT
 from mixins.log import setup_logger
 from mixins.purser import PurseResult, base_purser
-from mixins.convertor import get_hash, make_thum
+from mixins.convertor import get_hash, make_thum, NotContentZip
 
 from books.models import BookModel, LibraryModel, PublisherModel, SeriesModel, GenreModel, AuthorModel, BookUserMetaDataModel
 from users.models import UserModel
@@ -55,13 +55,14 @@ def main(db, user_id):
         try:
             book_import(send_book, user_model, db)
         
-        except PIL.Image.DecompressionBombError as e:
+        except (PIL.Image.DecompressionBombError, NotContentZip) as e:
             logger.error(e, exc_info=True)
-            logger.error(f'{send_book} エラーが発生したため除外されました', exc_info=True)
+            logger.error(f'{send_book} エラーが発生したためファイルを除外', exc_info=True)
             shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
+        
         except Exception as e:
             logger.error(e, exc_info=True)
-            return
+            logger.error(f'{send_book} 補足できないエラーが発生したためインポート処理を中止', exc_info=True)
     return
 
 def book_import(send_book, user_model, db):

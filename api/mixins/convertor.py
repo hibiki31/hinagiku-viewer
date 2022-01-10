@@ -50,6 +50,8 @@ class DebugTimer():
             logger.debug(f'{run_time:.1f}ms - {message}')
         self.time = now_time
 
+class NotContentZip(Exception):
+    """zipファイル内に画像ファイルが存在しません"""
 
 
 def get_hash(path):
@@ -144,6 +146,8 @@ def make_thum(send_book, book_uuid):
         page_len = len(zip_content)
         zip_content.sort()
         # サムネイル作成
+        if page_len == 0:
+            raise NotContentZip
         cover_path = zip_content[0]
         existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
         image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_thum/{book_uuid}.jpg',to_height=600,quality=85)
