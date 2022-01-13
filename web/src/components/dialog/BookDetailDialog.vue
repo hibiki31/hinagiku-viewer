@@ -1,11 +1,11 @@
 <template>
-  <v-dialog v-model="dialogState">
+  <v-dialog v-model="dialogState" max-width=700>
     <v-card>
       <v-card-text>
         <v-row class="pt-8">
           <v-text-field label="Title" v-model="openBook.title"></v-text-field>
         </v-row>
-        <p>サイズ {{ openBook.size }}</p>
+        <p>サイズ {{ $_fitByte(openBook.size) }}</p>
         <p>ページ {{ openBook.page }}</p>
         <v-rating v-model="openBook.userData.rate" @input="bookInfoSubmit" small class="pa-1"></v-rating>
         <v-row>
@@ -53,18 +53,16 @@ export default {
       await this.$store.dispatch('serachBooks', this.searchQuery)
     },
     bookInfoSubmit () {
-      axios
-        .request({
-          method: 'put',
-          url: '/api/books/user-data',
-          data: {
-            uuids: [this.openBook.uuid],
-            rate: this.openBook.userData.rate
-          }
-        })
-        .then((response) =>
-          this.$_pushNotice('評価を更新しました', 'success')
-        )
+      axios.request({
+        method: 'put',
+        url: '/api/books/user-data',
+        data: {
+          uuids: [this.openBook.uuid],
+          rate: this.openBook.userData.rate
+        }
+      }).then((response) =>
+        this.$_pushNotice('評価を更新しました', 'success')
+      )
     }
   }
 }

@@ -2,7 +2,7 @@
   <div class="booksList">
     <SearchDialog ref="searchDialog" @search="search" />
     <BookDetailDialog ref="bookDetailDialog" @search="search" />
-    <range-change-dialog ref="rangeChangeDialog" />
+    <range-change-dialog ref="rangeChangeDialog" @search="search" />
     <!-- エクスポート確認 -->
     <v-dialog v-model="exportDialog" persistent max-width="290">
       <v-card>
@@ -60,16 +60,12 @@
       <v-list nav dense>
         <v-list-item-group>
           <v-rating v-model="queryRate" small></v-rating>
-          <v-btn
-            small
-            color="primary"
-            dark
-            @click="queryRate = null"
-            class="ma-1"
-          >
+        </v-list-item-group>
+        <v-list-item-group>
+          <v-btn small color="primary" dark @click="queryRate = null" class="ma-1" width="70">
             All Rate
           </v-btn>
-          <v-btn small color="gray" dark @click="queryRate = 0" class="ma-1">
+          <v-btn small color="gray" dark @click="queryRate = 0" class="ma-1" width="70">
             No Rate
           </v-btn>
         </v-list-item-group>
@@ -77,24 +73,25 @@
       <v-divider></v-divider>
       <v-list nav dense>
         <v-list-item-group>
-          <v-btn class="ma-1" small @click="exportDialog = true"
-            >Range Export<v-icon>mdi-export</v-icon></v-btn
+          <v-btn class="ma-1" small color="error" @click="exportDialog = true"
+            >Range Export<v-icon class="pl-1">mdi-export</v-icon></v-btn
           >
-          <v-btn class="ma-1" small @click="$refs.rangeChangeDialog.openDialog()"
+          <v-btn class="ma-1" small color="primary" @click="$refs.rangeChangeDialog.openDialog()"
             >Range Change<v-icon>mdi-pen</v-icon></v-btn
           >
           <v-btn class="ma-1" small @click="loadLibrary">
-            Load
+            Load Library<v-icon class="pl-2">mdi-book-refresh</v-icon>
           </v-btn>
-          <v-switch
-            @change="$store.dispatch('setShowListMode', $event)"
-            class="ma-1"
-            label="リスト表示"
-            dense
-            hide-details
-          ></v-switch>
         </v-list-item-group>
       </v-list>
+      <v-divider></v-divider>
+      <v-switch
+        @change="$store.dispatch('setShowListMode', $event)"
+        class="ma-3"
+        label="リスト表示"
+        dense
+        hide-details
+      ></v-switch>
       <!-- ライセンス -->
       <v-divider class="pb-2"></v-divider>
       <span class="subtitle-2 ml-3"

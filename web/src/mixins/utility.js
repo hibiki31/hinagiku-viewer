@@ -29,16 +29,7 @@ Vue.mixin({
         group,
         text,
         type,
-        duration: 600,
-        data: { icon, color }
-      })
-    },
-    $pushNotice (text, type, color, icon, group = 'default') {
-      this.$notify({
-        group,
-        text,
-        type,
-        duration: 600,
+        duration: 900,
         data: { icon, color }
       })
     },
