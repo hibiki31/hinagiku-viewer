@@ -3,11 +3,27 @@
     <v-card>
       <v-card-text>
         <v-row class="pt-8">
-          <v-text-field label="Title" v-model="openBook.title"></v-text-field>
+          <p class="font-weight-bold">{{ openBook.title }}</p>
         </v-row>
-        <p>サイズ {{ $_fitByte(openBook.size) }}</p>
-        <p>ページ {{ openBook.page }}</p>
-        <v-rating v-model="openBook.userData.rate" @input="bookInfoSubmit" small class="pa-1"></v-rating>
+        <v-row>
+          <p class="font-weight-black">サイズ:</p><p>{{ $_fitByte(openBook.size) }}</p>
+        </v-row>
+        <v-row>
+          <p class="font-weight-black">ページ:</p><p>{{ openBook.page }}</p>
+        </v-row>
+        <v-row>
+          <v-select
+            :items="libraryList"
+            label="Library"
+            v-model="openBook.libraryId"
+            item-text="name"
+            item-value="id"
+            @change="changeBookLibrary"
+            dense
+            class=""
+          ></v-select>
+          <v-rating v-model="openBook.userData.rate" @input="bookInfoSubmit" small class="pa-1"></v-rating>
+        </v-row>
         <v-row>
           <BaseAuthorChip :openBook="openBook" @search="$emit('search')" />
         </v-row>
@@ -40,7 +56,7 @@ export default {
     return {
       dialogState: false,
       searchQuery: {},
-      topBerQuery: null
+      libraryList: []
     }
   },
   methods: {
@@ -48,9 +64,7 @@ export default {
       this.$store.dispatch('setOpenBook', book)
       this.dialogState = true
       this.searchQuery = this.$store.getters.searchQuery
-    },
-    async submitDialog () {
-      await this.$store.dispatch('serachBooks', this.searchQuery)
+      axios.get('/api/librarys').then((response) => (this.libraryList = response.data))
     },
     bookInfoSubmit () {
       axios.request({
@@ -60,9 +74,21 @@ export default {
           uuids: [this.openBook.uuid],
           rate: this.openBook.userData.rate
         }
-      }).then((response) =>
+      }).then((response) => {
         this.$_pushNotice('評価を更新しました', 'success')
-      )
+        this.$emit('search')
+      })
+    },
+    changeBookLibrary () {
+      axios.request({
+        method: 'put',
+        url: '/api/books',
+        data: { uuids: [this.openBook.uuid], libraryId: this.openBook.libraryId }
+      })
+        .then((response) => {
+          this.$_pushNotice('ライブラリを変更しました', 'success')
+          this.$emit('search')
+        })
     }
   }
 }

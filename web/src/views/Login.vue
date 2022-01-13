@@ -121,10 +121,10 @@ export default {
         .post('/api/auth', loginForm)
         .then(res => {
           if (res.status === 200) {
-            this.$pushNotice('ログイン成功', 'success')
+            this.$_pushNotice('ログイン成功', 'success')
             return res.data.access_token
           } else {
-            this.$pushNotice('エラーが発生しました', 'error')
+            this.$_pushNotice('エラーが発生しました', 'error')
             return false
           }
         })

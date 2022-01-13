@@ -3,20 +3,6 @@
     <SearchDialog ref="searchDialog" @search="search" />
     <BookDetailDialog ref="bookDetailDialog" @search="search" />
     <range-change-dialog ref="rangeChangeDialog" @search="search" />
-    <!-- エクスポート確認 -->
-    <v-dialog v-model="exportDialog" persistent max-width="290">
-      <v-card>
-        <v-card-title class="headline"> 本をエクスポート </v-card-title>
-        <v-card-text>検索結果の本を全てエクスポートします</v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="success" text @click="exportDialog = false">
-            キャンセル
-          </v-btn>
-          <v-btn color="error" text @click="searchBooksPut()"> OK </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
     <!-- トップバー -->
     <v-app-bar
       color="primary"
@@ -73,7 +59,7 @@
       <v-divider></v-divider>
       <v-list nav dense>
         <v-list-item-group>
-          <v-btn class="ma-1" small color="error" @click="exportDialog = true"
+          <v-btn class="ma-1" small color="error" @click="exportDialog = true" disabled
             >Range Export<v-icon class="pl-1">mdi-export</v-icon></v-btn
           >
           <v-btn class="ma-1" small color="primary" @click="$refs.rangeChangeDialog.openDialog()"
@@ -255,7 +241,7 @@ export default {
     reload () {
       const query = this.searchQuery
       query.fullText = ''
-      query.rate = 0
+      query.rate = null
       store.dispatch('setSearchQuery', query)
       this.search(true)
     },
@@ -275,66 +261,6 @@ export default {
         localStorage.removeItem('backBookUUID')
       }, 300)
     },
-    async searchBooksPut () {
-      // 全件取得
-      this.mulchBooksDialog = false
-      this.searchQuery.offset = 0
-      this.searchQuery.limit = 99999
-      // 同期をとる
-      await this.search()
-      // uuidを取得
-      const uuids = this.booksList.map((x) => x.uuid)
-      axios
-        .request({
-          method: 'put',
-          url: '/api/books',
-          data: { uuids: uuids, state: 'export' }
-        })
-        .then((response) =>
-          this.$_pushNotice('検索範囲のエクスポートを依頼しました', 'success')
-        )
-    },
-    async searchBooksRate () {
-      // 全件取得
-      this.mulchBooksDialog = false
-      this.searchQuery.offset = 0
-      this.searchQuery.limit = 99999
-      // 同期をとる
-      await this.search()
-      // uuidを取得
-      const uuids = this.booksList.map((x) => x.uuid)
-      axios
-        .request({
-          method: 'put',
-          url: '/api/books',
-          data: { uuids: uuids, rate: this.openItem.rate }
-        })
-        .then((response) =>
-          this.$_pushNotice('検索範囲の本の評価を変更', 'success')
-        )
-    },
-    openItemSearchAuthor () {
-      this.searchQuery.authorLike = this.openItem.author
-      this.menuDialog = false
-      this.pageChange()
-      this.search()
-    },
-    bookInfoSubmitButton (item) {
-      this.openItem = item
-      this.bookInfoSubmit()
-    },
-    bookExport () {
-      this.menuDialog = false
-      axios
-        .request({
-          method: 'put',
-          url: '/api/books',
-          data: { uuids: [this.openItem.uuid], state: 'export' }
-        })
-        .then((response) => {
-          this.$_pushNotice('書籍をエクスポートしました', 'success')
-        })
-    },
     loadLibrary () {
       axios
         .request({
@@ -345,11 +271,6 @@ export default {
         .then((response) => {
           this.$_pushNotice('ライブラリのリロードを開始' + response.data.status, 'success')
         })
-    },
-    pageChange () {
-      this.pageWatchEnable = false
-      this.page = 1
-      this.pageWatchEnable = true
     },
     openMenu (item) {
       this.$refs.bookDetailDialog.openDialog(item)
