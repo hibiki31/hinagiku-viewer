@@ -5,13 +5,15 @@
       :xs="4"
       :sm="3"
       :md="2"
-      :lg="2"
+      :lg="1"
       v-for="item in booksList"
       :key="item.uuid"
       :id="item.uuid"
       class="pt-5"
     >
-      <v-card @click="$emit('toReaderPage', item)">
+      <v-card
+        @click="$emit('toReaderPage', item)"
+      >
         <div fluid class="text-center" style="
           position: absolute;
           z-index: 1;

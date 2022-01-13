@@ -13,7 +13,7 @@ const state = Object.assign({}, defaultState)
 
 const mutations = {
   authenticaitonSuccessful (state, accessToken, username) {
-    Cookies.set('accessToken', accessToken)
+    Cookies.set('accessToken', accessToken, { expires: 365 })
     axios.interceptors.request.use(
       config => {
         config.headers.Authorization = `Bearer ${accessToken}`
