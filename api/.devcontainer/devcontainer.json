@@ -3,24 +3,8 @@
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "app",
 	"workspaceFolder": "/workspace/api/",
-	"settings": {
-		"sqltools.connections": [{
-			"name": "Container database",
-			"driver": "PostgreSQL",
-			"previewLimit": 50,
-			"server": "localhost",
-			"port": 5432,
-			"database": "mydatabase",
-			"username": "postgres",
-			"password": "password"
-		}]
-	},
-	"extensions": [
-		"ms-python.python",
-		"donjayamanne.githistory"
-	],
 	"forwardPorts": [
-		8888,
+		8000,
 		5432
 	],
 }
