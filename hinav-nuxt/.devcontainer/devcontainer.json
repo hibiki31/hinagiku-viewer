@@ -3,7 +3,7 @@
 	"context": "..",
 	"dockerFile": "../Dockerfile.dev",
 	"forwardPorts": [
-		8080
+		3000
 	],
 	"mounts": [
 		"source=try-hinav_node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume"
