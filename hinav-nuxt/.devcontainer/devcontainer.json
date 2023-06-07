@@ -5,6 +5,9 @@
 	"forwardPorts": [
 		3000
 	],
+	"extensions": [
+		"mhutchie.git-graph"
+	],
 	"mounts": [
 		"source=try-hinav_node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume"
 	]

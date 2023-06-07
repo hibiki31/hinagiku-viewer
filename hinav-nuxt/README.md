@@ -38,11 +38,19 @@ EOF
 yarn install 
 yarn add vuetify@next @mdi/font
 yarn add sass vite-plugin-vuetify
-npm install --save @nuxtjs/axios
 ```
 
 ```
- yarn dev -o
+ yarn dev
  yarn build
  node .output/server/index.mjs
 ```
+
+## 参考
+
+- Axios
+  - https://www.memory-lovers.blog/entry/2022/06/02/170000
+- Auth middle
+  - https://debug-life.net/entry/4169
+- Nuxt3 Vuetify
+  - https://zenn.dev/coedo/articles/nuxt3-vuetify3

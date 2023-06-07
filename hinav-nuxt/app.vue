@@ -19,3 +19,17 @@
     </v-app-bar>
   </v-app>
 </template>
+
+<script>
+const url = "";
+
+const headers = new Headers({
+  Authorization: `...`,
+});
+const res = await fetch(url, {
+  method: "GET",
+  headers: headers,
+});
+const resData = await res.json();
+console.log(`** ${res.status}`, resData);
+</script>
