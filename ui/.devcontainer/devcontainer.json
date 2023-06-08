@@ -6,7 +6,8 @@
 		3000
 	],
 	"extensions": [
-		"mhutchie.git-graph"
+		"mhutchie.git-graph",
+		"Vue.volar"
 	],
 	"mounts": [
 		"source=try-hinav_node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume"

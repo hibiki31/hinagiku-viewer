@@ -20,16 +20,16 @@
   </v-app>
 </template>
 
-<script>
-const url = "";
+<!-- <script> -->
+// const url = "https://hinav.hinagiku.me/api/version";
 
-const headers = new Headers({
-  Authorization: `...`,
-});
-const res = await fetch(url, {
-  method: "GET",
-  headers: headers,
-});
-const resData = await res.json();
-console.log(`** ${res.status}`, resData);
-</script>
+// const headers = new Headers({
+//   Authorization: `...`,
+// });
+// const res = await fetch(url, {
+//   method: "GET",
+//   headers: headers,
+// });
+// const resData = await res.json();
+// console.log(`** ${res.status}`, resData);
+<!-- </script> -->
