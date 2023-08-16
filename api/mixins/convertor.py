@@ -19,7 +19,7 @@ import shutil
 
 from sqlalchemy.sql.functions import mode
 
-from mixins.settings import APP_ROOT, DATA_ROOT
+from settings import APP_ROOT, DATA_ROOT
 from mixins.log import setup_logger
 from mixins.database import SessionLocal
 from mixins.purser import PurseResult, base_purser

@@ -1,6 +1,6 @@
 import logging
 import os
-from mixins.settings import DATA_ROOT
+from settings import DATA_ROOT
 
 
 def setup_logger(name, logfile=f'{DATA_ROOT}app_data/api.log'):

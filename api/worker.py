@@ -3,7 +3,7 @@ import sys
 from time import time, sleep
 from sqlalchemy import desc
 
-from mixins.settings import APP_ROOT, DATA_ROOT
+from settings import APP_ROOT, DATA_ROOT
 from mixins.log import setup_logger
 from mixins.database import SessionLocal
 from mixins.convertor import task_convert, create_book_page_cache

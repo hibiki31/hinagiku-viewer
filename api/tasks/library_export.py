@@ -2,7 +2,7 @@ import os, uuid, datetime, shutil, glob, json
 
 from sqlalchemy import or_, and_
 
-from mixins.settings import APP_ROOT, DATA_ROOT
+from settings import APP_ROOT, DATA_ROOT
 from mixins.log import setup_logger
 from mixins.purser import PurseResult, base_purser
 from mixins.convertor import get_hash, make_thum

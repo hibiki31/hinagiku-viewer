@@ -13,8 +13,7 @@ from sqlalchemy.exc import IntegrityError
 
 from mixins.database import get_db
 from mixins.log import setup_logger
-from mixins import settings
-
+from settings import SECRET_KEY
 from .models import *
 from .schemas import *
 
@@ -24,7 +23,7 @@ app = APIRouter()
 
 
 # JWTトークンの設定
-SECRET_KEY = settings.SECRET_KEY
+SECRET_KEY = SECRET_KEY
 ALGORITHM = "HS256"
 # 30日で失効
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 30

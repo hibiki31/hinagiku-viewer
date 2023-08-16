@@ -6,7 +6,7 @@ from starlette.requests import Request
 
 from mixins.log import setup_logger
 from mixins.database import SessionLocal
-from mixins.settings import DATA_ROOT, APP_ROOT, API_VERSION
+from settings import DATA_ROOT, APP_ROOT, API_VERSION
 
 from books.router import app as books_router
 from users.router import app as users_router

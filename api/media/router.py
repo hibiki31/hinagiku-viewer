@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import FileResponse
 
 from mixins.log import setup_logger
-from mixins.settings import DATA_ROOT, APP_ROOT
+from settings import DATA_ROOT, APP_ROOT
 from mixins.convertor import create_book_page_cache
 
 from books.schemas import BookCacheCreate, LibraryPatch
