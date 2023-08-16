@@ -1,5 +1,15 @@
 # web
 
+## 開発時メモ
+
+```
+npm install
+npm run serve
+```
+
+
+
+
 ## Project setup
 ```
 npm install

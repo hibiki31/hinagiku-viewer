@@ -6,7 +6,10 @@
 		3000
 	],
 	"extensions": [
-		"mhutchie.git-graph"
+		"mhutchie.git-graph",
+		"Vue.volar",
+		"GaiyaObedMathias.vuetify-snippets",
+		"vuetifyjs.vuetify-vscode"
 	],
 	"mounts": [
 		"source=try-hinav_node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume"
