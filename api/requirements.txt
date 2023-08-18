@@ -17,3 +17,4 @@ PyJWT==2.8.0
 python-multipart==0.0.6
 SQLAlchemy==2.0.20
 uvicorn[standard]==0.23.2
+httpx==0.24.1

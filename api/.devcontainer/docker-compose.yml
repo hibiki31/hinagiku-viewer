@@ -9,7 +9,6 @@ services:
       - ../../:/workspace:cached
       - ../../data/:/data
     command: sleep infinity
-    network_mode: service:db
 
   db:
     image: postgres:latest
@@ -20,6 +19,12 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_DB: mydatabase
       POSTGRES_PASSWORD: password
+  
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
 
 volumes:
   postgres-data:

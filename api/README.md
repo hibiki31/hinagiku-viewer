@@ -34,3 +34,13 @@ apt update
 apt install -y postgresql-client
 psql -h db -U postgres -d mydatabase -f inset.sql
 ```
+
+## 起動
+
+```
+gunicorn --config /path/to/app/settings.py
+```
+
+## マイグレーション参考
+
+- https://zenn.dev/tk_resilie/articles/fastapi0100_pydanticv2

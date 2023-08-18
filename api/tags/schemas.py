@@ -1,7 +1,8 @@
 from typing import List
-from fastapi_camelcase import CamelModel
+from mixins.schema import BaseSchema
 
 
-class BookTagBase(CamelModel):
+
+class BookTagBase(BaseSchema):
     uuids: List[str]
     name: str

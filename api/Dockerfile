@@ -12,6 +12,6 @@ RUN mkdir -p /opt/data
 COPY . /opt/app
 WORKDIR /opt/app
 
-EXPOSE 8888
+EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8888"]
+CMD ["gunicorn", "--config", "/opt/app/gnicorn_config.py"]
