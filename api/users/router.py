@@ -78,7 +78,7 @@ def get_current_user(
     return UserCurrent(id=user_id, token=token, is_admin=user.is_admin)
 
 
-@app.get("/api/users", tags=["user"],response_model=List[UserGet])
+@app.get("/api/users", tags=["User"],response_model=List[UserGet])
 def read_api_users(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
@@ -86,7 +86,7 @@ def read_api_users(
     return db.query(UserModel).all()
 
 
-@app.get("/api/users/me/", tags=["user"], response_model=UserGet)
+@app.get("/api/users/me/", tags=["User"], response_model=UserGet)
 def read_api_users_me(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
@@ -96,7 +96,7 @@ def read_api_users_me(
     return user
 
 
-@app.post("/api/users", tags=["user"])
+@app.post("/api/users", tags=["User"])
 def post_api_users(
         user: UserPost, 
         db: Session = Depends(get_db),
@@ -120,7 +120,7 @@ def post_api_users(
     return user
 
 
-@app.post("/api/auth", response_model=TokenRFC6749Response, tags=["auth"])
+@app.post("/api/auth", response_model=TokenRFC6749Response, tags=["Auth"])
 def login_for_access_token(
         form_data: OAuth2PasswordRequestForm = Depends(), 
         db: Session = Depends(get_db)
@@ -146,7 +146,7 @@ def login_for_access_token(
     return {"access_token": access_token, "token_type": "Bearer"}
 
 
-@app.post("/api/auth/setup", tags=["auth"])
+@app.post("/api/auth/setup", tags=["Auth"])
 async def api_auth_setup(
         user: UserPost, 
         db: Session = Depends(get_db)
@@ -175,7 +175,7 @@ async def api_auth_setup(
     return user
 
 
-@app.get("/api/auth/validate", tags=["auth"])
+@app.get("/api/auth/validate", tags=["Auth"])
 async def read_auth_validate(
         current_user: UserCurrent = Depends(get_current_user)
     ):

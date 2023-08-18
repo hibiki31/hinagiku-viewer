@@ -23,7 +23,8 @@ exception_notfund = HTTPException(
     detail="Object not fund."
 )
 
-@app.get("/api/librarys", tags=["Library"])
+
+@app.get("/api/librarys", tags=["Library"], response_model=List[GetLibrary])
 async def get_api_library(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
@@ -32,7 +33,7 @@ async def get_api_library(
         func.count(BookModel.uuid).label("count"),
         LibraryModel.name.label("name"),
         LibraryModel.id.label("id"),
-        LibraryModel.user_id
+        LibraryModel.user_id.label("user_id")
     ).outerjoin(LibraryModel).group_by(
         LibraryModel.name,
         LibraryModel.id.label("id")

@@ -35,6 +35,10 @@ apt install -y postgresql-client
 psql -h db -U postgres -d mydatabase -f inset.sql
 ```
 
+```
+cp ../../data/hinav-dev-testdata/* ../../data/book_send/
+```
+
 ## 起動
 
 ```

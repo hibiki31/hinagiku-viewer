@@ -1,6 +1,3 @@
 {
-    "python.analysis.extraPaths": [
-        "/workspace/api",
-    ],
     "workbench.colorTheme": "One Monokai"
 }

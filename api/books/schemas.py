@@ -6,6 +6,13 @@ from typing import List, Optional, Literal, Any
 from mixins.schema import BaseSchema
 
 
+class GetLibrary(BaseSchema):
+    count: int
+    name: str
+    id: int
+    user_id: str
+
+
 class BookUserMetaDataPatch(BaseSchema):
     uuids: List[str]
     page: int = None
@@ -13,21 +20,35 @@ class BookUserMetaDataPatch(BaseSchema):
 
 
 class BookUserDataBase(BaseSchema):
-    last_open_date: datetime = None
-    read_times:int = None
-    open_page:int = None
-    rate: int = None
+    last_open_date: datetime | None = None
+    read_times:int | None = None
+    open_page:int | None = None
+    rate: int | None = None
+
+
+class BookAuthors(BaseSchema):
+    id: int
+    name: str
+    description: str | None = None
+    
+    
+
+
+class BookPublisher(BaseSchema):
+    name: str | None = ""
+    id: int | None = None
+
 
 class BookBase(BaseSchema):
     uuid: str
     user_id: str
-    title: str = None
-    authors: Any
-    publisher: Any
+    title: str | None = None
+    authors: List[BookAuthors]
+    publisher: BookPublisher
     is_shered: bool
     library_id: int
-    genre_id: str = None
-    tags: list = None
+    genre_id: str | None = None
+    tags: list | None = None
     size: int
     page: int
     import_file_name: str

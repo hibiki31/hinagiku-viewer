@@ -9,6 +9,8 @@ services:
       - ../../:/workspace:cached
       - ../../data/:/data
     command: sleep infinity
+    environment:
+      SQLALCHEMY_DATABASE_URL: "postgresql://postgres:password@db:5432/mydatabase"
 
   db:
     image: postgres:latest

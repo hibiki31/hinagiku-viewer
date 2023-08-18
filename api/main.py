@@ -21,6 +21,8 @@ logger = setup_logger(__name__)
 
 
 tags_metadata = [
+    { "name": "Auth"},
+    { "name": "User"},
     { "name": "Library", "description": "本は必ずライブラリに所属する"},
     { "name": "Book", "description": "本は必ず１人のユーザが所有する"},
     { "name": "Author", "description": "本は著者を0以上持ちnullの場合もある"},
