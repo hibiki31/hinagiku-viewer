@@ -1,6 +1,6 @@
 import logging
 import os
-from settings import DATA_ROOT
+from settings import DATA_ROOT, DEBUG_LOG
 
 
 def setup_logger(name, logfile=f'{DATA_ROOT}/app_data/api.log'):
@@ -25,6 +25,9 @@ def setup_logger(name, logfile=f'{DATA_ROOT}/app_data/api.log'):
     logger.addHandler(ch)
 
     # 全体のログレベル
-    logger.setLevel(logging.DEBUG)
+    if DEBUG_LOG:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
 
     return logger

@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import FileResponse
 
 from mixins.log import setup_logger
-from settings import DATA_ROOT, APP_ROOT
+from settings import DATA_ROOT, APP_ROOT, CONVERT_THREAD
 from mixins.convertor import create_book_page_cache
 
 from books.schemas import BookCacheCreate, LibraryPatch
@@ -19,23 +19,7 @@ converter_pool = []
 library_pool = []
 
 
-async def run(cmd):
-    proc = await asyncio.create_subprocess_shell(
-        cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE)
-
-    stdout, stderr = await proc.communicate()
-
-    if proc.returncode != 0:
-        print(f'[{cmd!r} exited with {proc.returncode}]')
-        if stdout:
-            print(f'[stdout]\n{stdout.decode()}')
-        if stderr:
-            print(f'[stderr]\n{stderr.decode()}')
-
-
-@app.get("/media/books/{uuid}", tags=["Media"], summary="test")
+@app.get("/media/books/{uuid}", tags=["Media"], summary="サムネイル取得")
 def get_media_books_uuid(
         uuid: str
     ):
@@ -48,7 +32,7 @@ def get_media_books_uuid(
     return FileResponse(file_path)
 
 
-@app.get("/media/books/{uuid}/{page}", tags=["Media"])
+@app.get("/media/books/{uuid}/{page}", tags=["Media"], summary="ページ取得")
 def media_books_uuid_page(
         uuid: str,
         page: int,
@@ -63,40 +47,34 @@ def media_books_uuid_page(
     return FileResponse(path=cache_file)
 
 
-# @app.get("/media/books/async/{uuid}/{page}")
-# async def media_books_async_uuid_page(
-#         uuid: str,
-#         page: int,
-#         height: int = 1080,
-#     ):
-    
-#     cache_file = f"{DATA_ROOT}/book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
-#     if await AsyncPath(cache_file).exists():
-#         logger.debug(f"キャッシュから読み込み{uuid} {page}")
-#     else:
-#         cmd = f"python3 {APP_ROOT}worker.py page {uuid} {str(height)} {str(page)}"
-#         await run(cmd)
-#     return FileResponse(path=cache_file)
-
-
-@app.patch("/media/books", tags=["Media"])
+@app.patch("/media/books", tags=["Media"], summary="本の一括変換タスク実行")
 def patch_media_books_(
         model: BookCacheCreate,
         current_user:UserCurrent = Depends(get_current_user)
     ):
-    for w in converter_pool:
+    
+    for i, w in enumerate(converter_pool):
+        if w.poll() != None:
+            logger.debug(f"完了したプロセスをプールから削除 {w.args}")
+            del converter_pool[i]
+
+    # [:-CONVERT_THREAD]で4を超える要素を先頭から（古いプロセスから）切っていける
+    for w in converter_pool[:-CONVERT_THREAD]:
+        logger.warn(f"最大並行数：{CONVERT_THREAD}を超える{w.args[3]}を強制終了させました")
         w.terminate()
+
     converter_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "convert", model.uuid, str(model.height)]))
     return { "status": "ok", "model": model }
 
 
-@app.patch("/media/library", tags=["Media"])
+@app.patch("/media/library", tags=["Media"], summary="ライブラリのロードやエクスポート")
 def patch_media_library(
         model: LibraryPatch,
         current_user:UserCurrent = Depends(get_current_user)
     ):
     """
-    load or export
+    - state=load ライブラリのロード
+    - state=export ライブラリのエクスポート
     """
     for i in library_pool:
         if i.poll() == None:
