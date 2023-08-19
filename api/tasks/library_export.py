@@ -67,8 +67,8 @@ def main(db, export_uuid):
 
 def task_export(book_model, export_uuid):
     book_uuid = book_model.uuid
-    export_file = f'{DATA_ROOT}book_library/{book_uuid}.zip'
-    export_dir = f"{DATA_ROOT}book_export/"
+    export_file = f'{DATA_ROOT}/book_library/{book_uuid}.zip'
+    export_dir = f"{DATA_ROOT}/book_export/"
     
     if export_uuid:
         file_name = f"{book_uuid}.zip"
@@ -85,7 +85,7 @@ def task_export(book_model, export_uuid):
         logger.error(f"UUID={book_model.uuid}: 存在しないためデータベースから消去")
     
     try:
-        os.remove(f'{DATA_ROOT}book_cache/thum/{book_uuid}.jpg')
+        os.remove(f'{DATA_ROOT}/book_cache/thum/{book_uuid}.jpg')
     except:
         logger.error(f'UUID={book_model.uuid}: サムネイルが削除出来ませんでした')
 

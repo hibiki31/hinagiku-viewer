@@ -46,7 +46,7 @@ def main(db, user_id):
 
     user_model = db.query(UserModel).filter(UserModel.id == user_id).one()
 
-    send_books_list = glob.glob(f"{DATA_ROOT}book_send/**", recursive=True)
+    send_books_list = glob.glob(f"{DATA_ROOT}/book_send/**", recursive=True)
     send_books_list = [p for p in send_books_list if os.path.splitext(p)[1].lower() in [".zip"]]
     if len(send_books_list) != 0:
         logger.info(str(len(send_books_list)) + "件の本をライブラリに追加します")
@@ -58,7 +58,7 @@ def main(db, user_id):
         except (PIL.Image.DecompressionBombError, NotContentZip) as e:
             logger.error(e, exc_info=True)
             logger.error(f'{send_book} エラーが発生したためファイルを除外', exc_info=True)
-            shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
+            shutil.move(send_book, f'{DATA_ROOT}/book_fail/{os.path.basename(send_book)}')
         
         except Exception as e:
             logger.error(e, exc_info=True)
@@ -83,7 +83,7 @@ def book_import(send_book, user_model, db):
         # 破損チェック
         if pre_model.sha1 != json_metadata["sha1"]:
             logger.error(f'{send_book} メタデータとハッシュ値が異なるため破損している可能性がありエラーへ移動')
-            shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
+            shutil.move(send_book, f'{DATA_ROOT}/book_fail/{os.path.basename(send_book)}')
             return
         # モデルに代入
         pre_model = book_model_mapper_json(pre_model, json_metadata)
@@ -170,12 +170,12 @@ def book_import(send_book, user_model, db):
 
     db.commit()
     
-    shutil.move(send_book, f'{DATA_ROOT}book_library/{pre_model.uuid}.zip')
+    shutil.move(send_book, f'{DATA_ROOT}/book_library/{pre_model.uuid}.zip')
 
     if is_import:
-        logger.info(f'ライブラリにインポート: {DATA_ROOT}book_library/{pre_model.uuid}.zip')
+        logger.info(f'ライブラリにインポート: {DATA_ROOT}/book_library/{pre_model.uuid}.zip')
     else:
-        logger.info(f'ライブラリに追加: {DATA_ROOT}book_library/{pre_model.uuid}.zip')
+        logger.info(f'ライブラリに追加: {DATA_ROOT}/book_library/{pre_model.uuid}.zip')
 
     shutil.rmtree(f"/tmp/hinav/")
     os.mkdir(f"/tmp/hinav/")

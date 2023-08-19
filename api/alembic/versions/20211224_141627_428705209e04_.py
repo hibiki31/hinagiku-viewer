@@ -1,4 +1,4 @@
-"""All tables init
+"""全テーブル初期化
 
 Revision ID: 428705209e04
 Revises: 

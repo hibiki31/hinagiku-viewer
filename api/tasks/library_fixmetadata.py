@@ -160,12 +160,12 @@ def book_import(send_book, user_model, db):
 
     db.commit()
     
-    shutil.move(send_book, f'{DATA_ROOT}book_library/{pre_model.uuid}.zip')
+    shutil.move(send_book, f'{DATA_ROOT}/book_library/{pre_model.uuid}.zip')
 
     if is_import:
-        logger.info(f'ライブラリにインポート: {DATA_ROOT}book_library/{pre_model.uuid}.zip')
+        logger.info(f'ライブラリにインポート: {DATA_ROOT}/book_library/{pre_model.uuid}.zip')
     else:
-        logger.info(f'ライブラリに追加: {DATA_ROOT}book_library/{pre_model.uuid}.zip')
+        logger.info(f'ライブラリに追加: {DATA_ROOT}/book_library/{pre_model.uuid}.zip')
 
     shutil.rmtree(f"/tmp/hinav/")
     os.mkdir(f"/tmp/hinav/")

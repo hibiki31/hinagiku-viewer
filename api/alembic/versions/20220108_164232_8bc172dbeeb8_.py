@@ -1,4 +1,4 @@
-"""empty message
+"""不要なカラムの削除
 
 Revision ID: 8bc172dbeeb8
 Revises: 428705209e04

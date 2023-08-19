@@ -10,6 +10,19 @@ ENV = json.load(open('./tests/env.json', 'r'))
 BASE_URL = ENV["base_url"]
 
 
+class DebugTimer():
+    def __init__(self):
+        self.time = time.time()
+    def rap(self, message, level='debug'):
+        now_time = time.time()
+        run_time = (now_time - self.time) * 1000
+        if level == 'info':
+            print(f'{run_time:.1f}ms - {message}')
+        else:
+            print(f'{run_time:.1f}ms - {message}')
+        self.time = now_time
+
+
 class Color:
     BLACK     = '\033[30m'
     RED       = '\033[31m'
@@ -29,9 +42,7 @@ class Color:
 def print_resp(resp: httpx.Response, allow_not_found=False, debug=False):
     if resp.status_code == 200:
         print(f"{Color.BLUE}{resp} {resp.request.method} {resp.url}{Color.END}")
-        safe_url = str(resp.url).replace("http://", "").replace("https://", "").replace(":", "_").replace("/", "_")
-        file_path = f"./tests/dump/{resp.request.method.lower()}_{safe_url}.json"
-        json.dump(resp.json(), open(file_path, "w"), ensure_ascii=False, indent=4, sort_keys=True, separators=(',', ': '))
+        dumpjson(resp)
     else:
         print(f"{Color.RED}{resp} {resp.request.method} {resp.url}{Color.END}")
 
@@ -47,10 +58,17 @@ def print_resp(resp: httpx.Response, allow_not_found=False, debug=False):
         print(resp.json())
         raise Exception
 
+def dumpjson(resp: httpx.Response):
+    safe_url = str(resp.url).replace("http://", "").replace("https://", "").replace(":", "_").replace("/", "_")
+    file_path = f"./tests/dump/{resp.request.method.lower()}_{safe_url}"
+    content_type = resp.headers["content-type"]
+    if content_type == "application/json":
+        json.dump(resp.json(), open(f"{file_path}.json", "w"), ensure_ascii=False, indent=4, sort_keys=True, separators=(',', ': '))
+
 # 初期化が必要であれば行う
 if not httpx.get(f'{BASE_URL}/api/version').json()["initialized"]:
     req_data = {
-        "username": str(ENV["username"]),
+        "id": str(ENV["username"]),
         "password": str(ENV["password"])
     }
     resp = httpx.post(f'{BASE_URL}/api/auth/setup', json=req_data)

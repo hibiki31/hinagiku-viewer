@@ -39,7 +39,7 @@ async def run(cmd):
 def get_media_books_uuid(
         uuid: str
     ):
-    file_path = f"{DATA_ROOT}book_thum/{uuid}.jpg"
+    file_path = f"{DATA_ROOT}/book_thum/{uuid}.jpg"
     if not os.path.exists(file_path):
         raise HTTPException(
             status_code=404,
@@ -55,7 +55,7 @@ def media_books_uuid_page(
         height: int = 1080,
     ):
     
-    cache_file = f"{DATA_ROOT}book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
+    cache_file = f"{DATA_ROOT}/book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
     if os.path.exists(cache_file):
         logger.debug(f"キャッシュから読み込み{uuid} {page}")
     else:
@@ -70,7 +70,7 @@ def media_books_uuid_page(
 #         height: int = 1080,
 #     ):
     
-#     cache_file = f"{DATA_ROOT}book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
+#     cache_file = f"{DATA_ROOT}/book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
 #     if await AsyncPath(cache_file).exists():
 #         logger.debug(f"キャッシュから読み込み{uuid} {page}")
 #     else:

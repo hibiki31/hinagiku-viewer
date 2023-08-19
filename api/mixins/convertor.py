@@ -110,7 +110,7 @@ def make_thum(send_book, book_uuid):
             raise NotContentZip
         cover_path = zip_content[0]
         existing_zip.extract(cover_path, f"/tmp/hinav/")
-        image_convertor(src_path=f"/tmp/hinav/{cover_path}",dst_path=f'{DATA_ROOT}book_thum/{book_uuid}.jpg',to_height=600,quality=85)
+        image_convertor(src_path=f"/tmp/hinav/{cover_path}",dst_path=f'{DATA_ROOT}/book_thum/{book_uuid}.jpg',to_height=600,quality=85)
   
     return page_len
 
@@ -118,16 +118,16 @@ def make_thum(send_book, book_uuid):
 def task_convert(book_uuid, to_height=1080, mode=2):
     timer = DebugTimer()
     # キャッシュ先にフォルダ作成
-    os.makedirs(f"{DATA_ROOT}book_cache/{book_uuid}/", exist_ok=True)
+    os.makedirs(f"{DATA_ROOT}/book_cache/{book_uuid}/", exist_ok=True)
     # 解凍
-    with zipfile.ZipFile(f'{DATA_ROOT}book_library/{book_uuid}.zip') as existing_zip:
+    with zipfile.ZipFile(f'{DATA_ROOT}/book_library/{book_uuid}.zip') as existing_zip:
         file_list_in_zip = existing_zip.namelist()
         file_list_in_zip = [p for p in file_list_in_zip if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
         file_list_in_zip.sort()
 
         for index, file_name in enumerate(file_list_in_zip):
-            convert_path = f"{DATA_ROOT}book_cache/{book_uuid}/{to_height}_{str(index+1).zfill(4)}.jpg"
-            convert_tmep = f"{DATA_ROOT}book_cache/{book_uuid}/{to_height}_{str(index+1).zfill(4)}.book_temp.jpg"
+            convert_path = f"{DATA_ROOT}/book_cache/{book_uuid}/{to_height}_{str(index+1).zfill(4)}.jpg"
+            convert_tmep = f"{DATA_ROOT}/book_cache/{book_uuid}/{to_height}_{str(index+1).zfill(4)}.book_temp.jpg"
             
             if mode == 1:
                 existing_zip.extract(file_name, f'/tmp/hinav/{book_uuid}')
@@ -160,7 +160,7 @@ def task_convert(book_uuid, to_height=1080, mode=2):
 def direct_book_page(book_uuid, page, to_height, quality):
     timer = DebugTimer()
     try:
-        with zipfile.ZipFile(f'{DATA_ROOT}book_library/{book_uuid}.zip') as existing_zip:
+        with zipfile.ZipFile(f'{DATA_ROOT}/book_library/{book_uuid}.zip') as existing_zip:
             # 関係あるファイルパスのリストに変更
             file_list_in_zip = existing_zip.namelist()
             file_list_in_zip = [p for p in file_list_in_zip if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
@@ -204,9 +204,9 @@ def direct_book_page(book_uuid, page, to_height, quality):
 def create_book_page_cache(book_uuid, page, to_height, quality):
     timer = DebugTimer()
     # キャッシュ先にフォルダ作成
-    os.makedirs(f"{DATA_ROOT}book_cache/{book_uuid}/", exist_ok=True)
+    os.makedirs(f"{DATA_ROOT}/book_cache/{book_uuid}/", exist_ok=True)
     
-    with zipfile.ZipFile(f'{DATA_ROOT}book_library/{book_uuid}.zip') as existing_zip:
+    with zipfile.ZipFile(f'{DATA_ROOT}/book_library/{book_uuid}.zip') as existing_zip:
         # 関係あるファイルパスのリストに変更
         file_list_in_zip = existing_zip.namelist()
         file_list_in_zip = [p for p in file_list_in_zip if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
@@ -233,7 +233,7 @@ def create_book_page_cache(book_uuid, page, to_height, quality):
             new_width = int(to_height / height * width)
 
         # Tempパスを定義
-        dst_path = f"{DATA_ROOT}book_cache/{book_uuid}/{to_height}_{str(page).zfill(4)}.jpg"
+        dst_path = f"{DATA_ROOT}/book_cache/{book_uuid}/{to_height}_{str(page).zfill(4)}.jpg"
         temp_file = os.path.splitext(dst_path)[0]
         temp_ext = os.path.splitext(dst_path)[1]
 

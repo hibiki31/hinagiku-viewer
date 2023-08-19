@@ -21,7 +21,7 @@ def setup_logger(name, logfile=f'{DATA_ROOT}/app_data/api.log'):
     # コンソール出力のログレベル
     ch.setLevel(logging.DEBUG)
 
-    # logger.addHandler(fh)
+    logger.addHandler(fh)
     logger.addHandler(ch)
 
     # 全体のログレベル

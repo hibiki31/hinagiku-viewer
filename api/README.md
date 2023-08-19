@@ -47,7 +47,7 @@ cp ../../data/hinav-dev-testdata/* ../../data/book_send/
 ## 起動
 
 ```
-gunicorn --config /path/to/app/settings.py
+gunicorn --config ./gnicorn_config.py 
 ```
 
 ## マイグレーション参考
