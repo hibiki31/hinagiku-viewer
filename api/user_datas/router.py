@@ -22,7 +22,7 @@ exception_notfund = HTTPException(
     detail="Object not fund."
 )
 
-@app.put("/api/books/user-data", tags=["User data"])
+@app.put("/api/books/user-data", tags=["User data"], summary="本のユーザデータ（レート）を一括更新")
 def change_user_data(
         db: Session = Depends(get_db),
         model: BookUserMetaDataPut = None,
@@ -47,7 +47,15 @@ def change_user_data(
     db.commit()
     return metadata_model
 
-@app.patch("/api/books/user-data", tags=["User data"])
+@app.patch("/api/books/user-data", 
+    tags=["User data"], 
+    summary="開いているページ、読んだ回数の管理",
+    description="""
+- 本を開いたとき status=open, page=0
+- 本を途中で閉じた時 status=pause, page=5
+- 本を読み終わったとき status=close, page=None
+"""
+)
 def signal_book_status(
         db: Session = Depends(get_db),
         model: BookUserMetaDataPatch = None,
@@ -62,25 +70,33 @@ def signal_book_status(
                     BookUserMetaDataModel.user_id==current_user.id
                 )
             ).one()
+        
         except exc.NoResultFound:
             metadata_model = BookUserMetaDataModel(
                 user_id = current_user.id,
                 book_uuid = str(book_uuid),
             )
+
+        # 共通の処理
+        metadata_model.last_open_date = datetime.now()
+
+        # 本を開いたとき
         if model.status == "open":
             metadata_model.open_page = 0
-            metadata_model.last_open_date = datetime.now()
-
+            
+        # 本を途中で閉じるとき
         elif model.status == "pause":
             metadata_model.open_page = model.page
-            metadata_model.last_open_date = datetime.now()
 
+        # 読み終わったとき、開いているページをNone、読んだ回数をインクリメント
         elif model.status == "close" :
             metadata_model.open_page = None
-            metadata_model.last_open_date = datetime.now()
             if metadata_model.read_times == None:
                 metadata_model.read_times = 0
             metadata_model.read_times += 1
+        else:
+            db.rollback()
+            raise HTTPException(status_code=400, detail="Incorrect status specified")
         resulet_data.append(get_model_dict(metadata_model))
         db.merge(metadata_model)
     db.commit()

@@ -8,7 +8,7 @@ from settings import API_VERSION
 from users.models import UserModel
 
 
-app = APIRouter(prefix="/api",tags=["mixin"])
+app = APIRouter(prefix="/api",tags=["Mixin"])
 logger = setup_logger(__name__)
 
 

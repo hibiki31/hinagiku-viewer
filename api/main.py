@@ -17,11 +17,13 @@ from tags.router import app as tags_router
 from user_datas.router import app as user_datas_router
 from users.router import app as users_router
 
+
 logger = setup_logger(__name__)
 
 
 tags_metadata = [
     { "name": "Auth"},
+    { "name": "Mixin"},
     { "name": "User"},
     { "name": "Library", "description": "本は必ずライブラリに所属する"},
     { "name": "Book", "description": "本は必ず１人のユーザが所有する"},

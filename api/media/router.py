@@ -35,7 +35,7 @@ async def run(cmd):
             print(f'[stderr]\n{stderr.decode()}')
 
 
-@app.get("/media/books/{uuid}")
+@app.get("/media/books/{uuid}", tags=["Media"], summary="test")
 def get_media_books_uuid(
         uuid: str
     ):
@@ -48,7 +48,7 @@ def get_media_books_uuid(
     return FileResponse(file_path)
 
 
-@app.get("/media/books/{uuid}/{page}")
+@app.get("/media/books/{uuid}/{page}", tags=["Media"])
 def media_books_uuid_page(
         uuid: str,
         page: int,
@@ -79,7 +79,7 @@ def media_books_uuid_page(
 #     return FileResponse(path=cache_file)
 
 
-@app.patch("/media/books")
+@app.patch("/media/books", tags=["Media"])
 def patch_media_books_(
         model: BookCacheCreate,
         current_user:UserCurrent = Depends(get_current_user)
@@ -90,7 +90,7 @@ def patch_media_books_(
     return { "status": "ok", "model": model }
 
 
-@app.patch("/media/library", tags=["library"])
+@app.patch("/media/library", tags=["Media"])
 def patch_media_library(
         model: LibraryPatch,
         current_user:UserCurrent = Depends(get_current_user)

@@ -139,5 +139,5 @@ class TagsModel(Base):
         'BookModel',
         secondary=books_to_tags,
         back_populates='tags',
-        lazy=False,
+        lazy=True,
     )

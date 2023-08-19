@@ -18,7 +18,7 @@ app = APIRouter()
 logger = setup_logger(__name__)
 
 
-@app.post("/api/books/tag", tags=["tag"])
+@app.post("/api/books/tag", tags=["Tag"])
 def append_tag(
         model: BookTagBase,
         db: Session = Depends(get_db),
@@ -45,7 +45,7 @@ def append_tag(
     db.commit()
     return result_data
 
-@app.delete("/api/books/tag", tags=["tag"])
+@app.delete("/api/books/tag", tags=["Tag"])
 def delete_tag(
         model: BookTagBase,
         db: Session = Depends(get_db),
@@ -71,10 +71,13 @@ def delete_tag(
     db.commit()
     return result_data
 
-@app.get("/api/books/tag", tags=["tag"])
+@app.get("/api/books/tag", tags=["Tag"])
 def show_tag(
-    db: Session = Depends(get_db),
-    current_user: UserCurrent = Depends(get_current_user)
+        db: Session = Depends(get_db),
+        current_user: UserCurrent = Depends(get_current_user)
     ):
-    tags = db.query(TagsModel).filter(TagsModel.books.any(user_id=current_user.id)).all()
-    return tags
+    query = db.query(TagsModel).filter(TagsModel.books.any(user_id=current_user.id))
+
+    print(query.statement.compile())
+
+    return query.all()

@@ -176,7 +176,7 @@ async def get_api_books(
 
 
 
-@app.put("/api/books", tags=["book"])
+@app.put("/api/books", tags=["Book"])
 def change_book_data(
         db: Session = Depends(get_db),
         model: BookPut = None,
@@ -218,7 +218,7 @@ def change_book_data(
     db.commit()
     return book
 
-@app.delete("/api/books", tags=["book"])
+@app.delete("/api/books", tags=["Book"])
 def delete_book_data(
         db: Session = Depends(get_db),
         model: BookPut = None,
