@@ -39,10 +39,10 @@ class PreBookClass():
 
 def main(db, user_id):
     # ディレクトリ作成
-    os.makedirs(f"{DATA_ROOT}book_library/", exist_ok=True)
-    os.makedirs(f"{DATA_ROOT}book_send/", exist_ok=True)
-    os.makedirs(f"{DATA_ROOT}book_fail/", exist_ok=True)
-    os.makedirs(f"{DATA_ROOT}book_thum/", exist_ok=True)
+    os.makedirs(f"{DATA_ROOT}/book_library/", exist_ok=True)
+    os.makedirs(f"{DATA_ROOT}/book_send/", exist_ok=True)
+    os.makedirs(f"{DATA_ROOT}/book_fail/", exist_ok=True)
+    os.makedirs(f"{DATA_ROOT}/book_thum/", exist_ok=True)
 
     user_model = db.query(UserModel).filter(UserModel.id == user_id).one()
 

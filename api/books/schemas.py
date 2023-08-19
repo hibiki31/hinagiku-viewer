@@ -31,7 +31,10 @@ class BookAuthors(BaseSchema):
     name: str
     description: str | None = None
     
-    
+
+class BookTag(BaseSchema):
+    id: int
+    name: str    
 
 
 class BookPublisher(BaseSchema):
@@ -48,7 +51,7 @@ class BookBase(BaseSchema):
     is_shered: bool
     library_id: int
     genre_id: str | None = None
-    tags: list | None = None
+    tags: List[BookTag]
     size: int
     page: int
     import_file_name: str
