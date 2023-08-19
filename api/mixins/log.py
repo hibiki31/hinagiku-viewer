@@ -3,8 +3,8 @@ import os
 from settings import DATA_ROOT
 
 
-def setup_logger(name, logfile=f'{DATA_ROOT}app_data/api.log'):
-    os.makedirs(f"{DATA_ROOT}app_data/", exist_ok=True)
+def setup_logger(name, logfile=f'{DATA_ROOT}/app_data/api.log'):
+    os.makedirs(os.path.dirname(logfile), exist_ok=True)
     logger = logging.getLogger(name)
 
     # ファイル出力設定
@@ -21,7 +21,7 @@ def setup_logger(name, logfile=f'{DATA_ROOT}app_data/api.log'):
     # コンソール出力のログレベル
     ch.setLevel(logging.DEBUG)
 
-    logger.addHandler(fh)
+    # logger.addHandler(fh)
     logger.addHandler(ch)
 
     # 全体のログレベル

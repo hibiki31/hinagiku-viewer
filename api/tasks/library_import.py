@@ -177,8 +177,8 @@ def book_import(send_book, user_model, db):
     else:
         logger.info(f'ライブラリに追加: {DATA_ROOT}book_library/{pre_model.uuid}.zip')
 
-    shutil.rmtree(f"{APP_ROOT}temp/")
-    os.mkdir(f"{APP_ROOT}temp/")
+    shutil.rmtree(f"/tmp/hinav/")
+    os.mkdir(f"/tmp/hinav/")
 
 
 def book_model_mapper_json(model:BookModel, json):

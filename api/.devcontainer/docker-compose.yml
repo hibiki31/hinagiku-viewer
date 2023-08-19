@@ -7,10 +7,11 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ../../:/workspace:cached
-      - ../../data/:/data
     command: sleep infinity
     environment:
       SQLALCHEMY_DATABASE_URL: "postgresql://postgres:password@db:5432/mydatabase"
+      DATA_ROOT: /workspace/api/.data-dev
+      APP_ROOT: /workspace/api
 
   db:
     image: postgres:latest

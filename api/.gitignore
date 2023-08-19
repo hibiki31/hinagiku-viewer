@@ -1,5 +1,4 @@
-/data/
-/temp/
+/.data-dev/
 __pycache__/
 .DS_Store
 /docker-compose.yml

@@ -86,7 +86,7 @@ def patch_media_books_(
     ):
     for w in converter_pool:
         w.terminate()
-    converter_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "convert", model.uuid, str(model.height)]))
+    converter_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "convert", model.uuid, str(model.height)]))
     return { "status": "ok", "model": model }
 
 
@@ -102,12 +102,12 @@ def patch_media_library(
         if i.poll() == None:
             return { "status": "allredy" }
     if model.state == "load":
-        library_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "load", current_user.id]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "load", current_user.id]))
     elif model.state == "fixmetadata":
-        library_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "fixmetadata", current_user.id]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "fixmetadata", current_user.id]))
     elif model.state == "export":
-        library_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "export"]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "export"]))
     elif model.state == "export_uuid":
-        library_pool.append(subprocess.Popen(["python3", APP_ROOT + "worker.py", "export_uuid"]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "export_uuid"]))
 
     return { "status": "ok" }

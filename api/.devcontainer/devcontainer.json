@@ -15,7 +15,8 @@
 			"ms-python.python",
 			"ms-azuretools.vscode-docker",
 			"azemoh.one-monokai",
-			"mhutchie.git-graph"
+			"mhutchie.git-graph",
+			"ms-python.isort"
 		  ]
 		}
 	  }

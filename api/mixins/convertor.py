@@ -35,7 +35,7 @@ import hashlib
 logger = setup_logger(__name__)
 
 
-os.makedirs(f"{APP_ROOT}temp/", exist_ok=True)
+os.makedirs(f"/tmp/hinav/", exist_ok=True)
 
 
 class DebugTimer():
@@ -88,8 +88,8 @@ def book_icon():
                 zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
                 page_len = len(zip_content)
                 cover_path = zip_content[0]
-                existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
-                image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_cache/thum/{book_uuid}.jpg',to_height=640,quality=85)
+                existing_zip.extract(cover_path, f"/tmp/hinav/")
+                image_convertor(src_path=f"/tmp/hinav/{cover_path}",dst_path=f'{DATA_ROOT}book_cache/thum/{book_uuid}.jpg',to_height=640,quality=85)
         except:
             import traceback
             traceback.print_exc()
@@ -149,8 +149,8 @@ def make_thum(send_book, book_uuid):
         if page_len == 0:
             raise NotContentZip
         cover_path = zip_content[0]
-        existing_zip.extract(cover_path, f"{APP_ROOT}temp/")
-        image_convertor(src_path=f"{APP_ROOT}temp/{cover_path}",dst_path=f'{DATA_ROOT}book_thum/{book_uuid}.jpg',to_height=600,quality=85)
+        existing_zip.extract(cover_path, f"/tmp/hinav/")
+        image_convertor(src_path=f"/tmp/hinav/{cover_path}",dst_path=f'{DATA_ROOT}book_thum/{book_uuid}.jpg',to_height=600,quality=85)
   
     return page_len
 
@@ -290,8 +290,8 @@ def book_load(send_book, user_model, db):
     else:
         logger.info(f'ライブラリに追加: {DATA_ROOT}book_library/{book_uuid}.zip')
 
-    shutil.rmtree(f"{APP_ROOT}temp/")
-    os.mkdir(f"{APP_ROOT}temp/")
+    shutil.rmtree(f"/tmp/hinav/")
+    os.mkdir(f"/tmp/hinav/")
 
 
 
@@ -336,8 +336,8 @@ def task_convert(book_uuid, to_height=1080, mode=2):
             convert_tmep = f"{DATA_ROOT}book_cache/{book_uuid}/{to_height}_{str(index+1).zfill(4)}.book_temp.jpg"
             
             if mode == 1:
-                existing_zip.extract(file_name, f'{APP_ROOT}temp/{book_uuid}')
-                image_convertor(f'{APP_ROOT}temp/{book_uuid}/{file_name}', convert_path, to_height=to_height,quality=85)
+                existing_zip.extract(file_name, f'/tmp/hinav/{book_uuid}')
+                image_convertor(f'/tmp/hinav/{book_uuid}/{file_name}', convert_path, to_height=to_height,quality=85)
             elif mode == 2:
                 # 指定されたページだけ読み込んでPILに
                 img_src = Image.open(BytesIO(existing_zip.read(file_name))).convert('RGB')
@@ -356,8 +356,8 @@ def task_convert(book_uuid, to_height=1080, mode=2):
                 new_img.save(convert_tmep, format='JPEG')
                 shutil.move(convert_tmep, convert_path)
                 logger.debug(convert_path)
-    shutil.rmtree(f"{APP_ROOT}temp/")
-    os.mkdir(f"{APP_ROOT}temp/")
+    shutil.rmtree(f"/tmp/hinav/")
+    os.mkdir(f"/tmp/hinav/")
     timer.rap("変換終了")
 
 

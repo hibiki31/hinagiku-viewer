@@ -36,7 +36,6 @@ Engine = create_engine(
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=Engine)
-print("Define SessionLocal")
 
 # 全てのクラスに共通のスーパークラスを追加
 Base = declarative_base(cls=RepresentableBase)

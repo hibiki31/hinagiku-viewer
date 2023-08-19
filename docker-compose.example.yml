@@ -16,8 +16,6 @@ services:
       # データベースやログファイル
       - ./data/app_data:/opt/data/app_data/
     environment:
-      APP_ROOT: "/opt/app/"
-      DATA_ROOT: "/opt/data/"
       SQLALCHEMY_DATABASE_URL: "postgresql://postgres:password@db:5432/mydatabase"
     restart: always
   web:
