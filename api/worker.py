@@ -6,11 +6,12 @@ from sqlalchemy import desc
 from settings import APP_ROOT, DATA_ROOT
 from mixins.log import setup_logger
 from mixins.database import SessionLocal
-from mixins.convertor import task_convert, create_book_page_cache
+from mixins.convertor import create_book_page_cache
 
 from tasks.library_import import main as task_library_import
 from tasks.library_export import main as task_library_export
 from tasks.library_fixmetadata import main as task_library_fixmetadata
+from tasks.media_cache import main as task_media_cache
 
 from books.models import BookModel 
 
@@ -24,8 +25,8 @@ if __name__ == "__main__":
     if args[1] == "convert":
         book_uuid = args[2]
         height = int(args[3])
-        logger.info(f'ワーカーが全ページキャッシュ作成 height:{args[3]} uuid:{args[2]}')
-        task_convert(
+        logger.info(f'別プロセスで全ページキャッシュ作成 height:{args[3]} uuid:{args[2]}')
+        task_media_cache(
             book_uuid=book_uuid, 
             to_height=height
         )

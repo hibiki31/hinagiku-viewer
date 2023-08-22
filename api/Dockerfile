@@ -14,4 +14,4 @@ WORKDIR /opt/app
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--config", "/opt/app/gnicorn_config.py"]
+CMD ["gunicorn", "--config", "/opt/app/mixins/gnicorn_config.py"]

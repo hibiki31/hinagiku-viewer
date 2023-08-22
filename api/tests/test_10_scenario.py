@@ -6,7 +6,8 @@ from concurrent.futures import ThreadPoolExecutor
 from time import sleep
 
 def main():
-    worker_patch()
+    # worker_patch()
+    multi()
 
 def multi():
     resp = httpx.get(f'{BASE_URL}/api/books',headers=HEADERS)
@@ -57,5 +58,5 @@ def media_get(book):
     for page in range(book["page"]):
         if page > 5:
             break
-        resp = httpx.get(f'{BASE_URL}/media/books/{book["uuid"]}/{str(page)}',headers=HEADERS)
+        resp = httpx.get(f'{BASE_URL}/media/books/{book["uuid"]}/{str(page)}',headers=HEADERS, params={"height": 1112 })
         print_resp(resp=resp)

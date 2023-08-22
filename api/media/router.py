@@ -1,11 +1,11 @@
-import subprocess, os, asyncio
+import subprocess, os, glob
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import FileResponse
 
 from mixins.log import setup_logger
 from settings import DATA_ROOT, APP_ROOT, CONVERT_THREAD
-from mixins.convertor import create_book_page_cache
+from mixins.convertor import create_book_page_cache, image_convertor
 
 from books.schemas import BookCacheCreate, LibraryPatch
 from users.router import get_current_user
@@ -40,8 +40,13 @@ def media_books_uuid_page(
     ):
     
     cache_file = f"{DATA_ROOT}/book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
+    original_file = f"{DATA_ROOT}/book_cache/{uuid}/original_{str(page).zfill(4)}*"
+
     if os.path.exists(cache_file):
-        logger.debug(f"キャッシュから読み込み{uuid} {page}")
+        logger.debug(f"完全キャッシュから読み込み{uuid} {page}")
+    elif glob.glob(original_file):
+        logger.debug(f"部分キャッシュから読み込み{uuid} {page}")
+        image_convertor(glob.glob(original_file)[0], cache_file, to_height=height, quality=85)
     else:
         create_book_page_cache(uuid, page, height, 85)
     return FileResponse(path=cache_file)
