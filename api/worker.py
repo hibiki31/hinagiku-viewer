@@ -21,12 +21,14 @@ logger = setup_logger(__name__)
 
 if __name__ == "__main__":
     args = sys.argv
+    db = SessionLocal()
 
     if args[1] == "convert":
         book_uuid = args[2]
         height = int(args[3])
         logger.info(f'別プロセスで全ページキャッシュ作成 height:{args[3]} uuid:{args[2]}')
         task_media_cache(
+            db=db,
             book_uuid=book_uuid, 
             to_height=height
         )
@@ -46,27 +48,23 @@ if __name__ == "__main__":
         logger.info(f'別プロセスでページキャッシュ完了 height:{height} uuid:{uuid}')
 
     if args[1] == "export":
-        db = SessionLocal()
         logger.info(f'別プロセスでライブラリエクスポート開始')
         task_library_export(db=db, export_uuid=False)
         logger.info(f'別プロセスでライブラリエクスポート終了')
     
     if args[1] == "export_uuid":
-        db = SessionLocal()
         logger.info(f'別プロセスでライブラリエクスポート開始')
         task_library_export(db=db, export_uuid=True)
         logger.info(f'別プロセスでライブラリエクスポート終了')
 
     if args[1] == "load":
         user_id = args[2]
-        db = SessionLocal()
         logger.info(f'別プロセスでライブラリ追加処理開始')
         task_library_import(db=db, user_id=user_id)
         logger.info(f'別プロセスでライブラリ追加処理終了')
     
     if args[1] == "fixmetadata":
         user_id = args[2]
-        db = SessionLocal()
         logger.info(f'別プロセスでメタデータ更新開始')
         task_library_fixmetadata(db=db, user_id=user_id)
         logger.info(f'別プロセスでメタデータ更新完了')

@@ -48,6 +48,7 @@ async def get_api_books(
         current_user: UserCurrent = Depends(get_current_user),
         uuid: str = None,
         fileNameLike: str = None,
+        chached: bool = None,
         authorLike: str = None,
         titleLike: str = None,
         fullText: str = None,
@@ -114,6 +115,9 @@ async def get_api_books(
             query = query.outerjoin(BookModel.authors).filter(
                 AuthorModel.name.like(f'%{authorLike}%')
             )
+        
+        if chached != None:
+            query = query.filter(BookModel.chached == chached)
         
         elif fullText != None:
             query = query.outerjoin(

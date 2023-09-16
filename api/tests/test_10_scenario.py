@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from time import sleep
 
 def main():
-    # worker_patch()
+    worker_patch()
     multi()
 
 def multi():
@@ -35,7 +35,7 @@ def worker_patch():
             "height": 1000
         })
         print_resp(resp=resp_patch)
-        sleep(2)
+        sleep(10)
         
 
 

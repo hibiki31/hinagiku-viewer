@@ -49,6 +49,7 @@ class BookBase(BaseSchema):
     authors: List[BookAuthors]
     publisher: BookPublisher
     is_shered: bool
+    chached: bool
     library_id: int
     genre_id: str | None = None
     tags: List[BookTag]

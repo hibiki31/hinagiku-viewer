@@ -31,8 +31,6 @@ async def get_api_library(
         query = query.filter(AuthorModel.name == name)
     if nameLike:
         query = query.filter(AuthorModel.name.like(f'%{nameLike}%'))
-
-    print(query.statement.compile())
     
     return query.all()
 

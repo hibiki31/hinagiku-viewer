@@ -1,4 +1,4 @@
-import subprocess, os, glob
+import subprocess, os, glob, re
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import FileResponse
@@ -17,6 +17,24 @@ logger = setup_logger(__name__)
 
 converter_pool = []
 library_pool = []
+
+
+@app.get("/media/books/cache", tags=["Media"], summary="キャッシュサイズの確認")
+def get_media_books_cache(
+        current_user:UserCurrent = Depends(get_current_user)
+    ):
+
+    original_size = 0
+    convert_size = 0
+    
+    for file in glob.glob(f"{DATA_ROOT}/book_cache/**", recursive=True):
+        file_name = os.path.basename(file)
+        if re.fullmatch(r"^original_.*",file_name):
+            original_size += os.path.getsize(file)
+        else:
+            convert_size += os.path.getsize(file)
+    
+    return {"original_mb": original_size/1024/1024, "convert_mb": convert_size/1024/1024}
 
 
 @app.get("/media/books/{uuid}", tags=["Media"], summary="サムネイル取得")

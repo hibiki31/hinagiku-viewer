@@ -3,10 +3,12 @@ import os
 import shutil
 import zipfile
 from time import time
+from sqlalchemy.orm import Session
 
 from mixins.log import setup_logger
 from mixins.convertor import image_convertor
 from settings import DATA_ROOT
+from books.models import BookModel
 
 
 logger = setup_logger(__name__)
@@ -28,7 +30,7 @@ class DebugTimer():
         self.time = now_time
 
 
-def main(book_uuid, to_height=1080, mode=3):
+def main(db: Session, book_uuid, to_height=1080, mode=3):
     timer = DebugTimer()
     # キャッシュ先にフォルダ作成
     os.makedirs(f"{DATA_ROOT}/book_cache/{book_uuid}/", exist_ok=True)
@@ -41,6 +43,12 @@ def main(book_uuid, to_height=1080, mode=3):
     for index, original_image in enumerate(original_images):
         convert_path = f"{DATA_ROOT}/book_cache/{book_uuid}/{to_height}_{str(index+1).zfill(4)}.jpg"
         image_convertor(original_image, convert_path, to_height=to_height, quality=85)
+    
+    # キャッシュの状態を保存
+    book_model:BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
+    book_model.chached = True
+    db.commit()
+
     timer.rap(f"変換終了: {book_uuid}")
 
 
