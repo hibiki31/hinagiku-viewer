@@ -26,7 +26,7 @@
 
 ```bash
 docker-compose run api alembic upgrade head
-alembic revision --autogenerate
+alembic revision --autogenerate -m "Add cached status"
 alembic upgrade head
 # データリセット
 alembic downgrade base
