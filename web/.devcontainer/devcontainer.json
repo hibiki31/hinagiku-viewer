@@ -1,7 +1,7 @@
 {
 	"name": "Hinav-WEB",
-	"context": "..",
-	"dockerFile": "../Dockerfile.dev",
+	"context": ".",
+	"dockerFile": "./Dockerfile",
 	"forwardPorts": [
 		8080, // App
 	  ],
