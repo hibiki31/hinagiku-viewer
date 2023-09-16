@@ -12,6 +12,8 @@ services:
       SQLALCHEMY_DATABASE_URL: "postgresql://postgres:password@db:5432/mydatabase"
       DATA_ROOT: /workspace/api/.data-dev
       APP_ROOT: /workspace/api
+      IS_DEV: true
+      DEBUG_LOG: true
 
   db:
     image: postgres:latest
@@ -22,12 +24,6 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_DB: mydatabase
       POSTGRES_PASSWORD: password
-  
-  redis:
-    image: redis:latest
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
 
 volumes:
   postgres-data:
