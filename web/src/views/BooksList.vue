@@ -241,7 +241,6 @@ export default {
     reload () {
       const query = this.searchQuery
       query.fullText = ''
-      query.rate = null
       store.dispatch('setSearchQuery', query)
       this.search(true)
     },

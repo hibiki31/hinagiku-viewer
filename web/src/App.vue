@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <!-- 通知 -->
-    <notifications group="default" animation-type="velocity">
+    <notifications group="default" animation-type="velocity" position="top right" class="mt-14">
       <template slot="body" slot-scope="props">
         <v-alert
           :type="props.item.type"

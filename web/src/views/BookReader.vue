@@ -58,6 +58,7 @@
             :max="this.bookInfo.page"
             thumb-label
           ></v-slider>
+          <v-rating v-model="bookInfo.userData.rate" @input="bookInfoSubmit" small class="pa-1"></v-rating>
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions>
@@ -65,7 +66,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <!-- 画像表示ぶ-->
+    <!-- 画像表示 -->
     <div
       v-bind:class="{ 'image-base-width': settings.showBaseWidth, 'image-base-height': !settings.showBaseWidth }"
       class="image-area"
@@ -128,6 +129,9 @@
 
     <div fluid class="text-center" style="position: fixed; top: 10px; z-index: 10; width: 100%" v-show="subMenu">
       <v-container>
+        <v-btn icon @click="actionFirstPage">
+        <v-icon>mdi-page-first</v-icon>
+        </v-btn>
         <v-btn icon @click="nowPage+=1">
           <v-icon>mdi-book-open-page-variant</v-icon>
         </v-btn>
@@ -177,7 +181,11 @@ export default {
       booksList: [],
       width: window.innerWidth,
       height: window.innerHeight,
-      bookInfo: {},
+      bookInfo: {
+        userData: {
+          rate: null
+        }
+      },
       pageBlob: [],
       isCompletedRead: false,
       cachePageItems: [2, 4, 8, 16, 32, 64],
@@ -223,6 +231,19 @@ export default {
       localStorage.removeItem('openBookUUID')
       localStorage.removeItem('openBookPage')
       router.push({ name: 'BooksList' })
+    },
+    bookInfoSubmit () {
+      axios.request({
+        method: 'put',
+        url: '/api/books/user-data',
+        data: {
+          uuids: [this.bookInfo.uuid],
+          rate: this.bookInfo.userData.rate
+        }
+      }).then((response) => {
+        this.$_pushNotice('評価を更新しました', 'success')
+        this.$emit('search')
+      })
     },
     // ページを進めるときに
     async getDLoadingPage () {
@@ -338,6 +359,9 @@ export default {
       if (this.nowPage <= 0) {
         this.nowPage = 1
       }
+    },
+    actionFirstPage () {
+      this.nowPage = 0
     },
     actionMenuOpen () {
       this.menuDialog = true
