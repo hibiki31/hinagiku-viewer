@@ -64,8 +64,11 @@ def get_media_books_duplicate(
 
     for dup, book_1, book_2 in duplication_books.all():
         if dup.duplication_id in res:
-            res[dup.duplication_id].append(book_1)
-            res[dup.duplication_id].append(book_2)
+            duplication_uuids = [x.uuid for x in res[dup.duplication_id]]
+            if book_1.uuid not in duplication_books:
+                res[dup.duplication_id].append(book_1)
+            if book_2.uuid not in duplication_books:
+                res[dup.duplication_id].append(book_2)
         else:
             res[dup.duplication_id] = [book_1, book_2]
     
