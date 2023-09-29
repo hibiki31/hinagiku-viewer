@@ -70,7 +70,15 @@ def get_media_books_duplicate(
             res[dup.duplication_id] = [book_1, book_2]
     
 
-    return res
+    res_list = []
+    for key, value in res.items():
+        res_list.append({
+            "duplicate_uuid": key,
+            "books": value
+        })
+
+
+    return res_list
     
 
 
