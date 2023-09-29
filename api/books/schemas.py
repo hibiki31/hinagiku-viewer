@@ -96,6 +96,7 @@ class LibraryPatchEnum(str, Enum):
     load = "load"
     export_uuid = "export_uuid"
     fixmetadata = "fixmetadata"
+    sim_all = "sim_all"
 
 class LibraryPatch(BaseSchema):
     state: LibraryPatchEnum = LibraryPatchEnum.load

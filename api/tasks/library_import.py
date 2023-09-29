@@ -1,6 +1,7 @@
 import os, uuid, datetime, shutil, glob, json
 
 import PIL
+import imagehash
 
 from sqlalchemy import or_, and_
 
@@ -8,6 +9,8 @@ from settings import APP_ROOT, DATA_ROOT
 from mixins.log import setup_logger
 from mixins.purser import PurseResult, base_purser
 from mixins.convertor import get_hash, make_thum, NotContentZip
+from zipfile import BadZipFile
+import zlib
 
 from books.models import BookModel, LibraryModel, PublisherModel, SeriesModel, GenreModel, AuthorModel, BookUserMetaDataModel
 from users.models import UserModel
@@ -55,11 +58,11 @@ def main(db, user_id):
         try:
             book_import(send_book, user_model, db)
         
-        except (PIL.Image.DecompressionBombError, NotContentZip) as e:
+        except (PIL.Image.DecompressionBombError, NotContentZip, BadZipFile, zlib.error) as e:
             logger.error(e, exc_info=True)
-            logger.error(f'{send_book} エラーが発生したためファイルを除外', exc_info=True)
+            logger.error(f'{send_book} エラーが発生したためファイルを除外')
             shutil.move(send_book, f'{DATA_ROOT}/book_fail/{os.path.basename(send_book)}')
-        
+
         except Exception as e:
             logger.error(e, exc_info=True)
             logger.error(f'{send_book} 補足できないエラーが発生したためインポート処理を中止', exc_info=True)
@@ -68,8 +71,10 @@ def main(db, user_id):
 def book_import(send_book, user_model, db):
     # モデル定義
     pre_model = PreBookClass()
+
     # チェックサム
     pre_model.sha1 = get_hash(send_book)
+
     # ライブラリ名定義
     if os.path.basename(os.path.dirname(send_book)) == "book_send":
         pre_model.library = "default"
@@ -136,8 +141,11 @@ def book_import(send_book, user_model, db):
     elif (pre_model.series != None):
         pre_model.series_model = series_model.id
 
+    ahash = str(imagehash.average_hash(PIL.Image.open(f'{DATA_ROOT}/book_thum/{pre_model.uuid}.jpg'), hash_size=16))
+
     model = BookModel(
         sha1 = pre_model.sha1,
+        ahash = ahash,
         uuid = pre_model.uuid,
         user_id = user_model.id,
         title = pre_model.title,

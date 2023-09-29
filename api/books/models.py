@@ -78,6 +78,7 @@ class BookModel(Base):
     # ハードメタデータ
     size = Column(Numeric, nullable=False)
     sha1 = Column(String, nullable=False)
+    ahash = Column(String, nullable=True)
     page = Column(Integer, nullable=False)
     add_date = Column(DateTime, nullable=False)
     file_date = Column(DateTime, nullable=False)
@@ -142,3 +143,11 @@ class TagsModel(Base):
         back_populates='tags',
         lazy=True,
     )
+
+
+class DuplicationModel(Base):
+    __tablename__ = 'duplication'
+    duplication_id = Column(String)
+    book_uuid_1 = Column(String, ForeignKey('books.uuid', onupdate='CASCADE', ondelete='CASCADE'), primary_key=True)
+    book_uuid_2 = Column(String, ForeignKey('books.uuid', onupdate='CASCADE', ondelete='CASCADE'), primary_key=True)
+    score = Column(Integer)

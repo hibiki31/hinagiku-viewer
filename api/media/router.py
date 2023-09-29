@@ -2,14 +2,16 @@ import subprocess, os, glob, re
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import FileResponse
-
+from mixins.database import get_db
 from mixins.log import setup_logger
+from sqlalchemy.orm import Session, aliased, exc, query, selectinload
 from settings import DATA_ROOT, APP_ROOT, CONVERT_THREAD
 from mixins.convertor import create_book_page_cache, image_convertor
 
 from books.schemas import BookCacheCreate, LibraryPatch
 from users.router import get_current_user
 from users.schemas import UserCurrent
+from books.models import DuplicationModel, BookModel
 
 app = APIRouter()
 logger = setup_logger(__name__)
@@ -35,6 +37,41 @@ def get_media_books_cache(
             convert_size += os.path.getsize(file)
     
     return {"original_mb": original_size/1024/1024, "convert_mb": convert_size/1024/1024}
+
+
+@app.get("/media/books/duplicate", tags=["Media"], summary="重複本の確認")
+def get_media_books_duplicate(
+        db: Session = Depends(get_db),
+        current_user:UserCurrent = Depends(get_current_user)
+    ):
+
+    book_model_1 = aliased(BookModel)
+    book_model_2 = aliased(BookModel)
+
+    duplication_books = db.query(
+        DuplicationModel,
+        book_model_1,
+        book_model_2
+    ).join(
+        book_model_1, book_model_1.uuid==DuplicationModel.book_uuid_1
+    ).join(
+        book_model_2, book_model_2.uuid==DuplicationModel.book_uuid_2
+    )
+
+    # print(duplication_books.statement.compile())
+
+    res = {}
+
+    for dup, book_1, book_2 in duplication_books.all():
+        if dup.duplication_id in res:
+            res[dup.duplication_id].append(book_1)
+            res[dup.duplication_id].append(book_2)
+        else:
+            res[dup.duplication_id] = [book_1, book_2]
+    
+
+    return res
+    
 
 
 @app.get("/media/books/{uuid}", tags=["Media"], summary="サムネイル取得")
@@ -110,5 +147,7 @@ def patch_media_library(
         library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "export"]))
     elif model.state == "export_uuid":
         library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "export_uuid"]))
+    elif model.state == "sim_all":
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "sim", "all"]))
 
     return { "status": "ok" }
