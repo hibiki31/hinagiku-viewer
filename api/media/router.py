@@ -51,10 +51,10 @@ def get_media_books_duplicate(
     duplication_books = db.query(
         DuplicationModel,
         book_model_1,
-        book_model_2
-    ).join(
+        book_model_2,
+    ).outerjoin(
         book_model_1, book_model_1.uuid==DuplicationModel.book_uuid_1
-    ).join(
+    ).outerjoin(
         book_model_2, book_model_2.uuid==DuplicationModel.book_uuid_2
     )
 
