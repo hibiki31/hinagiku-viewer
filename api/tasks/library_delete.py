@@ -21,7 +21,7 @@ def main(db, delete_uuid, file_name):
     os.makedirs(delete_path, exist_ok=True)
 
     try:
-        shutil.move(f'{DATA_ROOT}/book_thum/{delete_uuid}.jpg', delete_uuid)
+        shutil.move(f'{DATA_ROOT}/book_thum/{delete_uuid}.jpg', os.path.join(delete_path, file_name+".jpg"))
         shutil.move(f'{DATA_ROOT}/book_library/{delete_uuid}.zip', os.path.join(delete_path, file_name))
         os.removedirs(f'{DATA_ROOT}/book_cache/{delete_uuid}')
     except FileNotFoundError:
