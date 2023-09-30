@@ -148,7 +148,7 @@
 
 <script>
 import axios from '@/axios/index'
-// import LoadingImage from '@/assets/loading.gif'
+import LoadingImage from '@/assets/loading.gif'
 import router from '@/router'
 
 export default {
@@ -252,40 +252,40 @@ export default {
       const mulchLoad = this.settings.mulchLoad
       let pageOffset = null
 
+      // ロードされてないpageを取得
       for (let i = 0; i < cachePage; i++) {
         if (this.pageBlob[this.nowPage - 1 + i] == null) {
           pageOffset = i
           break
         }
       }
-
       const page = this.nowPage + pageOffset
 
       // 先読み限界
       if (pageOffset === null) {
-        // console.log('先読み限界で終了')
+        console.log('先読み限界で終了')
         return
       }
       // ページ移動
       if (this.pageMove) {
-        // console.log('ページ移動したので終了')
+        console.log('ページ移動したので終了')
         return
       }
       // 指定ページが0以下 or ページ数より大きかったら終了
       if ((page <= 0) || (page > this.bookInfo.page)) {
-        // console.log('ページ限界なので終了')
+        console.log('ページ限界なので終了')
         return
       }
       // ロード中
       if (this.nowLoading >= mulchLoad) {
-        // console.log('ロード中なので終了')
+        console.log('ロード中なので終了')
         return
       }
 
       this.nowLoading += 1
-      // this.pageBlob[page - 1] = LoadingImage
+      this.pageBlob[page - 1] = LoadingImage
 
-      // console.log(`${page}ページを読みます`)
+      console.log(`${page}ページを読みます 並行ロード数：${this.nowLoading}`)
 
       let height = this.settings.customHeight
       if (this.settings.showWindwSize) { height = this.settings.windowHeight }
