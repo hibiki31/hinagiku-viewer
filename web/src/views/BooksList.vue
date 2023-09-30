@@ -68,6 +68,9 @@
           <v-btn class="ma-1" small @click="loadLibrary">
             Load Library<v-icon class="pl-2">mdi-book-refresh</v-icon>
           </v-btn>
+          <v-btn class="ma-1" small @click="toDuplicateView">
+            Duplicate List<v-icon class="pl-2">mdi-content-duplicate</v-icon>
+          </v-btn>
         </v-list-item-group>
       </v-list>
       <v-divider></v-divider>
@@ -161,7 +164,7 @@ export default {
       menuDialog: false,
       exportDialog: false,
       mulchBooksDialog: false,
-      showDrawer: false,
+      showDrawer: true,
       isLoading: true,
       // ダイアログで開いているアイテム
       openItem: {
@@ -294,6 +297,9 @@ export default {
           height: window.innerHeight * window.devicePixelRatio
         }
       })
+    },
+    toDuplicateView () {
+      router.push({ name: 'DuplicateList' })
     }
   },
 

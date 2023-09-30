@@ -7,6 +7,7 @@ import store from '../store'
 import BooksList from '../views/BooksList.vue'
 import BookReader from '../views/BookReader.vue'
 import Login from '../views/Login.vue'
+import DuplicateList from '@/views/DuplicateList.vue'
 
 Vue.use(VueRouter)
 Vue.use(VueHead)
@@ -34,6 +35,14 @@ const routes = [
     component: Login,
     meta: {
       requiresAuth: false
+    }
+  },
+  {
+    path: '/duplicate',
+    name: 'DuplicateList',
+    component: DuplicateList,
+    meta: {
+      requiresAuth: true
     }
   }
 ]
