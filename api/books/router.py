@@ -11,6 +11,7 @@ from mixins.log import setup_logger
 from mixins.purser import book_result_mapper, get_model_dict
 from users.router import get_current_user
 from users.schemas import UserCurrent
+from tasks.library_delete import main as library_delete
 
 from datetime import datetime
 
@@ -222,25 +223,23 @@ def change_book_data(
     db.commit()
     return book
 
-@app.delete("/api/books", tags=["Book"])
+@app.delete("/api/books/{book_uuid}", tags=["Book"])
 def delete_book_data(
+        book_uuid: str,
         db: Session = Depends(get_db),
-        model: BookPut = None,
-        current_user: UserCurrent = Depends(get_current_user)
+        current_user: UserCurrent = Depends(get_current_user),
     ):
-    for book_uuid in model.uuids:
-        try:
-            book: BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
-        except:
-            raise HTTPException(
-                status_code=404,
-                detail=f"本が存在しません,操作は全て取り消されました: {book_uuid}",
-            )
-
-        if model.author != None:
-            author_model = db.query(AuthorModel).filter(AuthorModel.id==model.author).one()
-            book.authors.remove(author_model)
+    try:
+        book: BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
+    except:
+        raise HTTPException(
+            status_code=404,
+            detail=f"本が存在しません,操作は全て取り消されました: {book_uuid}",
+        )
     
+    library_delete(db=db, delete_uuid=book_uuid, file_name=book.import_file_name)
+
+    db.delete(book)
     db.commit()
     return book
     
