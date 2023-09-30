@@ -66,9 +66,9 @@ def get_media_books_duplicate(
     ).outerjoin(
         book_model_2, book_model_2.uuid==DuplicationModel.book_uuid_2
     ).outerjoin(
-        book1_userdata
+        book1_userdata, book_model_1.uuid==book1_userdata.book_uuid
     ).outerjoin(
-        book2_userdata
+        book2_userdata, book_model_2.uuid==book2_userdata.book_uuid
     )
 
     # print(duplication_books.statement.compile())
