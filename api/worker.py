@@ -12,6 +12,7 @@ from tasks.library_import import main as task_library_import
 from tasks.library_export import main as task_library_export
 from tasks.library_fixmetadata import main as task_library_fixmetadata
 from tasks.media_cache import main as task_media_cache
+from tasks.library_sim import main as task_library_sim
 
 from books.models import BookModel 
 
@@ -68,3 +69,12 @@ if __name__ == "__main__":
         logger.info(f'別プロセスでメタデータ更新開始')
         task_library_fixmetadata(db=db, user_id=user_id)
         logger.info(f'別プロセスでメタデータ更新完了')
+    
+    if args[1] == "sim":
+        mode = args[2]
+        logger.info(f'ワーカで重複検索開始')
+        task_library_sim(
+            db=db,
+            mode = mode
+        )
+        logger.info(f'ワーカで重複検索完了')
