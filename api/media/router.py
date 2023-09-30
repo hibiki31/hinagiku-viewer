@@ -11,7 +11,7 @@ from mixins.convertor import create_book_page_cache, image_convertor
 from books.schemas import BookCacheCreate, LibraryPatch
 from users.router import get_current_user
 from users.schemas import UserCurrent
-from books.models import DuplicationModel, BookModel
+from books.models import DuplicationModel, BookModel, BookUserMetaDataModel
 
 app = APIRouter()
 logger = setup_logger(__name__)
@@ -46,31 +46,47 @@ def get_media_books_duplicate(
     ):
 
     book_model_1 = aliased(BookModel)
+    book1_userdata = aliased(BookUserMetaDataModel)
     book_model_2 = aliased(BookModel)
+    book2_userdata = aliased(BookUserMetaDataModel)
+
 
     duplication_books = db.query(
-        DuplicationModel,
-        book_model_1,
-        book_model_2,
+        DuplicationModel.duplication_id,
+        book_model_1.uuid,
+        book_model_2.uuid,
+        book_model_1.size,
+        book_model_2.size,
+        book_model_1.import_file_name,
+        book_model_2.import_file_name,
+        book1_userdata.rate,
+        book2_userdata.rate,
     ).outerjoin(
         book_model_1, book_model_1.uuid==DuplicationModel.book_uuid_1
     ).outerjoin(
         book_model_2, book_model_2.uuid==DuplicationModel.book_uuid_2
+    ).outerjoin(
+        book1_userdata
+    ).outerjoin(
+        book2_userdata
     )
 
     # print(duplication_books.statement.compile())
 
     res = {}
 
-    for dup, book_1, book_2 in duplication_books.all():
-        if dup.duplication_id in res:
-            duplication_uuids = [x.uuid for x in res[dup.duplication_id]]
-            if book_1.uuid not in duplication_books:
-                res[dup.duplication_id].append(book_1)
-            if book_2.uuid not in duplication_books:
-                res[dup.duplication_id].append(book_2)
+    for (duplication_id, book1_uuid, book2_uuid, book1_size, book2_size, book1_file, book2_file, book1_rate, book2_rate) in duplication_books.all():
+        if duplication_id in res:
+            duplication_uuids = [x.uuid for x in res[duplication_id]]
+            if book1_uuid not in duplication_uuids:
+                res[duplication_id].append({"uuid": book1_uuid, "file": book1_file, "size": book1_size, "rate": book1_rate})
+            if book2_uuid not in duplication_uuids:
+                res[duplication_id].append({"uuid": book2_uuid, "file": book2_file, "size": book2_size, "rate": book2_rate})
         else:
-            res[dup.duplication_id] = [book_1, book_2]
+            res[duplication_id] = []
+            res[duplication_id].append({"uuid": book1_uuid, "file": book1_file, "size": book1_size, "rate": book1_rate})
+            res[duplication_id].append({"uuid": book2_uuid, "file": book2_file, "size": book2_size, "rate": book2_rate})
+
     
 
     res_list = []
