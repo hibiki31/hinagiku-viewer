@@ -77,7 +77,7 @@ def get_media_books_duplicate(
 
     for (duplication_id, book1_uuid, book2_uuid, book1_size, book2_size, book1_file, book2_file, book1_rate, book2_rate) in duplication_books.all():
         if duplication_id in res:
-            duplication_uuids = [x.uuid for x in res[duplication_id]]
+            duplication_uuids = [x["uuid"] for x in res[duplication_id]]
             if book1_uuid not in duplication_uuids:
                 res[duplication_id].append({"uuid": book1_uuid, "file": book1_file, "size": book1_size, "rate": book1_rate})
             if book2_uuid not in duplication_uuids:
