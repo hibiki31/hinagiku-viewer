@@ -5,6 +5,7 @@ import os
 import shutil
 import time
 import uuid
+import sys
 from multiprocessing import Array, Pipe, Process, Queue, Value
 
 import imagehash
@@ -64,11 +65,12 @@ def main(db: Session, mode):
         logger.info(f"DBへの書き込み完了")
 
     done_uuids = []
-    books = db.query(BookModel.uuid, BookModel.ahash).all()
-    logger.info(f"{len(books)}件でハッシュ突合を行います")
+    books_list = [(book[0], book[1]) for book in db.query(BookModel.uuid, BookModel.ahash).all()]
     
-    for (book_base_uuid, book_base_ahash) in books:
-        for (book_check_uuid, book_check_ahash) in books:
+    logger.info(f"{len(books_list)}件でハッシュ突合を行います 配列のメモリ使用量{round(sys.getsizeof(books_list)/1024,2)} kb")
+    
+    for (book_base_uuid, book_base_ahash) in books_list:
+        for (book_check_uuid, book_check_ahash) in books_list:
             if book_base_uuid == book_check_uuid:
                 continue
             # チェック対象の本がすでにbook_baseで検査済みならスキップ
