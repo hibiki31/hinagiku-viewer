@@ -104,13 +104,13 @@ class BookModel(Base):
         'AuthorModel',
         secondary=books_to_authors,
         back_populates='books',
-        lazy=True,
+        lazy=False,
     )
     tags = relationship(
         'TagsModel',
         secondary=books_to_tags,
         back_populates='books',
-        lazy=True,
+        lazy=False,
     )
     
     # 設定
