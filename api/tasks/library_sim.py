@@ -24,6 +24,8 @@ def main(db: Session, mode):
         books = db.query(BookModel.uuid).all()
     else:
         books = db.query(BookModel.uuid).filter(BookModel.ahash == None).all()
+
+    logger.info(f"{len(books)}件のAhashを取得します")
     
     if len(books) <= 16:
         for book in books:
