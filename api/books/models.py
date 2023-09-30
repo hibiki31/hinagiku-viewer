@@ -93,10 +93,10 @@ class BookModel(Base):
     library_id = Column(Integer, ForeignKey('librarys.id'), nullable=False)
     library = relationship('LibraryModel',lazy=False, back_populates='books')
     genre_id = Column(Integer, ForeignKey('genres.id'))
-    genre = relationship('GenreModel',lazy=True, back_populates='books')
+    genre = relationship('GenreModel',lazy=False, back_populates='books')
     publisher_id = Column(Integer, ForeignKey('publishers.id'))
-    publisher = relationship('PublisherModel',lazy=True, back_populates='books')
-    series = relationship('SeriesModel',lazy=True, back_populates='books')
+    publisher = relationship('PublisherModel',lazy=False, back_populates='books')
+    series = relationship('SeriesModel',lazy=False, back_populates='books')
     series_id = Column(Integer, ForeignKey('series.id'))
     
     # ソフトメタデータ 多対多
