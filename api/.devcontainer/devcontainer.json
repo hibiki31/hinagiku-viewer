@@ -13,8 +13,7 @@
 		  // Add the IDs of extensions you want installed when the container is created.
 		  "extensions": [
 			"ms-python.python",
-			"ms-azuretools.vscode-docker",
-			"azemoh.one-monokai",
+			"zhuangtongfa.material-theme",
 			"mhutchie.git-graph",
 			"ms-python.isort"
 		  ]
