@@ -26,7 +26,7 @@
 
 ```bash
 docker-compose run api alembic upgrade head
-alembic revision --autogenerate -m "Add duplication table"
+alembic revision --autogenerate -m "Fix on delete"
 alembic upgrade head
 # データリセット
 alembic downgrade base

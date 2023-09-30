@@ -238,7 +238,7 @@ def delete_book_data(
         )
     
     library_delete(db=db, delete_uuid=book_uuid, file_name=book.import_file_name)
-
+    db.query(BookUserMetaDataModel).filter(BookUserMetaDataModel.book_uuid==book_uuid).filter(BookUserMetaDataModel.user_id==current_user.id).delete()
     db.delete(book)
     db.commit()
     return book
