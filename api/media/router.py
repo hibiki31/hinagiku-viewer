@@ -53,6 +53,7 @@ def get_media_books_duplicate(
 
     duplication_books = db.query(
         DuplicationModel.duplication_id,
+        DuplicationModel.score,
         book_model_1.uuid,
         book_model_2.uuid,
         book_model_1.size,
@@ -75,17 +76,17 @@ def get_media_books_duplicate(
 
     res = {}
 
-    for (duplication_id, book1_uuid, book2_uuid, book1_size, book2_size, book1_file, book2_file, book1_rate, book2_rate) in duplication_books.all():
+    for (duplication_id, score, book1_uuid, book2_uuid, book1_size, book2_size, book1_file, book2_file, book1_rate, book2_rate) in duplication_books.all():
         if duplication_id in res:
             duplication_uuids = [x["uuid"] for x in res[duplication_id]]
             if book1_uuid not in duplication_uuids:
-                res[duplication_id].append({"uuid": book1_uuid, "file": book1_file, "size": book1_size, "rate": book1_rate})
+                res[duplication_id].append({"uuid": book1_uuid, "file": book1_file, "size": book1_size, "rate": book1_rate, "score": score})
             if book2_uuid not in duplication_uuids:
-                res[duplication_id].append({"uuid": book2_uuid, "file": book2_file, "size": book2_size, "rate": book2_rate})
+                res[duplication_id].append({"uuid": book2_uuid, "file": book2_file, "size": book2_size, "rate": book2_rate, "score": score})
         else:
             res[duplication_id] = []
-            res[duplication_id].append({"uuid": book1_uuid, "file": book1_file, "size": book1_size, "rate": book1_rate})
-            res[duplication_id].append({"uuid": book2_uuid, "file": book2_file, "size": book2_size, "rate": book2_rate})
+            res[duplication_id].append({"uuid": book1_uuid, "file": book1_file, "size": book1_size, "rate": book1_rate, "score": score})
+            res[duplication_id].append({"uuid": book2_uuid, "file": book2_file, "size": book2_size, "rate": book2_rate, "score": score})
 
     
 
