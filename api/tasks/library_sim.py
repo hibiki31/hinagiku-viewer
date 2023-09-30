@@ -65,6 +65,7 @@ def main(db: Session, mode):
 
     done_uuids = []
     books = db.query(BookModel.uuid, BookModel.ahash).all()
+    logger.info(f"{len(books)}件でハッシュ突合を行います")
     
     for (book_base_uuid, book_base_ahash) in books:
         for (book_check_uuid, book_check_ahash) in books:
@@ -101,6 +102,7 @@ def main(db: Session, mode):
                 db.commit()
             
             done_uuids.append(book_base_uuid)
+        logger.info(f"{book_base_uuid}: 突合終了")
 
 
 
