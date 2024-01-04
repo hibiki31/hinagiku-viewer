@@ -100,6 +100,10 @@ def db_ahash_check(db: Session):
     for i in process_list:
         i[0].join()
         result.extend(i[1].recv())
+    
+    for i in result:
+        duplicate_book_save(db=db, uuid_1=i[0], uuid_2=i[1], score=i[2])
+        
 
 
 def check_ahash_range(send_rev, src_books, all_books):
@@ -119,7 +123,7 @@ def check_ahash_range(send_rev, src_books, all_books):
             if score < 10:
                 logger.info(f"{book_base_uuid}, {book_check_uuid}, {score}")
                 duplicate_list.append(
-                    (book_base_uuid, book_check_uuid)
+                    (book_base_uuid, book_check_uuid, score)
                 )
                 
             
@@ -128,12 +132,12 @@ def check_ahash_range(send_rev, src_books, all_books):
     send_rev.send(duplicate_list)
 
 
-def duplicate_book_save():
+def duplicate_book_save(db: Session, uuid_1, uuid_2, score):
     duplication_book = db.query(DuplicationModel).filter(or_(
-        DuplicationModel.book_uuid_1 == book_base_uuid,
-        DuplicationModel.book_uuid_1 == book_check_uuid,
-        DuplicationModel.book_uuid_2 == book_base_uuid,
-        DuplicationModel.book_uuid_2 == book_check_uuid,
+        DuplicationModel.book_uuid_1 == uuid_1,
+        DuplicationModel.book_uuid_1 == uuid_2,
+        DuplicationModel.book_uuid_2 == uuid_1,
+        DuplicationModel.book_uuid_2 == uuid_2,
     )).all()
     if duplication_book == []:
         duplication_uuid = uuid.uuid4()
@@ -143,8 +147,8 @@ def duplicate_book_save():
 
     db.merge(DuplicationModel(
         duplication_id = duplication_uuid,
-        book_uuid_1 = book_base_uuid,
-        book_uuid_2 = book_check_uuid,
+        book_uuid_1 = uuid_1,
+        book_uuid_2 = uuid_2,
         score = score,
     ))
     db.commit()
