@@ -15,7 +15,8 @@
 			"ms-python.python",
 			"zhuangtongfa.material-theme",
 			"mhutchie.git-graph",
-			"ms-python.isort"
+			"ms-python.isort",
+			"wholroyd.jinja"
 		  ]
 		}
 	  }
