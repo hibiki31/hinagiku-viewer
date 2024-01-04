@@ -21,11 +21,12 @@ logger = setup_logger(__name__)
 
 
 def main(db: Session, mode):
+    ## multithreadでハッシュを取得する、取得済みは基本スキップ
     if mode == "all-force":
         books = db.query(BookModel.uuid).all()
     else:
         books = db.query(BookModel.uuid).filter(BookModel.ahash == None).all()
-
+    
     logger.info(f"{len(books)}件のAhashを取得します")
     
     if len(books) <= 16:
@@ -64,6 +65,9 @@ def main(db: Session, mode):
         db.commit()
         logger.info(f"DBへの書き込み完了")
 
+    ## DBのデータで突合開始
+    db.query(DuplicationModel).delete()
+    db.commit()
     done_uuids = []
     books_list = [(book[0], book[1]) for book in db.query(BookModel.uuid, BookModel.ahash).all()]
     
@@ -80,7 +84,8 @@ def main(db: Session, mode):
             hash1 = int(book_base_ahash,16)
             hash2 = int(book_check_ahash,16)
             score = bin(hash1 ^ hash2).count('1')
-            if score < 50:
+            # 閾値
+            if score < 10:
                 logger.info(f"{book_base_uuid}, {book_check_uuid}, {score}")
 
                 duplication_book = db.query(DuplicationModel).filter(or_(
