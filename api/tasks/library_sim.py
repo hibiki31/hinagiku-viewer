@@ -68,6 +68,8 @@ def main(db: Session, mode):
     ## DBのデータで突合開始
     db.query(DuplicationModel).delete()
     db.commit()
+    check_delete = db.query(DuplicationModel).all()
+    logger.info(check_delete)
     done_uuids = []
     books_list = [(book[0], book[1]) for book in db.query(BookModel.uuid, BookModel.ahash).all()]
     
