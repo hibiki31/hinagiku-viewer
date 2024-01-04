@@ -1,0 +1,8 @@
+{% for uuid in uuids %}
+<div>
+<img src="{{ url_for('static', filename=uuid[0]) }}" alt="Dinosaur" width=250/>
+<img src="{{ url_for('static', filename=uuid[1]) }}" alt="Dinosaur" width=250/>
+<span>{{ uuid[2] }}</span>
+<span>{{ uuid[3] }}</span>
+</div>
+{% endfor %}
