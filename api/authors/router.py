@@ -17,6 +17,7 @@ logger = setup_logger(__name__)
 
 @app.get("/api/authors", tags=["Author"], response_model=List[AuthorGet])
 async def get_api_library(
+        isFavorite: bool,
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user),
         name: str = None,
@@ -32,7 +33,10 @@ async def get_api_library(
         query = query.filter(AuthorModel.name == name)
     if nameLike:
         query = query.filter(AuthorModel.name.like(f'%{nameLike}%'))
-    
+    if isFavorite != None and isFavorite == False:
+        query = query.filter(AuthorModel.is_favorite == False)
+    if isFavorite != None and isFavorite == True:
+        query = query.filter(AuthorModel.is_favorite == True)
     return query.all()
 
 
