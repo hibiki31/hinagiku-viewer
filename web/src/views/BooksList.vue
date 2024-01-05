@@ -118,7 +118,7 @@
   <v-pagination
     v-model="page"
     :length="maxPage"
-    :total-visible="5"
+    :total-visible="17"
     class="ma-3"
   ></v-pagination>
   </div>
