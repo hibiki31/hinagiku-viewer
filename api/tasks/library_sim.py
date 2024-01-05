@@ -77,7 +77,7 @@ def db_ahash_check(db: Session):
     logger.info(check_delete)
 
     # 突合用UUIDとAHASHを取得
-    book_list = [(str(book[0]), str(book[1])) for book in db.query(BookModel.uuid, BookModel.ahash).limit(10000).all()]
+    book_list = [(str(book[0]), str(book[1])) for book in db.query(BookModel.uuid, BookModel.ahash).all()]
     book_list_size = len(book_list)
     
     # 処理開始
