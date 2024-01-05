@@ -120,8 +120,8 @@ def check_ahash_range(send_rev, src_books, all_books):
             # if book_check_uuid in done_uuids:
             #     continue
 
-            hash1 = int(i["ahash"],16)
-            hash2 = int(j["ahash"],16)
+            hash1 = int(book_base_ahash,16)
+            hash2 = int(book_check_ahash,16)
             score = bin(hash1 ^ hash2).count('1')
             # 閾値
             if score < 10:
