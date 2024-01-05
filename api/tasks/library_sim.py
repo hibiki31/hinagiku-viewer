@@ -75,7 +75,7 @@ def db_ahash_check(db: Session):
     check_delete = db.query(DuplicationModel).all()
     logger.info(check_delete)
     # done_uuids = []
-    books_list = [(book[0], book[1]) for book in db.query(BookModel.uuid, BookModel.ahash).all()]
+    books_list = [(book[0], book[1]) for book in db.query(BookModel.uuid, BookModel.ahash).limit(1000).all()]
     
     logger.info(f"{len(books_list)}件でハッシュ突合を行います 配列のメモリ使用量{round(sys.getsizeof(books_list)/1024,2)} kb")
     
@@ -112,6 +112,7 @@ def db_ahash_check(db: Session):
 
 def check_ahash_range(send_rev, src_books, all_books):
     duplicate_list = []
+    logger.info(f"{len(src_books)} * {len(all_books)}")
     for (book_base_uuid, book_base_ahash) in src_books:
         for (book_check_uuid, book_check_ahash) in all_books:
             if book_base_uuid == book_check_uuid:
