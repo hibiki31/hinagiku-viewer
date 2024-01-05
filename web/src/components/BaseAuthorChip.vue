@@ -16,17 +16,49 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-chip
+
+    <v-menu
       v-for="author in openBook.authors"
       :key="author.id"
-      class="mt-2 mb-2 mr-2"
-      small
-      close
-      @click="searchAuthor(author.name)"
-      @click:close="deleteAuthor(openBook, author.id)"
     >
-      {{ author.name }}
-    </v-chip>
+      <template v-slot:activator="{ on: menu, attrs }">
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on: tooltip }">
+            <v-chip
+              class="mt-2 mb-2 mr-2"
+              small
+              :color="getAuthorColo(author.isFavorite)"
+              close
+              v-bind="attrs"
+              v-on="{ ...tooltip, ...menu }"
+              @click:close="deleteAuthor(openBook, author.id)"
+            >
+              {{ author.name }}
+            </v-chip>
+          </template>
+          <span>Open Menu</span>
+        </v-tooltip>
+      </template>
+      <v-card>
+        <v-card-text>
+          <div class="ma-3" @click="searchAuthor(author.name)">
+            <v-icon color="primary"
+              >mdi-magnify</v-icon
+            >この著者で検索する
+          </div>
+          <div class="ma-3" @click="favoriteAuthor(author, true)" v-if="author.isFavorite===false">
+            <v-icon color="primary"
+              >mdi-star</v-icon
+            >この著者をお気に入りにする
+          </div>
+          <div class="ma-3" @click="favoriteAuthor(author, false)" v-if="author.isFavorite===true">
+            <v-icon color=""
+              >mdi-star</v-icon
+            >この著者をお気に入りから外す
+          </div>
+        </v-card-text>
+      </v-card>
+    </v-menu>
     <v-icon
       small
       @click="openPostDialog(openBook)"
@@ -53,6 +85,27 @@ export default {
   methods: {
     openPostDialog () {
       this.postDialogState = true
+    },
+    getAuthorColo (isFavorite) {
+      if (isFavorite) {
+        return 'orange'
+      } else {
+        return ''
+      }
+    },
+    favoriteAuthor (author, favorite) {
+      axios
+        .request({
+          method: 'patch',
+          url: '/api/authors',
+          data: { authorId: author.id, isFavorite: favorite }
+        })
+        .then((response) => {
+          this.$_pushNotice('著者のお気に入り変更', 'success')
+          author.isFavorite = favorite
+        }).catch(error => {
+          this.$_apiErrorHandler(error)
+        })
     },
     searchAuthor (authorName) {
       const query = store.getters.searchQuery
