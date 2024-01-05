@@ -134,6 +134,7 @@ def check_ahash_range(send_rev, src_books, all_books):
             # done_uuids.append(book_base_uuid)
         logger.info(f"{book_base_uuid}: 突合終了")
     send_rev.send(duplicate_list)
+    logger.info("プロセスの処理が終了")
 
 
 def duplicate_book_save(db: Session, uuid_1, uuid_2, score):
