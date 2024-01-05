@@ -66,53 +66,96 @@ def main(db: Session, mode):
         logger.info(f"DBへの書き込み完了")
 
     ## DBのデータで突合開始
+    db_ahash_check(db=db)
+
+
+def db_ahash_check(db: Session):
     db.query(DuplicationModel).delete()
     db.commit()
     check_delete = db.query(DuplicationModel).all()
     logger.info(check_delete)
-    done_uuids = []
+    # done_uuids = []
     books_list = [(book[0], book[1]) for book in db.query(BookModel.uuid, BookModel.ahash).all()]
     
     logger.info(f"{len(books_list)}件でハッシュ突合を行います 配列のメモリ使用量{round(sys.getsizeof(books_list)/1024,2)} kb")
     
-    for (book_base_uuid, book_base_ahash) in books_list:
-        for (book_check_uuid, book_check_ahash) in books_list:
+    size = len(books_list)
+    logger.info(f"{CONVERT_THREAD}のスレッドで{size}件のAhashを突合します")
+    
+    process_list = []
+    result = []
+    
+    for i in range(CONVERT_THREAD):
+        start = int((size*i/CONVERT_THREAD))
+        end = int((size*(i+1)/CONVERT_THREAD))
+        logger.info(f"process[{i}]: {start}:{end}")
+        get_rev,send_rev  = Pipe(False)
+        process_list.append((
+            Process(target=check_ahash_range, args=(send_rev, books_list[start:end], books_list)),
+            get_rev
+        ))
+
+    for i in process_list:
+        i[0].start()
+        
+    logger.info(f"{len(books_list)}件でハッシュ突合を開始")
+    for i in process_list:
+        i[0].join()
+        result.extend(i[1].recv())
+    logger.info(f"{len(books_list)}件でハッシュ突合を終了")
+    
+    logger.info(f"{len(result)}の重複内容をデータベースに保存中")
+    for i in result:
+        duplicate_book_save(db=db, uuid_1=i[0], uuid_2=i[1], score=i[2])
+        
+
+
+def check_ahash_range(send_rev, src_books, all_books):
+    duplicate_list = []
+    for (book_base_uuid, book_base_ahash) in src_books:
+        for (book_check_uuid, book_check_ahash) in all_books:
             if book_base_uuid == book_check_uuid:
                 continue
             # チェック対象の本がすでにbook_baseで検査済みならスキップ
-            if book_check_uuid in done_uuids:
-                continue
+            # if book_check_uuid in done_uuids:
+            #     continue
 
-            hash1 = int(book_base_ahash,16)
-            hash2 = int(book_check_ahash,16)
-            score = bin(hash1 ^ hash2).count('1')
+            hash1 = imagehash.hex_to_hash(book_base_ahash)
+            hash2 = imagehash.hex_to_hash(book_check_ahash)
+            score = hash1 - hash2
             # 閾値
             if score < 10:
                 logger.info(f"{book_base_uuid}, {book_check_uuid}, {score}")
-
-                duplication_book = db.query(DuplicationModel).filter(or_(
-                    DuplicationModel.book_uuid_1 == book_base_uuid,
-                    DuplicationModel.book_uuid_1 == book_check_uuid,
-                    DuplicationModel.book_uuid_2 == book_base_uuid,
-                    DuplicationModel.book_uuid_2 == book_check_uuid,
-                )).all()
-                if duplication_book == []:
-                    duplication_uuid = uuid.uuid4()
+                duplicate_list.append(
+                    (book_base_uuid, book_check_uuid, score)
+                )
                 
-                else:
-                    duplication_uuid = duplication_book[0].duplication_id,
-
-                db.merge(DuplicationModel(
-                    duplication_id = duplication_uuid,
-                    book_uuid_1 = book_base_uuid,
-                    book_uuid_2 = book_check_uuid,
-                    score = score,
-                ))
-                db.commit()
             
-            done_uuids.append(book_base_uuid)
+            # done_uuids.append(book_base_uuid)
         logger.info(f"{book_base_uuid}: 突合終了")
+    send_rev.send(duplicate_list)
 
+
+def duplicate_book_save(db: Session, uuid_1, uuid_2, score):
+    duplication_book = db.query(DuplicationModel).filter(or_(
+        DuplicationModel.book_uuid_1 == uuid_1,
+        DuplicationModel.book_uuid_1 == uuid_2,
+        DuplicationModel.book_uuid_2 == uuid_1,
+        DuplicationModel.book_uuid_2 == uuid_2,
+    )).all()
+    if duplication_book == []:
+        duplication_uuid = uuid.uuid4()
+    
+    else:
+        duplication_uuid = duplication_book[0].duplication_id,
+
+    db.merge(DuplicationModel(
+        duplication_id = duplication_uuid,
+        book_uuid_1 = uuid_1,
+        book_uuid_2 = uuid_2,
+        score = score,
+    ))
+    db.commit()
 
 
 def get_ahash_task(send_rev, book_uuids):
