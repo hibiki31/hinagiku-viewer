@@ -6,7 +6,7 @@ import shutil
 import time
 import uuid
 import sys
-from multiprocessing import Array, Pipe, Process, Queue, Value
+from multiprocessing import Array, Pipe, Process, Queue, Value, Pool
 
 import imagehash
 from PIL import Image
@@ -70,72 +70,62 @@ def main(db: Session, mode):
 
 
 def db_ahash_check(db: Session):
+    # 重複結果を削除
     db.query(DuplicationModel).delete()
     db.commit()
     check_delete = db.query(DuplicationModel).all()
     logger.info(check_delete)
-    # done_uuids = []
-    books_list = [(book[0], book[1]) for book in db.query(BookModel.uuid, BookModel.ahash).limit(10000).all()]
-    
-    logger.info(f"{len(books_list)}件でハッシュ突合を行います 配列のメモリ使用量{round(sys.getsizeof(books_list)/1024,2)} kb")
-    
-    size = len(books_list)
-    logger.info(f"{CONVERT_THREAD}のスレッドで{size}件のAhashを突合します")
-    
-    process_list = []
-    result = []
-    
-    for i in range(CONVERT_THREAD):
-        start = int((size*i/CONVERT_THREAD))
-        end = int((size*(i+1)/CONVERT_THREAD))
-        logger.info(f"process[{i}]: {start}:{end}")
-        get_rev,send_rev  = Pipe(False)
-        process_list.append((
-            Process(target=check_ahash_range, args=(send_rev, books_list[start:end], books_list)),
-            get_rev
-        ))
 
-    for i in process_list:
-        i[0].start()
-        
-    logger.info(f"{len(books_list)}件でハッシュ突合を開始")
-    for i in process_list:
-        i[0].join()
-        result.extend(i[1].recv())
-    logger.info(f"{len(books_list)}件でハッシュ突合を終了")
+    # 突合用UUIDとAHASHを取得
+    book_list = [(str(book[0]), str(book[1])) for book in db.query(BookModel.uuid, BookModel.ahash).limit(10000).all()]
+    book_list_size = len(book_list)
     
-    logger.info(f"{len(result)}の重複内容をデータベースに保存中")
-    for i in result:
+    # 処理開始
+    logger.info(f"{CONVERT_THREAD}のスレッドで{book_list_size}件のハッシュ突合を行います 配列のメモリ使用量{round(sys.getsizeof(book_list)/1024,2)} kb")
+    
+    # 分割数を指定
+    p = Pool(CONVERT_THREAD)
+    n = 1000 # 1000件のデータを1プロセスに投げる
+    
+    map_values = [(book_list, i, i + n) for i in range(0, book_list_size, n)]
+    result = p.map(process_check_ahash, map_values)
+    flat_result = [x for row in result for x in row]
+    
+    logger.info(f"{book_list_size}件でハッシュ突合を終了")
+    
+    logger.info(f"{len(flat_result)}の重複内容をデータベースに保存中")
+    for i in flat_result:
         duplicate_book_save(db=db, uuid_1=i[0], uuid_2=i[1], score=i[2])
-        
+    
+    
 
-
-def check_ahash_range(send_rev, src_books, all_books):
+def process_check_ahash(input):
+    all_books = input[0]
+    start_index = input[1]
+    end_index = input[2]
+    logger.info(f"{start_index}:{end_index}開始")
+    
     duplicate_list = []
-    logger.info(f"{len(src_books)} * {len(all_books)}")
-    for (book_base_uuid, book_base_ahash) in src_books:
-        for (book_check_uuid, book_check_ahash) in all_books:
-            if book_base_uuid == book_check_uuid:
+    for book_base_uuid, book_base_ahash in all_books[start_index:end_index]:
+        for (book_comaier_uuid, book_comaier_ahash) in all_books:
+            # 自身のUUIDはスキップ
+            if book_base_uuid == book_comaier_uuid:
                 continue
-            # チェック対象の本がすでにbook_baseで検査済みならスキップ
-            # if book_check_uuid in done_uuids:
-            #     continue
 
+            # ビット演算で比較
             hash1 = int(book_base_ahash,16)
-            hash2 = int(book_check_ahash,16)
+            hash2 = int(book_comaier_ahash,16)
             score = bin(hash1 ^ hash2).count('1')
+            
             # 閾値
             if score < 10:
-                logger.info(f"{book_base_uuid}, {book_check_uuid}, {score}")
+                logger.info(f"重複 {book_base_uuid}, {book_comaier_uuid}, {score}")
                 duplicate_list.append(
-                    (book_base_uuid, book_check_uuid, score)
+                    (book_base_uuid, book_comaier_uuid, score)
                 )
-                
-            
-            # done_uuids.append(book_base_uuid)
-        logger.info(f"{book_base_uuid}: 突合終了")
-    send_rev.send(duplicate_list)
-    logger.info("プロセスの処理が終了")
+
+        logger.debug(f"{book_base_uuid}: 突合終了")
+    return duplicate_list
 
 
 def duplicate_book_save(db: Session, uuid_1, uuid_2, score):
