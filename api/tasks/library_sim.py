@@ -81,8 +81,8 @@ def db_ahash_check(db: Session):
     
     size = len(books_list)
     logger.info(f"{CONVERT_THREAD}のスレッドで{size}件のAhashを突合します")
-    process_list = []
     
+    process_list = []
     result = []
     
     for i in range(CONVERT_THREAD):
@@ -97,10 +97,14 @@ def db_ahash_check(db: Session):
 
     for i in process_list:
         i[0].start()
+        
+    logger.info(f"{len(books_list)}件でハッシュ突合を開始")
     for i in process_list:
         i[0].join()
         result.extend(i[1].recv())
+    logger.info(f"{len(books_list)}件でハッシュ突合を終了")
     
+    logger.info(f"{len(result)}の重複内容をデータベースに保存中")
     for i in result:
         duplicate_book_save(db=db, uuid_1=i[0], uuid_2=i[1], score=i[2])
         
@@ -116,9 +120,9 @@ def check_ahash_range(send_rev, src_books, all_books):
             # if book_check_uuid in done_uuids:
             #     continue
 
-            hash1 = int(book_base_ahash,16)
-            hash2 = int(book_check_ahash,16)
-            score = bin(hash1 ^ hash2).count('1')
+            hash1 = imagehash.hex_to_hash(book_base_ahash)
+            hash2 = imagehash.hex_to_hash(book_check_ahash)
+            score = hash1 - hash2
             # 閾値
             if score < 10:
                 logger.info(f"{book_base_uuid}, {book_check_uuid}, {score}")
