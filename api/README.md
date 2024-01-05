@@ -4,7 +4,7 @@
 
 ```bash
 docker-compose run api alembic upgrade head
-alembic revision --autogenerate -m "Fix on delete"
+alembic revision --autogenerate -m "Add is_favorite"
 alembic upgrade head
 # データリセット
 alembic downgrade base

@@ -30,6 +30,7 @@ class BookAuthors(BaseSchema):
     id: int
     name: str
     description: str | None = None
+    is_favorite: bool
     
 
 class BookTag(BaseSchema):
@@ -97,6 +98,7 @@ class LibraryPatchEnum(str, Enum):
     export_uuid = "export_uuid"
     fixmetadata = "fixmetadata"
     sim_all = "sim_all"
+    rule = "rule"
 
 class LibraryPatch(BaseSchema):
     state: LibraryPatchEnum = LibraryPatchEnum.load

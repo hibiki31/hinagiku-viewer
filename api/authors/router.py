@@ -24,7 +24,8 @@ async def get_api_library(
     ):
     query = db.query(
         AuthorModel.name, 
-        AuthorModel.id
+        AuthorModel.id,
+        AuthorModel.is_favorite
     )
 
     if name:
@@ -105,3 +106,23 @@ def delete_api_books_uuid_authors(
     db.commit()
 
     return db.query(BookModel).filter(BookModel.uuid==book_uuid).one_or_none()
+
+
+@app.patch("/api/authors", tags=["Author"])
+def delete_api_books_uuid_authors(
+        request_model: PatchAuthor,
+        db: Session = Depends(get_db),
+        current_user: UserCurrent = Depends(get_current_user)
+    ):
+
+    if author_model := db.query(AuthorModel).filter(AuthorModel.id==request_model.author_id).one_or_none():
+        author_model.is_favorite = request_model.is_favorite
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail=f"指定された著者は存在しません",
+        )
+    
+    db.commit()
+
+    return author_model

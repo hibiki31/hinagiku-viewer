@@ -42,7 +42,9 @@ def get_media_books_cache(
 @app.get("/media/books/duplicate", tags=["Media"], summary="重複本の確認")
 def get_media_books_duplicate(
         db: Session = Depends(get_db),
-        current_user:UserCurrent = Depends(get_current_user)
+        current_user:UserCurrent = Depends(get_current_user),
+        limit: int = 25,
+        offset: int = 0,
     ):
 
     book_model_1 = aliased(BookModel)
@@ -98,7 +100,7 @@ def get_media_books_duplicate(
         })
 
 
-    return res_list
+    return res_list[offset:offset+limit]
     
 
 
@@ -177,5 +179,8 @@ def patch_media_library(
         library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "export_uuid"]))
     elif model.state == "sim_all":
         library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "sim", "all"]))
+
+    elif model.state == "rule":
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "rule"]))
 
     return { "status": "ok" }

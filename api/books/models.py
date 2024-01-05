@@ -39,6 +39,7 @@ class AuthorModel(Base):
     __tablename__ = 'authors'
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False, unique=True)
+    is_favorite = Column(Boolean, nullable=False, server_default='f', default=False)
     description = Column(String)
     books = relationship(
         'BookModel',

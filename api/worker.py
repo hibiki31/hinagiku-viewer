@@ -13,6 +13,7 @@ from tasks.library_export import main as task_library_export
 from tasks.library_fixmetadata import main as task_library_fixmetadata
 from tasks.media_cache import main as task_media_cache
 from tasks.library_sim import main as task_library_sim
+from tasks.library_rule import main as task_library_rule
 
 from books.models import BookModel 
 
@@ -78,3 +79,12 @@ if __name__ == "__main__":
             mode = mode
         )
         logger.info(f'ワーカで重複検索完了')
+        
+    if args[1] == "rule":
+        uuid = args[2] if len(args) == 3 else None
+        logger.info(f'ワーカでrule適応開始')
+        task_library_rule(
+            db=db,
+            uuid=uuid
+        )
+        logger.info(f'ワーカでrule適応完了')
