@@ -4,14 +4,14 @@ from mixins.database import Base, Engine
 
 
 books_to_tags = Table('tag_to_book', Base.metadata,
-    Column('book_uuid', String, ForeignKey('books.uuid', onupdate='CASCADE', ondelete='CASCADE')),
-    Column('tags_id', Integer, ForeignKey('tags.id', onupdate='CASCADE', ondelete='CASCADE'))
+    Column('book_uuid', String, ForeignKey('books.uuid', onupdate='CASCADE', ondelete='CASCADE'),index=True),
+    Column('tags_id', Integer, ForeignKey('tags.id', onupdate='CASCADE', ondelete='CASCADE'),index=True)
 )
 
 
 books_to_authors = Table('book_to_author', Base.metadata,
-    Column('book_uuid', String, ForeignKey('books.uuid', onupdate='CASCADE', ondelete='CASCADE')),
-    Column('author_id', Integer, ForeignKey('authors.id', onupdate='CASCADE', ondelete='CASCADE'))
+    Column('book_uuid', String, ForeignKey('books.uuid', onupdate='CASCADE', ondelete='CASCADE'),index=True),
+    Column('author_id', Integer, ForeignKey('authors.id', onupdate='CASCADE', ondelete='CASCADE'),index=True)
 )
 
 
@@ -95,7 +95,7 @@ class BookModel(Base):
     library = relationship('LibraryModel',lazy=False, back_populates='books')
     genre_id = Column(Integer, ForeignKey('genres.id'))
     genre = relationship('GenreModel',lazy=False, back_populates='books')
-    publisher_id = Column(Integer, ForeignKey('publishers.id'))
+    publisher_id = Column(Integer, ForeignKey('publishers.id'),index=True)
     publisher = relationship('PublisherModel',lazy=False, back_populates='books')
     series = relationship('SeriesModel',lazy=False, back_populates='books')
     series_id = Column(Integer, ForeignKey('series.id'))
