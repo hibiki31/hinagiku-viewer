@@ -4,7 +4,8 @@ import hashlib
 import zipfile
 
 import glob
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ImageFile
+
 from io import BytesIO 
 import os
 import uuid
@@ -35,7 +36,8 @@ logger = setup_logger(__name__)
 
 
 os.makedirs(f"/tmp/hinav/", exist_ok=True)
-
+# OSError: image file is truncated (2 bytes not processed)を回避
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class DebugTimer():
     def __init__(self):

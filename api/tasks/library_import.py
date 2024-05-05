@@ -59,13 +59,12 @@ def main(db, user_id):
             book_import(send_book, user_model, db)
         
         except (PIL.Image.DecompressionBombError, NotContentZip, BadZipFile, zlib.error) as e:
-            logger.error(e, exc_info=True)
-            logger.error(f'{send_book} エラーが発生したためファイルを除外')
+            logger.error(f'{send_book} ファイルに問題があるためインポート処理を中止 {e}')
             shutil.move(send_book, f'{DATA_ROOT}/book_fail/{os.path.basename(send_book)}')
 
         except Exception as e:
-            logger.error(e, exc_info=True)
-            logger.error(f'{send_book} 補足できないエラーが発生したためインポート処理を中止', exc_info=True)
+            logger.critical(e, exc_info=True)
+            logger.critical(f'{send_book} 補足できないエラーが発生したためインポート処理を中止')
     return
 
 def book_import(send_book, user_model, db):

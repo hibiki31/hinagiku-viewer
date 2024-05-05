@@ -56,6 +56,7 @@ class BookBase(BaseSchema):
     tags: List[BookTag]
     size: int
     page: int
+    sha1: str
     import_file_name: str
     add_date: datetime
     file_date: datetime
