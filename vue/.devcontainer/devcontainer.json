@@ -1,0 +1,21 @@
+{
+	"name": "Hinav-Vue",
+	"image": "mcr.microsoft.com/devcontainers/typescript-node:22-bullseye",
+	"forwardPorts": [
+		3000
+	  ],
+	  "customizations": {
+		"vscode": {
+			"extensions":[
+				"octref.vetur",
+				"donjayamanne.githistory"
+			]
+		}
+	},
+	"mounts": [
+		"source=node_modules_hinav_dev,target=${containerWorkspaceFolder}/node_modules,type=volume"
+	],
+	"containerEnv": {
+		"CHOKIDAR_USEPOLLING": "true" 
+	}
+}
