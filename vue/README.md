@@ -7,6 +7,13 @@ yarn install
 yarn run dev
 ```
 
+## openapi-ts
+
+```
+npx openapi-typescript https://hinav.hinagiku.me/api/openapi.json -o ./api.d.ts
+```
+
+
 ## プロジェクトの立ち上げ
 
 WSL2にVoltaをインストール
@@ -36,4 +43,11 @@ Vuetify.js - Material Component Framework for Vue
 ✔ Use TypeScript? … No / Yes
 ✔ Would you like to install dependencies with yarn, npm, pnpm, or bun? › yarn
 ✔ Install Dependencies? … No / Yes
+```
+
+```
+yarn add @kyvg/vue3-notification
+yarn add axios
+yarn add js-cookie
+yarn add -D @types/js-cookie
 ```

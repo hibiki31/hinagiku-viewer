@@ -8,7 +8,8 @@
 		"vscode": {
 			"extensions":[
 				"octref.vetur",
-				"donjayamanne.githistory"
+				"donjayamanne.githistory",
+				"Vue.volar"
 			]
 		}
 	},
@@ -16,6 +17,6 @@
 		"source=node_modules_hinav_dev,target=${containerWorkspaceFolder}/node_modules,type=volume"
 	],
 	"containerEnv": {
-		"CHOKIDAR_USEPOLLING": "true" 
+		"CHOKIDAR_USEPOLLING": "true"
 	}
 }
