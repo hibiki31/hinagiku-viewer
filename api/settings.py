@@ -9,6 +9,7 @@ DATA_ROOT = re.sub(r"/$", "", os.getenv('DATA_ROOT', '/opt/data/'))
 APP_ROOT = re.sub(r"/$", "", os.getenv('APP_ROOT', '/opt/app/'))
 IS_DEV = bool(os.getenv('IS_DEV', False))
 DEBUG_LOG = bool(os.getenv('DEBUG_LOG', False))
+GNICORN_WORKERS = 4
 
 CONVERT_THREAD = int(os.cpu_count())
 SECRET_KEY = 'DEV_KEY' if IS_DEV else os.getenv('SECRET_KEY', secrets.token_urlsafe(128))

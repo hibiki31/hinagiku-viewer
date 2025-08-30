@@ -12,11 +12,7 @@
 		"vscode": {
 		  // Add the IDs of extensions you want installed when the container is created.
 		  "extensions": [
-			"ms-python.python",
-			"zhuangtongfa.material-theme",
-			"mhutchie.git-graph",
-			"ms-python.isort",
-			"wholroyd.jinja"
+			"ms-python.python"
 		  ]
 		}
 	  }

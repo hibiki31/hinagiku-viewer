@@ -1,6 +1,13 @@
 # API
 
-## Alembic
+## 開発用コマンド
+
+起動
+
+```bash
+gunicorn --config ./mixins/gnicorn_config.py 
+```
+
 
 ```bash
 docker-compose run api alembic upgrade head
@@ -10,23 +17,13 @@ alembic upgrade head
 alembic downgrade base
 ```
 
-## Develop
-
-```
-apt update
-apt install -y postgresql-client
-psql -h db -U postgres -d mydatabase -f inset.sql
-```
-
 ```
 cp ../../data/hinav-dev-testdata/* ../../data/book_send/
 ```
 
 ## 起動
 
-```
-gunicorn --config ./gnicorn_config.py 
-```
+
 
 ## マイグレーション参考
 
