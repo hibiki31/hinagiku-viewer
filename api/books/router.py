@@ -25,7 +25,7 @@ exception_notfund = HTTPException(
 )
 
 
-@app.get("/api/librarys", tags=["Library"], response_model=List[GetLibrary])
+@app.get("/api/libraries", tags=["Library"], response_model=List[GetLibrary])
 async def get_api_library(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)

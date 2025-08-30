@@ -1,21 +1,19 @@
-import os
 import jwt
-import secrets
 
 from datetime import datetime, timedelta
 from typing import List, Optional
 from passlib.context import CryptContext
-from pydantic import BaseModel, ValidationError
-from fastapi import APIRouter, Depends, Request, HTTPException, Security, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, SecurityScopes
+from fastapi import APIRouter, Depends, HTTPException, Security, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from pydantic import BaseModel
 
 from mixins.database import get_db
 from mixins.log import setup_logger
 from settings import SECRET_KEY
-from .models import *
-from .schemas import *
+from users.models import UserModel
+from users.schemas import AuthValidateResponse, UserCurrent, UserGet, UserPost, TokenRFC6749Response
 
 
 logger = setup_logger(__name__)
@@ -38,6 +36,34 @@ oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="api/auth",
     auto_error=False
 )
+
+
+class CurrentUser(BaseModel):
+    id: str
+    token: str
+    scopes: List[str] = []
+    projects: List[str] = []
+    def verify_scope(self, scopes, return_bool=False):
+        # 要求Scopeでループ
+        for request_scope in scopes:
+            match_scoped = False
+            # 持っているScopeでループ
+            for having_scope in self.scopes:
+                if having_scope in request_scope:
+                    match_scoped = True
+            # 持っているScopeが権限を持たない場合終了
+            if not match_scoped:
+                if return_bool:
+                    return False
+                else:
+                    raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Not enough permissions",
+                            headers={"WWW-Authenticate": "Bearer"},
+                        )
+        # すべての要求Scopeをクリア
+        return True
+
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -175,8 +201,8 @@ async def api_auth_setup(
     return user
 
 
-@app.get("/api/auth/validate", tags=["Auth"])
-async def read_auth_validate(
-        current_user: UserCurrent = Depends(get_current_user)
+@app.get("/validate", tags=["auth"], response_model=AuthValidateResponse)
+def validate_token(
+        current_user: CurrentUser = Security(get_current_user, scopes=["user"])
     ):
     return {"access_token": current_user.token, "username": current_user.id, "token_type": "Bearer"}

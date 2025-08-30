@@ -5,13 +5,18 @@
 起動
 
 ```bash
+# 自動リロード
+python3 main.py
+# 本番用
 gunicorn --config ./mixins/gnicorn_config.py 
 ```
 
 
 ```bash
 docker-compose run api alembic upgrade head
-alembic revision --autogenerate -m "Add is_favorite"
+# マイグレーションファイルの作成
+alembic revision --autogenerate -m "Change table name"
+# データベースに適応
 alembic upgrade head
 # データリセット
 alembic downgrade base
@@ -19,6 +24,13 @@ alembic downgrade base
 
 ```
 cp ../../data/hinav-dev-testdata/* ../../data/book_send/
+```
+
+パッケージの更新
+
+```bash
+pip install pip-review
+pip-review
 ```
 
 ## 起動

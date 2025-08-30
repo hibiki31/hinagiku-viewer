@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table
+from sqlalchemy import Boolean, Column, String
 from sqlalchemy.orm import relationship
 
 from mixins.database import Base
@@ -10,9 +10,9 @@ class UserModel(Base):
     password = Column(String)
     is_admin = Column(Boolean)
     books = relationship("BookModel")
-    librarys = relationship(
+    libraries = relationship(
         'LibraryModel',
-        secondary=books_models.librarys_to_users,
-        back_populates='shered_users',
+        secondary=books_models.libraries_to_users,
+        back_populates='shared_users',
         lazy=False,
     )

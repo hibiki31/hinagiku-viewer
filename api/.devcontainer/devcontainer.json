@@ -7,12 +7,15 @@
 		8000,
 		5432
 	],
+	"postCreateCommand": ".devcontainer/post_create.sh",
 	"customizations": {
 		// Configure properties specific to VS Code.
 		"vscode": {
 		  // Add the IDs of extensions you want installed when the container is created.
 		  "extensions": [
-			"ms-python.python"
+			"ms-python.python",
+			"charliermarsh.ruff",
+			"Gxl.git-graph-3"
 		  ]
 		}
 	  }

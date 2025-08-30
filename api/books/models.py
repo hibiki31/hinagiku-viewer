@@ -15,22 +15,22 @@ books_to_authors = Table('book_to_author', Base.metadata,
 )
 
 
-librarys_to_users = Table('library_to_user', Base.metadata,
-    Column('library_id', Integer, ForeignKey('librarys.id', onupdate='CASCADE', ondelete='CASCADE')),
+libraries_to_users = Table('library_to_user', Base.metadata,
+    Column('library_id', Integer, ForeignKey('libraries.id', onupdate='CASCADE', ondelete='CASCADE')),
     Column('user_id', String, ForeignKey('users.id', onupdate='CASCADE', ondelete='CASCADE'))
 )
 
 
 class LibraryModel(Base):
-    __tablename__ = 'librarys'
+    __tablename__ = 'libraries'
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)
     books = relationship('BookModel',lazy=False, back_populates='library')
     user_id = Column(String, ForeignKey('users.id', onupdate='CASCADE', ondelete='CASCADE'), nullable=False)
-    shered_users = relationship(
+    shared_users= relationship(
         'UserModel',
-        secondary=librarys_to_users,
-        back_populates='librarys',
+        secondary=libraries_to_users,
+        back_populates='libraries',
         lazy=False,
     )
 
@@ -91,7 +91,7 @@ class BookModel(Base):
     series_no = Column(Integer)
     
     # ソフトメタデータ 多対一
-    library_id = Column(Integer, ForeignKey('librarys.id'), nullable=False)
+    library_id = Column(Integer, ForeignKey('libraries.id'), nullable=False)
     library = relationship('LibraryModel',lazy=False, back_populates='books')
     genre_id = Column(Integer, ForeignKey('genres.id'))
     genre = relationship('GenreModel',lazy=False, back_populates='books')
