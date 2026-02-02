@@ -1,30 +1,29 @@
 {
-	"name": "Hinav-Vue",
-	"context": ".",
-    "dockerFile": "./Dockerfile",
-    "forwardPorts": [
-        3000
-    ],
-    "mounts": [
-        "source=node_modules_hinav_dev,target=${containerWorkspaceFolder}/node_modules,type=volume"
-    ],
-	"postCreateCommand": "/workspaces/hinagiku-viewer/vue/.devcontainer/post.sh",
-    "customizations": {
-        // Configure properties specific to VS Code.
-        "vscode": {
-            // Add the IDs of extensions you want installed when the container is created.
-            "extensions": [
-                "azemoh.one-monokai",
-                "mhutchie.git-graph",
-                "Vue.volar",
-                "dbaeumer.vscode-eslint",
-                "esbenp.prettier-vscode",
-                "EditorConfig.EditorConfig",
-                "hollowtree.vue-snippets"
-            ]
-        }
-    },
-	"containerEnv": {
-		"CHOKIDAR_USEPOLLING": "true"
-	}
+  "name": "Hinav-Vue",
+  "context": ".",
+  "dockerFile": "./Dockerfile",
+  "forwardPorts": [3000],
+  "mounts": [
+    "source=node_modules_hinav_dev,target=${containerWorkspaceFolder}/node_modules,type=volume"
+  ],
+  "postCreateCommand": "/workspaces/hinagiku-viewer/vue/.devcontainer/post.sh",
+  "customizations": {
+    // Configure properties specific to VS Code.
+    "vscode": {
+      // Add the IDs of extensions you want installed when the container is created.
+      "extensions": [
+        "azemoh.one-monokai",
+        "mhutchie.git-graph",
+        "Vue.volar",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "EditorConfig.EditorConfig",
+        "hollowtree.vue-snippets",
+        "saoudrizwan.claude-dev"
+      ]
+    }
+  },
+  "containerEnv": {
+    "CHOKIDAR_USEPOLLING": "true"
+  }
 }
