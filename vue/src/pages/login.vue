@@ -93,12 +93,16 @@ const openSetupDialog = () => {
 
 const doLogin = async () => {
   isLoadingLogin.value = true
-  const loginFormData = new FormData()
+  const loginFormData = new URLSearchParams()
   loginFormData.append('username', loginForm.username)
   loginFormData.append('password', loginForm.password)
 
   try {
-    const res = await axios.post('/api/auth', loginFormData)
+    const res = await axios.post('/api/auth', loginFormData, {
+      headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+    })
     if (res.status === 200) {
       pushNotice('ログイン成功', 'success')
       const accessToken = res.data.access_token

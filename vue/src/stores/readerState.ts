@@ -92,14 +92,6 @@ export const useReaderStateStore = defineStore('readerState', {
     searchQuery: loadSearchQuery()
   }),
 
-  getters: {
-    booksList: (state) => state.booksList,
-    booksCount: (state) => state.booksCount,
-    searchQuery: (state) => state.searchQuery,
-    openBook: (state) => state.openBook,
-    showListMode: (state) => state.showListMode
-  },
-
   actions: {
     setBooksResult(res: { rows: any[], count: number }) {
       this.booksList = res.rows
