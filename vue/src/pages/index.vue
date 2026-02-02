@@ -5,53 +5,63 @@
     <RangeChangeDialog ref="rangeChangeDialogRef" @search="search" />
     <!-- トップバー -->
     <v-app-bar color="primary" dark density="compact" flat app>
-      <v-app-bar-nav-icon @click="showDrawer = !showDrawer"></v-app-bar-nav-icon>
-      <v-toolbar-title></v-toolbar-title>
-      <v-spacer></v-spacer>
+      <v-app-bar-nav-icon @click="showDrawer = !showDrawer" />
+      <v-toolbar-title />
+      <v-spacer />
       <v-text-field
         v-model="queryTitle"
         hide-details
         single-line
         density="compact"
-      ></v-text-field>
-      <v-btn icon @click="searchDialogRef?.openDialog()"><v-icon>mdi-magnify</v-icon></v-btn>
-      <v-btn icon @click="reload()"><v-icon>mdi-reload</v-icon></v-btn>
+      />
+      <v-btn icon @click="searchDialogRef?.openDialog()">
+        <v-icon>mdi-magnify</v-icon>
+      </v-btn>
+      <v-btn icon @click="reload()">
+        <v-icon>mdi-reload</v-icon>
+      </v-btn>
     </v-app-bar>
     <!-- ドロワー -->
     <v-navigation-drawer v-model="showDrawer" app>
       <v-list nav density="compact">
         <v-list-item>
           <v-select
+            v-model="queryLibrary"
             :items="libraryList"
             label="Library"
-            v-model="queryLibrary"
             item-title="name"
             item-value="id"
             density="compact"
-          ></v-select>
+          />
         </v-list-item>
       </v-list>
 
       <!-- 評価するところ -->
-      <v-divider></v-divider>
+      <v-divider />
       <v-list nav density="compact">
         <v-list-item>
-          <v-rating v-model="queryRate" size="small"></v-rating>
+          <v-rating
+            :model-value="queryRate ?? undefined"
+            size="small"
+            @update:model-value="(value) => queryRate = value as number"
+          />
         </v-list-item>
         <v-list-item>
-          <v-btn size="small" color="primary" @click="queryRate = null" class="ma-1" width="70">
+          <v-btn size="small" color="primary" class="ma-1" width="70" @click="queryRate = null">
             All Rate
           </v-btn>
-          <v-btn size="small" color="grey" @click="queryRate = 0" class="ma-1" width="70">
+          <v-btn size="small" color="grey" class="ma-1" width="70" @click="queryRate = 0">
             No Rate
           </v-btn>
         </v-list-item>
       </v-list>
-      <v-divider></v-divider>
+      <v-divider />
       <v-list nav density="compact">
         <v-list-item>
-          <v-btn class="ma-1" size="small" color="error" @click="exportDialog = true" disabled>
-            Range Export<v-icon class="pl-1">mdi-export</v-icon>
+          <v-btn class="ma-1" size="small" color="error" disabled @click="exportDialog = true">
+            Range Export<v-icon class="pl-1">
+              mdi-export
+            </v-icon>
           </v-btn>
         </v-list-item>
         <v-list-item>
@@ -61,49 +71,55 @@
         </v-list-item>
         <v-list-item>
           <v-btn class="ma-1" size="small" @click="loadLibrary">
-            Load Library<v-icon class="pl-2">mdi-book-refresh</v-icon>
+            Load Library<v-icon class="pl-2">
+              mdi-book-refresh
+            </v-icon>
           </v-btn>
         </v-list-item>
         <v-list-item>
           <v-btn class="ma-1" size="small" @click="toDuplicateView">
-            Duplicate List<v-icon class="pl-2">mdi-content-duplicate</v-icon>
+            Duplicate List<v-icon class="pl-2">
+              mdi-content-duplicate
+            </v-icon>
           </v-btn>
         </v-list-item>
       </v-list>
-      <v-divider></v-divider>
+      <v-divider />
       <v-list-item>
         <v-switch
-          @update:model-value="readerStateStore.setShowListMode($event)"
           :model-value="showListMode"
           label="リスト表示"
           density="compact"
           hide-details
-        ></v-switch>
+          @update:model-value="(value) => readerStateStore.setShowListMode(!!value)"
+        />
       </v-list-item>
       <!-- ライセンス -->
-      <v-divider class="pb-2"></v-divider>
+      <v-divider class="pb-2" />
       <div class="text-subtitle-2 ml-3">
         Develop by
         <a href="https://github.com/hibiki31" class="text-blue">@hibiki31</a>
       </div>
-      <div class="text-subtitle-2 ml-3">v{{ version }}</div>
+      <div class="text-subtitle-2 ml-3">
+        v{{ version }}
+      </div>
       <div class="text-subtitle-2 ml-3">
         Icons made by
         <a href="https://www.flaticon.com/authors/icon-pond" title="Icon Pond" class="text-blue">Icon Pond</a>
       </div>
     </v-navigation-drawer>
-    <v-progress-linear indeterminate color="yellow-darken-2" v-show="isLoading"></v-progress-linear>
+    <v-progress-linear v-show="isLoading" indeterminate color="yellow-darken-2" />
     <!-- メインの一覧 -->
     <v-container v-show="!isLoading">
       <BooksListTable
         v-if="showListMode"
-        @toReaderPage="toReaderPage"
-        @openMenu="openMenu"
+        @to-reader-page="toReaderPage"
+        @open-menu="openMenu"
         @search="search"
       />
-      <BooksListThum v-else @toReaderPage="toReaderPage" @openMenu="openMenu" />
+      <BooksListThum v-else @to-reader-page="toReaderPage" @open-menu="openMenu" />
     </v-container>
-    <v-pagination v-model="page" :length="maxPage" :total-visible="17" class="ma-3"></v-pagination>
+    <v-pagination v-model="page" :length="maxPage" :total-visible="17" class="ma-3" />
   </div>
 </template>
 
@@ -118,6 +134,10 @@ import BookDetailDialog from '@/components/dialog/BookDetailDialog.vue'
 import RangeChangeDialog from '@/components/dialog/RangeChangeDialog.vue'
 import BooksListTable from '@/components/BooksListTable.vue'
 import BooksListThum from '@/components/BooksListThum.vue'
+import type { components } from '@/api'
+
+type GetLibrary = components['schemas']['GetLibrary']
+type BookBase = components['schemas']['BookBase']
 
 const router = useRouter()
 const readerStateStore = useReaderStateStore()
@@ -130,11 +150,10 @@ const rangeChangeDialogRef = ref()
 const showDrawer = ref(true)
 const isLoading = ref(true)
 const exportDialog = ref(false)
-const libraryList = ref<any[]>([])
+const libraryList = ref<GetLibrary[]>([])
 const version = '3.0.0'
 
 const searchQuery = computed(() => readerStateStore.searchQuery)
-const booksList = computed(() => readerStateStore.booksList)
 const booksCount = computed(() => readerStateStore.booksCount)
 const showListMode = computed(() => readerStateStore.showListMode)
 const maxPage = computed(() => Math.ceil(booksCount.value / searchQuery.value.limit))
@@ -223,16 +242,16 @@ const loadLibrary = async () => {
       data: { state: 'load' }
     })
     pushNotice('ライブラリのリロードを開始' + response.data.status, 'success')
-  } catch (error) {
+  } catch {
     pushNotice('ライブラリのリロードに失敗しました', 'error')
   }
 }
 
-const openMenu = (item: any) => {
+const openMenu = (item: BookBase) => {
   bookDetailDialogRef.value?.openDialog(item)
 }
 
-const toReaderPage = async (item: any) => {
+const toReaderPage = async (item: BookBase) => {
   // ローカルストレージにパラメータ格納
   createCache(item)
   localStorage.setItem('searchQuery', JSON.stringify(searchQuery.value))
@@ -242,7 +261,7 @@ const toReaderPage = async (item: any) => {
   router.push(`/books/${item.uuid}`)
 }
 
-const createCache = (book: any) => {
+const createCache = (book: BookBase) => {
   pushNotice('キャッシュの作成をリクエスト', 'info')
   axios.request({
     method: 'patch',

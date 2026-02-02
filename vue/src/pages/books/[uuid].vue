@@ -4,24 +4,28 @@
     <v-dialog v-model="menuDialog" scrollable max-width="500px">
       <v-card>
         <v-card-text class="pt-6">
-          <v-btn @click="nowPage += 1">ページ調整</v-btn>
-          <v-btn @click="goLibrary()" class="ml-3">ライブラリへ戻る</v-btn>
+          <v-btn @click="nowPage += 1">
+            ページ調整
+          </v-btn>
+          <v-btn class="ml-3" @click="goLibrary()">
+            ライブラリへ戻る
+          </v-btn>
           <v-row class="mt-3 pa-0">
             <v-col cols="12" sm="4">
               <v-select
-                :items="cachePageItems"
                 v-model="settings.cachePage"
+                :items="cachePageItems"
                 label="先読みページ数"
                 density="compact"
-              ></v-select>
+              />
             </v-col>
             <v-col cols="12" sm="4">
               <v-select
-                :items="[600, 1080, 1920]"
                 v-model="settings.customHeight"
+                :items="[600, 1080, 1920]"
                 label="ページ縦サイズ"
                 density="compact"
-              ></v-select>
+              />
             </v-col>
             <v-col cols="12" sm="4">
               <v-text-field
@@ -30,7 +34,7 @@
                 clearable
                 readonly
                 density="compact"
-              ></v-text-field>
+              />
             </v-col>
           </v-row>
           <v-row>
@@ -40,7 +44,7 @@
                 label="見開き表示"
                 density="compact"
                 hide-details
-              ></v-switch>
+              />
             </v-col>
             <v-col cols="12" sm="6">
               <v-switch
@@ -48,7 +52,7 @@
                 label="画面サイズで表示"
                 density="compact"
                 hide-details
-              ></v-switch>
+              />
             </v-col>
           </v-row>
           <v-slider
@@ -57,17 +61,19 @@
             :min="0"
             :max="bookInfo.page"
             thumb-label
-          ></v-slider>
+          />
           <v-rating
-            v-model="bookInfo.userData.rate"
-            @update:model-value="bookInfoSubmit"
+            :model-value="bookInfo.userData.rate ?? undefined"
             size="small"
             class="pa-1"
-          ></v-rating>
+            @update:model-value="(value) => { bookInfo.userData.rate = value as number; bookInfoSubmit(); }"
+          />
         </v-card-text>
-        <v-divider></v-divider>
+        <v-divider />
         <v-card-actions>
-          <v-btn color="blue-darken-1" variant="text" @click="menuDialog = false">Close</v-btn>
+          <v-btn color="blue-darken-1" variant="text" @click="menuDialog = false">
+            Close
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -82,11 +88,11 @@
       @contextmenu.prevent="menuDialog = true"
     >
       <template v-if="pageBlob[nowPage - 1]">
-        <img v-if="settings.showTowPage" :src="pageBlob[nowPage + 0]" />
-        <img :src="pageBlob[nowPage - 1]" />
+        <img v-if="settings.showTowPage" :src="pageBlob[nowPage + 0] || ''">
+        <img :src="pageBlob[nowPage - 1] || ''">
       </template>
       <template v-else>
-        <v-progress-circular indeterminate size="50" color="primary"></v-progress-circular>
+        <v-progress-circular indeterminate size="50" color="primary" />
       </template>
     </div>
     <!-- 下部メニュー -->
@@ -96,9 +102,9 @@
       style="position: fixed; bottom: 5px; z-index: 10; width: 100%"
     >
       <v-container>
-        <v-switch v-model="settings.showTowPage" label="見開き表示" hide-details></v-switch>
-        <v-switch v-model="settings.showBaseWidth" label="横幅に合わせる" hide-details></v-switch>
-        <v-slider v-model="nowPage" :min="1" :max="bookInfo.page" thumb-label></v-slider>
+        <v-switch v-model="settings.showTowPage" label="見開き表示" hide-details />
+        <v-switch v-model="settings.showBaseWidth" label="横幅に合わせる" hide-details />
+        <v-slider v-model="nowPage" :min="1" :max="bookInfo.page" thumb-label />
       </v-container>
     </div>
     <!-- 上部メニュー -->
@@ -114,10 +120,10 @@
         <v-btn icon @click="nowPage += 1">
           <v-icon>mdi-book-open-page-variant</v-icon>
         </v-btn>
-        <v-btn icon @click="goLibrary" class="ml-3">
+        <v-btn icon class="ml-3" @click="goLibrary">
           <v-icon>mdi-close-circle</v-icon>
         </v-btn>
-        <v-btn icon @click="menuDialog = true" class="ml-3">
+        <v-btn icon class="ml-3" @click="menuDialog = true">
           <v-icon>mdi-dots-horizontal-circle</v-icon>
         </v-btn>
       </v-container>
@@ -141,15 +147,20 @@ const uuid = ref('')
 const nowPage = ref(1)
 const nowLoading = ref(0)
 const pageMove = ref(false)
-const width = ref(window.innerWidth)
-const height = ref(window.innerHeight)
 const pageBlob = ref<(string | null)[]>([])
 const isCompletedRead = ref(false)
 const cachePageItems = [2, 4, 8, 16, 32, 64]
 const loadSizeB = ref(0)
 const loadSizeMB = ref(0)
 
-const bookInfo = reactive<any>({
+const bookInfo = reactive<{
+  page: number
+  uuid?: string
+  userData: {
+    rate: number | null
+    openPage?: number | null
+  }
+}>({
   page: 0,
   userData: {
     rate: null
@@ -292,7 +303,7 @@ const loadSettings = () => {
     const getParam = JSON.parse(localStorage.getItem('readerSettings') || '{}')
     for (const key in getParam) {
       if (key in settings) {
-        ;(settings as any)[key] = getParam[key]
+        ;(settings as Record<string, unknown>)[key] = getParam[key]
       }
     }
   } catch (e) {
@@ -316,7 +327,8 @@ watch(
 
 onMounted(async () => {
   // パスからUUIDを取得して，ローカルストレージに保存
-  uuid.value = route.params.uuid as string
+  const paramUuid = (route.params as { uuid?: string | string[] }).uuid
+  uuid.value = Array.isArray(paramUuid) ? paramUuid[0] : (paramUuid || '')
   localStorage.openBookUUID = uuid.value
 
   // ページの指定はあるか？
@@ -334,7 +346,7 @@ onMounted(async () => {
       params: { uuid: uuid.value }
     })
     Object.assign(bookInfo, response.data.rows[0])
-    if (bookInfo.userData.openPage !== null) {
+    if (bookInfo.userData.openPage !== null && bookInfo.userData.openPage !== undefined) {
       nowPage.value = bookInfo.userData.openPage
     }
     pageBlob.value = [...pageBlob.value, ...Array(bookInfo.page - 4).fill(null)]

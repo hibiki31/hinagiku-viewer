@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-dialog width="400" v-model="postDialogState">
+    <v-dialog v-model="postDialogState" width="400">
       <v-card>
         <v-card-title>著者追加</v-card-title>
         <v-card-text>
@@ -8,19 +8,21 @@
             v-model="postAuthorName"
             :rules="[required, limitLength64]"
             counter="64"
-          ></v-text-field>
+          />
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" @click="postAuthor">追加</v-btn>
+          <v-spacer />
+          <v-btn color="primary" @click="postAuthor">
+            追加
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
     <v-menu v-for="author in openBook.authors" :key="author.id">
-      <template v-slot:activator="{ props: menuProps }">
+      <template #activator="{ props: menuProps }">
         <v-tooltip location="bottom">
-          <template v-slot:activator="{ props: tooltipProps }">
+          <template #activator="{ props: tooltipProps }">
             <v-chip
               class="mt-2 mb-2 mr-2"
               size="small"
@@ -37,24 +39,28 @@
       </template>
       <v-card>
         <v-card-text>
-          <div class="ma-3" @click="searchAuthor(author.name)" style="cursor: pointer">
-            <v-icon color="primary">mdi-magnify</v-icon>
+          <div class="ma-3" style="cursor: pointer" @click="searchAuthor(author.name)">
+            <v-icon color="primary">
+              mdi-magnify
+            </v-icon>
             この著者で検索する
           </div>
           <div
-            class="ma-3"
-            @click="favoriteAuthor(author, true)"
             v-if="author.isFavorite === false"
+            class="ma-3"
             style="cursor: pointer"
+            @click="favoriteAuthor(author, true)"
           >
-            <v-icon color="primary">mdi-star</v-icon>
+            <v-icon color="primary">
+              mdi-star
+            </v-icon>
             この著者をお気に入りにする
           </div>
           <div
-            class="ma-3"
-            @click="favoriteAuthor(author, false)"
             v-if="author.isFavorite === true"
+            class="ma-3"
             style="cursor: pointer"
+            @click="favoriteAuthor(author, false)"
           >
             <v-icon>mdi-star</v-icon>
             この著者をお気に入りから外す
@@ -62,7 +68,9 @@
         </v-card-text>
       </v-card>
     </v-menu>
-    <v-icon size="small" @click="openPostDialog(openBook)">mdi-plus-circle</v-icon>
+    <v-icon size="small" @click="openPostDialog()">
+      mdi-plus-circle
+    </v-icon>
   </div>
 </template>
 
@@ -72,13 +80,17 @@ import { useReaderStateStore } from '@/stores/readerState'
 import axios from '@/func/axios'
 import { usePushNotice, useApiErrorHandler } from '@/composables/utility'
 import { required, limitLength64 } from '@/composables/rules'
+import type { components } from '@/api'
+
+type BookBase = components['schemas']['BookBase']
+type BookAuthors = components['schemas']['BookAuthors']
 
 const readerStateStore = useReaderStateStore()
 const { pushNotice } = usePushNotice()
 const { apiErrorHandler } = useApiErrorHandler()
 
 const props = defineProps<{
-  openBook: any
+  openBook: { uuid: string; authors: BookAuthors[] } & Partial<Omit<BookBase, 'uuid' | 'authors'>>
 }>()
 
 const emit = defineEmits<{
@@ -88,7 +100,7 @@ const emit = defineEmits<{
 const postDialogState = ref(false)
 const postAuthorName = ref('')
 
-const openPostDialog = (book: any) => {
+const openPostDialog = () => {
   postDialogState.value = true
 }
 
@@ -100,7 +112,7 @@ const getAuthorColor = (isFavorite: boolean): string => {
   }
 }
 
-const favoriteAuthor = async (author: any, favorite: boolean) => {
+const favoriteAuthor = async (author: BookAuthors, favorite: boolean) => {
   try {
     await axios.request({
       method: 'patch',
@@ -137,7 +149,7 @@ const postAuthor = async () => {
   postDialogState.value = false
 }
 
-const deleteAuthor = async (book: any, id: number) => {
+const deleteAuthor = async (book: { uuid: string }, id: number) => {
   try {
     const response = await axios.request({
       method: 'delete',

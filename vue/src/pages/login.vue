@@ -6,14 +6,16 @@
         <v-col cols="12" sm="8" md="4">
           <v-card v-if="userDataStore.isLoaded" flat>
             <v-card-text class="text-center">
-              <div class="text-body-1 mb-3">Now loading...</div>
+              <div class="text-body-1 mb-3">
+                Now loading...
+              </div>
               <v-progress-circular indeterminate color="primary" />
             </v-card-text>
           </v-card>
           <v-card v-else class="elevation-12">
             <v-toolbar color="primary" dark>
               <v-toolbar-title>Login</v-toolbar-title>
-              <v-spacer></v-spacer>
+              <v-spacer />
             </v-toolbar>
             <v-form ref="formRef" v-model="isFormValid">
               <v-card-text>
@@ -25,33 +27,37 @@
                   prepend-icon="mdi-account"
                   required
                   type="text"
-                ></v-text-field>
+                />
 
                 <v-text-field
+                  id="password"
                   v-model="loginForm.password"
                   :rules="[rules.required]"
-                  id="password"
                   label="Password"
                   name="password"
                   prepend-icon="mdi-lock"
                   required
                   type="password"
-                ></v-text-field>
+                />
               </v-card-text>
               <v-card-actions>
-                <v-spacer></v-spacer>
+                <v-spacer />
                 <v-btn
-                  @click="openSetupDialog"
                   variant="text"
                   color="secondary"
-                >Setup</v-btn>
+                  @click="openSetupDialog"
+                >
+                  Setup
+                </v-btn>
                 <v-btn
-                  @click.prevent="doLogin"
                   :disabled="!isFormValid"
                   :loading="isLoadingLogin"
                   color="primary"
                   type="submit"
-                >Login</v-btn>
+                  @click.prevent="doLogin"
+                >
+                  Login
+                </v-btn>
               </v-card-actions>
             </v-form>
           </v-card>
@@ -84,7 +90,7 @@ const loginForm = reactive({
 })
 
 const rules = {
-  required: (v: any) => !!v?.length || 'Required'
+  required: (v: unknown) => !!(v as string)?.length || 'Required'
 }
 
 const openSetupDialog = () => {
@@ -111,8 +117,9 @@ const doLogin = async () => {
     } else {
       pushNotice('エラーが発生しました', 'error')
     }
-  } catch (error: any) {
-    if (error.response?.status === 401) {
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { status?: number } }
+    if (axiosError.response?.status === 401) {
       pushNotice('ユーザ名またはパスワードが違います', 'error')
     } else {
       pushNotice('サーバエラーが発生しました', 'error')

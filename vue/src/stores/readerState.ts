@@ -1,5 +1,8 @@
 import { defineStore } from 'pinia'
 import axios from '@/func/axios'
+import type { components } from '@/api'
+
+type BookBase = components['schemas']['BookBase']
 
 interface SearchQuery {
   limit: number
@@ -15,27 +18,10 @@ interface SearchQuery {
   sortDesc?: boolean
 }
 
-interface OpenBook {
-  uuid?: string
-  title: string
-  userData: {
-    rate: number | null
-    openPage?: number | null
-    readTimes?: number | null
-    lastOpenDate?: string | null
-  }
-  authors?: any[]
-  publisher?: {
-    name: string
-  }
-  libraryId?: number
-  size?: number
-  page?: number
-  addDate?: string
-}
+type OpenBook = Partial<BookBase> & Pick<BookBase, 'userData'>
 
 interface ReaderStateState {
-  booksList: any[]
+  booksList: BookBase[]
   booksCount: number
   readerPage: number
   showListMode: boolean
@@ -49,9 +35,11 @@ const baseState: ReaderStateState = {
   readerPage: 1,
   showListMode: false,
   openBook: {
-    title: '',
     userData: {
-      rate: null
+      rate: null,
+      openPage: null,
+      readTimes: null,
+      lastOpenDate: null
     }
   },
   searchQuery: {
@@ -76,11 +64,11 @@ const loadSearchQuery = (): SearchQuery => {
     // 上書きじゃなくてあったKeyを追加
     for (const key in getParam) {
       if (key in query) {
-        (query as any)[key] = getParam[key]
+        ;(query as Record<string, unknown>)[key] = getParam[key]
       }
     }
     return query
-  } catch (e) {
+  } catch {
     localStorage.removeItem('searchQuery')
     return baseState.searchQuery
   }
@@ -93,7 +81,7 @@ export const useReaderStateStore = defineStore('readerState', {
   }),
 
   actions: {
-    setBooksResult(res: { rows: any[], count: number }) {
+    setBooksResult(res: { rows: BookBase[], count: number }) {
       this.booksList = res.rows
       this.booksCount = res.count
     },

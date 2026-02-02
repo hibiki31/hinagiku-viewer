@@ -4,30 +4,24 @@
       <v-card-title>検索</v-card-title>
       <v-card-text>
         <v-text-field
+          v-model="searchQuery.titleLike"
           spellcheck="false"
           label="タイトル"
           placeholder=" "
-          v-model="searchQuery.titleLike"
-        ></v-text-field>
+        />
         <v-text-field
+          v-model="searchQuery.fullText"
           spellcheck="false"
           label="あいまい検索"
           placeholder=" "
-          v-model="searchQuery.fullText"
-        ></v-text-field>
+        />
         <v-row>
           <v-col cols="12" sm="6" md="4">
             <v-rating
-              v-if="searchQuery.rate !== null"
-              v-model="searchQuery.rate"
+              :model-value="searchQuery.rate ?? undefined"
               size="small"
-            ></v-rating>
-            <v-rating
-              v-else
-              color="yellow-accent-4"
-              v-model="searchQuery.rate"
-              size="small"
-            ></v-rating>
+              @update:model-value="(value) => searchQuery.rate = value as number"
+            />
           </v-col>
           <v-col cols="12" sm="6" md="4">
             <v-btn size="small" color="primary" class="ma-1" @click="searchQuery.rate = null">
@@ -35,16 +29,20 @@
             </v-btn>
           </v-col>
           <v-col cols="12" sm="6" md="4">
-            <v-btn size="small" color="grey" @click="searchQuery.rate = 0" class="ma-1">
+            <v-btn size="small" color="grey" class="ma-1" @click="searchQuery.rate = 0">
               No Rate
             </v-btn>
           </v-col>
         </v-row>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="error" variant="text" @click="dialogState = false">閉じる</v-btn>
-        <v-spacer></v-spacer>
-        <v-btn color="primary" variant="text" @click="submitDialog()">検索</v-btn>
+        <v-btn color="error" variant="text" @click="dialogState = false">
+          閉じる
+        </v-btn>
+        <v-spacer />
+        <v-btn color="primary" variant="text" @click="submitDialog()">
+          検索
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

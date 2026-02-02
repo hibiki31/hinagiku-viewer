@@ -10,7 +10,9 @@
           variant="tonal"
         >
           <div class="d-flex align-center ml-3">
-            <div class="text-body-2 mr-auto">{{ props.item.text }}</div>
+            <div class="text-body-2 mr-auto">
+              {{ props.item.text }}
+            </div>
           </div>
         </v-alert>
       </template>
@@ -78,7 +80,7 @@ onMounted(async () => {
       if (router.currentRoute.value.path === '/login') {
         router.push('/')
       }
-    } catch (error) {
+    } catch {
       userDataStore.authenticaitonFail()
     }
   } else {
@@ -99,8 +101,8 @@ onMounted(async () => {
         location.reload()
       }, 3000)
     }
-  } catch (error) {
-    console.error('バージョンチェックエラー:', error)
+  } catch {
+    console.error('バージョンチェックエラー')
   }
 })
 </script>

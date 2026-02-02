@@ -3,41 +3,49 @@
     <v-card>
       <v-card-text>
         <v-row class="pt-8">
-          <p class="font-weight-bold">{{ openBook.title }}</p>
+          <p class="font-weight-bold">
+            {{ openBook.title }}
+          </p>
         </v-row>
         <v-row>
-          <p class="font-weight-black">サイズ:</p>
+          <p class="font-weight-black">
+            サイズ:
+          </p>
           <p>{{ fitByte(openBook.size || 0) }}</p>
         </v-row>
         <v-row>
-          <p class="font-weight-black">ページ:</p>
+          <p class="font-weight-black">
+            ページ:
+          </p>
           <p>{{ openBook.page }}</p>
         </v-row>
         <v-row>
           <v-select
+            v-model="openBook.libraryId"
             :items="libraryList"
             label="Library"
-            v-model="openBook.libraryId"
             item-title="name"
             item-value="id"
-            @update:model-value="changeBookLibrary"
             density="compact"
-          ></v-select>
+            @update:model-value="changeBookLibrary"
+          />
           <v-rating
-            v-model="openBook.userData.rate"
-            @update:model-value="bookInfoSubmit"
+            :model-value="openBook.userData.rate ?? undefined"
             size="small"
             class="pa-1"
-          ></v-rating>
+            @update:model-value="(value) => { openBook.userData.rate = value as number; bookInfoSubmit(); }"
+          />
         </v-row>
         <v-row>
-          <BaseAuthorChip :openBook="openBook" @search="emit('search')" />
+          <BaseAuthorChip v-if="openBook.uuid && openBook.authors" :open-book="openBook as any" @search="emit('search')" />
         </v-row>
       </v-card-text>
-      <v-divider></v-divider>
+      <v-divider />
       <v-card-actions>
-        <v-btn color="blue-darken-1" variant="text" @click="dialogState = false"> 閉じる </v-btn>
-        <v-spacer></v-spacer>
+        <v-btn color="blue-darken-1" variant="text" @click="dialogState = false">
+          閉じる
+        </v-btn>
+        <v-spacer />
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -49,6 +57,10 @@ import axios from '@/func/axios'
 import { useReaderStateStore } from '@/stores/readerState'
 import { usePushNotice, useFitByte } from '@/composables/utility'
 import BaseAuthorChip from '@/components/BaseAuthorChip.vue'
+import type { components } from '@/api'
+
+type BookBase = components['schemas']['BookBase']
+type GetLibrary = components['schemas']['GetLibrary']
 
 const readerStateStore = useReaderStateStore()
 const { pushNotice } = usePushNotice()
@@ -59,18 +71,18 @@ const emit = defineEmits<{
 }>()
 
 const dialogState = ref(false)
-const libraryList = ref<any[]>([])
+const libraryList = ref<GetLibrary[]>([])
 
 const openBook = computed(() => readerStateStore.openBook)
 
-const openDialog = async (book: any) => {
+const openDialog = async (book: BookBase) => {
   readerStateStore.setOpenBook(book)
   dialogState.value = true
   try {
     const response = await axios.get('/api/librarys')
     libraryList.value = response.data
-  } catch (error) {
-    console.error('ライブラリ情報取得エラー:', error)
+  } catch {
+    console.error('ライブラリ情報取得エラー')
   }
 }
 
@@ -86,7 +98,7 @@ const bookInfoSubmit = async () => {
     })
     pushNotice('評価を更新しました', 'success')
     emit('search')
-  } catch (error) {
+  } catch {
     pushNotice('評価の更新に失敗しました', 'error')
   }
 }
@@ -100,7 +112,7 @@ const changeBookLibrary = async () => {
     })
     pushNotice('ライブラリを変更しました', 'success')
     emit('search')
-  } catch (error) {
+  } catch {
     pushNotice('ライブラリの変更に失敗しました', 'error')
   }
 }

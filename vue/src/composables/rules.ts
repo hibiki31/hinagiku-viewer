@@ -5,7 +5,7 @@
 /**
  * 必須チェック
  */
-export const required = (value: any): boolean | string => {
+export const required = (value: unknown): boolean | string => {
   return !!value || 'Required.'
 }
 

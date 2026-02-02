@@ -10,7 +10,7 @@
             label="Admin user name"
             :rules="[required, limitLength64, characterRestrictions, firstCharacterRestrictions]"
             counter="64"
-          ></v-text-field>
+          />
           <v-text-field
             v-model="postData.password"
             :append-icon="show1 ? 'mdi-eye' : 'mdi-eye-off'"
@@ -21,11 +21,13 @@
             hint="At least 1 characters"
             counter
             @click:append="show1 = !show1"
-          ></v-text-field>
+          />
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" @click="runMethod">Setup</v-btn>
+          <v-spacer />
+          <v-btn color="primary" @click="runMethod">
+            Setup
+          </v-btn>
         </v-card-actions>
       </v-form>
     </v-card>
@@ -67,8 +69,9 @@ const runMethod = async () => {
     })
     pushNotice('Success setup', 'success')
     dialogState.value = false
-  } catch (error: any) {
-    pushNotice(error.response?.data?.detail || 'セットアップに失敗しました', 'error')
+  } catch (error: unknown) {
+    const axiosError = error as { response?: { data?: { detail?: string } } }
+    pushNotice(axiosError.response?.data?.detail || 'セットアップに失敗しました', 'error')
   }
 }
 

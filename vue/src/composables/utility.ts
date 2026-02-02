@@ -69,16 +69,17 @@ export function usePushNotice() {
 export function useApiErrorHandler() {
   const { pushNotice } = usePushNotice()
 
-  const apiErrorHandler = (error: any) => {
-    if (!error.response) {
+  const apiErrorHandler = (error: unknown) => {
+    const axiosError = error as { response?: { status?: number; data?: string } }
+    if (!axiosError.response) {
       pushNotice('サーバーエラーが発生しました', 'error')
       return
     }
-    const status = error.response.status
+    const status = axiosError.response.status
     if (status === 401 || status === 400) {
       pushNotice('認証エラーが発生しました', 'error')
     } else {
-      pushNotice(error.response.data, 'error')
+      pushNotice(axiosError.response.data || 'エラーが発生しました', 'error')
     }
   }
   return { apiErrorHandler }

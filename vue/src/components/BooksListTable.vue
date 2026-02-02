@@ -7,13 +7,13 @@
       hide-default-footer
       density="compact"
     >
-      <template v-slot:[`item.title`]="{ item }">
+      <template #[`item.title`]="{ item }">
         <div>{{ item.title }}</div>
       </template>
-      <template v-slot:[`item.publisher`]="{ item }">
+      <template #[`item.publisher`]="{ item }">
         {{ item.publisher?.name }}
       </template>
-      <template v-slot:[`item.actions`]="{ item }">
+      <template #[`item.actions`]="{ item }">
         <v-icon size="small" class="mr-2" @click="emit('toReaderPage', item)">
           mdi-book-open-blank-variant
         </v-icon>
@@ -21,16 +21,16 @@
           mdi-tooltip-edit-outline
         </v-icon>
       </template>
-      <template v-slot:[`item.authors`]="{ item }">
-        <BaseAuthorChip :openBook="item" @search="emit('search')" />
+      <template #[`item.authors`]="{ item }">
+        <BaseAuthorChip :open-book="item" @search="emit('search')" />
       </template>
-      <template v-slot:[`item.size`]="{ item }">
+      <template #[`item.size`]="{ item }">
         {{ fitByte(item.size) }}
       </template>
-      <template v-slot:[`item.addDate`]="{ item }">
+      <template #[`item.addDate`]="{ item }">
         {{ convertDateFormat(item.addDate) }}
       </template>
-      <template v-slot:[`item.userData.rate`]="{ item }">
+      <template #[`item.userData.rate`]="{ item }">
         {{ item.userData?.rate || '-' }}
       </template>
     </v-data-table>
@@ -42,14 +42,17 @@ import { computed } from 'vue'
 import { useReaderStateStore } from '@/stores/readerState'
 import { useFitByte, useConvertDateFormat } from '@/composables/utility'
 import BaseAuthorChip from './BaseAuthorChip.vue'
+import type { components } from '@/api'
+
+type BookBase = components['schemas']['BookBase']
 
 const readerStateStore = useReaderStateStore()
 const { fitByte } = useFitByte()
 const { convertDateFormat } = useConvertDateFormat()
 
 const emit = defineEmits<{
-  toReaderPage: [item: any]
-  openMenu: [item: any]
+  toReaderPage: [item: BookBase]
+  openMenu: [item: BookBase]
   search: []
 }>()
 

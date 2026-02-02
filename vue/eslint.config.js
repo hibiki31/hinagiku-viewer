@@ -35,10 +35,7 @@ export default [
         "error",
         {
           singleline: 5,
-          multiline: {
-            max: 1,
-            allowFirstLine: false,
-          },
+          multiline: 1,
         },
       ],
     },

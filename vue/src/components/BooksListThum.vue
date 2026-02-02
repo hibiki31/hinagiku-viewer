@@ -2,8 +2,8 @@
   <v-row>
     <v-col
       v-for="item in booksList"
-      :key="item.uuid"
       :id="item.uuid"
+      :key="item.uuid"
       cols="4"
       xs="4"
       sm="3"
@@ -13,13 +13,15 @@
     >
       <v-card @click="$emit('toReaderPage', item)">
         <div class="text-center" style="position: absolute; z-index: 1; top: -15px">
-          <v-icon :color="getBadge(item)" size="small">mdi-circle</v-icon>
+          <v-icon :color="getBadge(item)" size="small">
+            mdi-circle
+          </v-icon>
         </div>
         <v-img
           aspect-ratio="0.7"
           :src="getCoverURL(item.uuid)"
           @contextmenu.prevent="$emit('openMenu', item)"
-        ></v-img>
+        />
       </v-card>
     </v-col>
   </v-row>
@@ -29,18 +31,21 @@
 import { computed } from 'vue'
 import { useReaderStateStore } from '@/stores/readerState'
 import { useGetCoverURL } from '@/composables/utility'
+import type { components } from '@/api'
+
+type BookBase = components['schemas']['BookBase']
 
 const readerStateStore = useReaderStateStore()
 const { getCoverURL } = useGetCoverURL()
 
 defineEmits<{
-  toReaderPage: [item: any]
-  openMenu: [item: any]
+  toReaderPage: [item: BookBase]
+  openMenu: [item: BookBase]
 }>()
 
 const booksList = computed(() => readerStateStore.booksList)
 
-const getBadge = (item: any): string => {
+const getBadge = (item: BookBase): string => {
   if (item.userData.openPage !== null) {
     return 'rgba(245,175,44,0.7)'
   } else if (item.userData.readTimes === null) {

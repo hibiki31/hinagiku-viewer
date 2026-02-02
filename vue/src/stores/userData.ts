@@ -47,7 +47,7 @@ export const useUserDataStore = defineStore('userData', {
             Authorization: `Bearer ${this.accessToken}`
           }
         })
-      } catch (error) {
+      } catch {
         this.authenticaitonFail()
       }
     }

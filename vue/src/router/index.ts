@@ -36,7 +36,7 @@ router.beforeEach((to: RouteLocationNormalized, from: RouteLocationNormalized, n
 })
 
 // Workaround for https://github.com/vitejs/vite/issues/11804
-router.onError((err: any, to: RouteLocationNormalized) => {
+router.onError((err: Error, to: RouteLocationNormalized) => {
   if (err?.message?.includes?.('Failed to fetch dynamically imported module')) {
     if (!localStorage.getItem('vuetify:dynamic-reload')) {
       console.log('Reloading page to fix dynamic import error')
