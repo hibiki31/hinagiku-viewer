@@ -1,21 +1,29 @@
 {
 	"name": "Hinav-Vue",
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:22-bullseye",
-	"forwardPorts": [
-		3000
-	  ],
-	  "customizations": {
-		"vscode": {
-			"extensions":[
-				"octref.vetur",
-				"donjayamanne.githistory",
-				"Vue.volar"
-			]
-		}
-	},
-	"mounts": [
-		"source=node_modules_hinav_dev,target=${containerWorkspaceFolder}/node_modules,type=volume"
-	],
+	"context": ".",
+    "dockerFile": "./Dockerfile",
+    "forwardPorts": [
+        3000
+    ],
+    "mounts": [
+        "source=node_modules_hinav_dev,target=${containerWorkspaceFolder}/node_modules,type=volume"
+    ],
+	"postCreateCommand": "/workspaces/hinagiku-viewer/vue/.devcontainer/post.sh",
+    "customizations": {
+        // Configure properties specific to VS Code.
+        "vscode": {
+            // Add the IDs of extensions you want installed when the container is created.
+            "extensions": [
+                "azemoh.one-monokai",
+                "mhutchie.git-graph",
+                "Vue.volar",
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "EditorConfig.EditorConfig",
+                "hollowtree.vue-snippets"
+            ]
+        }
+    },
 	"containerEnv": {
 		"CHOKIDAR_USEPOLLING": "true"
 	}
