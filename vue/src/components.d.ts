@@ -8,8 +8,15 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppFooter: typeof import('./components/AppFooter.vue')['default']
+    BaseAuthorChip: typeof import('./components/BaseAuthorChip.vue')['default']
+    BookDetailDialog: typeof import('./components/dialog/BookDetailDialog.vue')['default']
+    BooksListTable: typeof import('./components/BooksListTable.vue')['default']
+    BooksListThum: typeof import('./components/BooksListThum.vue')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
+    RangeChangeDialog: typeof import('./components/dialog/RangeChangeDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SearchDialog: typeof import('./components/dialog/SearchDialog.vue')['default']
+    SetupDialog: typeof import('./components/dialog/SetupDialog.vue')['default']
   }
 }
