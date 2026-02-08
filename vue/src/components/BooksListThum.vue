@@ -11,7 +11,7 @@
       lg="1"
       class="pt-5"
     >
-      <v-card @click="$emit('toReaderPage', item)">
+      <v-card style="overflow: visible" @click="$emit('toReaderPage', item)">
         <div class="text-center" style="position: absolute; z-index: 1; top: -15px">
           <v-icon :color="getBadge(item)" size="small">
             mdi-circle
@@ -19,6 +19,7 @@
         </div>
         <v-img
           aspect-ratio="0.7"
+          cover
           :src="getCoverURL(item.uuid)"
           @contextmenu.prevent="$emit('openMenu', item)"
         />
