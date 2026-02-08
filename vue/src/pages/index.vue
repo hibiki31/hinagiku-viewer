@@ -46,99 +46,165 @@
     </v-app-bar>
     <!-- ドロワー -->
     <v-navigation-drawer v-model="showDrawer" app>
+      <!-- ヘッダー -->
+      <v-list-item
+        class="px-2 py-3"
+        prepend-icon="mdi-book-open-variant"
+        title="Hinagiku Viewer"
+        :subtitle="`v${version}`"
+      >
+        <template #prepend>
+          <v-icon color="primary" size="x-large">mdi-book-open-variant</v-icon>
+        </template>
+      </v-list-item>
+
+      <v-divider />
+
+      <!-- ライブラリ選択 -->
+      <div class="px-4 pt-4 pb-2">
+        <v-select
+          v-model="queryLibrary"
+          :items="libraryList"
+          label="ライブラリ"
+          item-title="name"
+          item-value="id"
+          density="comfortable"
+          prepend-inner-icon="mdi-bookshelf"
+          variant="outlined"
+          hide-details
+        />
+      </div>
+
+      <v-divider />
+
+      <!-- 評価フィルター -->
       <v-list nav density="compact">
+        <v-list-subheader>評価フィルター</v-list-subheader>
         <v-list-item>
-          <v-select
-            v-model="queryLibrary"
-            :items="libraryList"
-            label="Library"
-            item-title="name"
-            item-value="id"
-            density="compact"
-          />
+          <div class="d-flex justify-center mb-2">
+            <v-rating
+              :model-value="queryRate ?? undefined"
+              size="small"
+              color="amber"
+              active-color="amber"
+              @update:model-value="(value) => queryRate = value as number"
+            />
+          </div>
+          <v-btn-group divided density="compact" variant="outlined" class="w-100">
+            <v-btn
+              :variant="queryRate === null ? 'flat' : 'outlined'"
+              :color="queryRate === null ? 'primary' : undefined"
+              size="small"
+              @click="queryRate = null"
+            >
+              <v-icon start size="small">mdi-format-list-bulleted</v-icon>
+              全て
+            </v-btn>
+            <v-btn
+              :variant="queryRate === 0 ? 'flat' : 'outlined'"
+              :color="queryRate === 0 ? 'primary' : undefined"
+              size="small"
+              @click="queryRate = 0"
+            >
+              <v-icon start size="small">mdi-star-off-outline</v-icon>
+              未評価
+            </v-btn>
+          </v-btn-group>
         </v-list-item>
       </v-list>
 
-      <!-- 評価するところ -->
       <v-divider />
-      <v-list nav density="compact">
-        <v-list-item>
-          <v-rating
-            :model-value="queryRate ?? undefined"
-            size="small"
-            @update:model-value="(value) => queryRate = value as number"
-          />
-        </v-list-item>
-        <v-list-item>
-          <v-btn size="small" color="primary" class="ma-1" width="70" @click="queryRate = null">
-            All Rate
-          </v-btn>
-          <v-btn size="small" color="grey" class="ma-1" width="70" @click="queryRate = 0">
-            No Rate
-          </v-btn>
-        </v-list-item>
-      </v-list>
-      <v-divider />
-      <v-list nav density="compact">
-        <v-list-item>
-          <v-btn class="ma-1" size="small" color="error" disabled @click="exportDialog = true">
-            Range Export<v-icon class="pl-1">
-              mdi-export
-            </v-icon>
-          </v-btn>
-        </v-list-item>
-        <v-list-item>
-          <v-btn class="ma-1" size="small" color="primary" @click="rangeChangeDialogRef?.openDialog()">
-            Range Change<v-icon>mdi-pen</v-icon>
-          </v-btn>
-        </v-list-item>
-        <v-list-item>
-          <v-btn class="ma-1" size="small" @click="loadLibrary">
-            Load Library<v-icon class="pl-2">
-              mdi-book-refresh
-            </v-icon>
-          </v-btn>
-        </v-list-item>
-        <v-list-item>
-          <v-btn class="ma-1" size="small" @click="toDuplicateView">
-            Duplicate List<v-icon class="pl-2">
-              mdi-content-duplicate
-            </v-icon>
-          </v-btn>
-        </v-list-item>
-      </v-list>
-      <v-divider />
-      <v-list-item>
-        <v-switch
-          :model-value="showListMode"
-          label="リスト表示"
-          density="compact"
-          hide-details
-          @update:model-value="(value) => readerStateStore.setShowListMode(!!value)"
+
+      <!-- 操作メニュー -->
+      <v-list nav density="comfortable">
+        <v-list-subheader>操作</v-list-subheader>
+
+        <v-list-item
+          prepend-icon="mdi-export"
+          title="範囲エクスポート"
+          disabled
+          @click="exportDialog = true"
         />
-      </v-list-item>
+
+        <v-list-item
+          prepend-icon="mdi-pencil"
+          title="範囲変更"
+          @click="rangeChangeDialogRef?.openDialog()"
+        />
+
+        <v-list-item
+          prepend-icon="mdi-book-refresh"
+          title="ライブラリ再読込"
+          @click="loadLibrary"
+        />
+
+        <v-list-item
+          prepend-icon="mdi-content-duplicate"
+          title="重複リスト"
+          @click="toDuplicateView"
+        />
+      </v-list>
+
       <v-divider />
-      <v-list nav density="compact">
+
+      <!-- 表示設定 -->
+      <v-list nav density="comfortable">
+        <v-list-subheader>表示設定</v-list-subheader>
         <v-list-item>
-          <v-btn class="ma-1" size="small" color="error" block @click="handleLogout">
-            ログアウト
-            <v-icon class="pl-2">mdi-logout</v-icon>
-          </v-btn>
+          <v-switch
+            :model-value="showListMode"
+            label="リスト表示"
+            color="primary"
+            density="comfortable"
+            hide-details
+            @update:model-value="(value) => readerStateStore.setShowListMode(!!value)"
+          >
+            <template #prepend>
+              <v-icon>{{ showListMode ? 'mdi-view-list' : 'mdi-view-grid' }}</v-icon>
+            </template>
+          </v-switch>
         </v-list-item>
       </v-list>
-      <!-- ライセンス -->
-      <v-divider class="pb-2" />
-      <div class="text-subtitle-2 ml-3">
-        Develop by
-        <a href="https://github.com/hibiki31" class="text-blue">@hibiki31</a>
-      </div>
-      <div class="text-subtitle-2 ml-3">
-        v{{ version }}
-      </div>
-      <div class="text-subtitle-2 ml-3">
-        Icons made by
-        <a href="https://www.flaticon.com/authors/icon-pond" title="Icon Pond" class="text-blue">Icon Pond</a>
-      </div>
+
+      <v-divider />
+
+      <!-- ログアウト -->
+      <v-list nav density="comfortable">
+        <v-list-item
+          prepend-icon="mdi-logout"
+          title="ログアウト"
+          base-color="error"
+          @click="handleLogout"
+        />
+      </v-list>
+
+      <!-- フッター情報 -->
+      <template #append>
+        <v-divider />
+        <v-list density="compact" class="py-2">
+          <v-list-item density="compact" class="text-caption">
+            <div class="text-center">
+              Develop by
+              <a href="https://github.com/hibiki31" class="text-primary text-decoration-none" target="_blank">
+                @hibiki31
+              </a>
+            </div>
+          </v-list-item>
+          <v-list-item density="compact" class="text-caption">
+            <div class="text-center">
+              Icons made by
+              <a
+                href="https://www.flaticon.com/authors/icon-pond"
+                title="Icon Pond"
+                class="text-primary text-decoration-none"
+                target="_blank"
+              >
+                Icon Pond
+              </a>
+            </div>
+          </v-list-item>
+        </v-list>
+      </template>
     </v-navigation-drawer>
     <v-progress-linear v-show="isLoading" indeterminate color="yellow-darken-2" />
     <!-- メインの一覧 -->
