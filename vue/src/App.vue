@@ -1,19 +1,18 @@
 <template>
   <v-app>
     <!-- 通知 -->
-    <notifications position="top right" width="400px">
+    <notifications position="top right" width="290px" class="pt-14">
       <template #body="props">
         <v-alert
           :type="props.item.type"
-          class="ma-3 mb-0"
+          class="text-caption ma-1"
+          density="compact"
           border="start"
-          variant="tonal"
+          variant="text"
+          style="background-color: white"
         >
-          <div class="d-flex align-center ml-3">
-            <div class="text-body-2 mr-auto">
-              {{ props.item.text }}
-            </div>
-          </div>
+          <v-alert-title class="text-subtitle-2">{{ props.item.title }}</v-alert-title>
+          {{ props.item.text }}
         </v-alert>
       </template>
     </notifications>
@@ -103,4 +102,5 @@ html::-webkit-scrollbar {
 .fade-leave-to {
   opacity: 0;
 }
+
 </style>
