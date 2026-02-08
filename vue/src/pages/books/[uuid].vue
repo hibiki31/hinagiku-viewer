@@ -79,16 +79,16 @@
     </v-dialog>
     <!-- 画像表示 -->
     <div
+      ref="imageAreaRef"
       :class="{
         'image-base-width': settings.showBaseWidth,
         'image-base-height': !settings.showBaseWidth
       }"
       class="image-area"
-      @click="actionPageNext"
       @contextmenu.prevent="menuDialog = true"
     >
       <template v-if="pageBlob[nowPage - 1]">
-        <img v-if="settings.showTowPage" :src="pageBlob[nowPage + 0] || ''">
+        <img v-if="effectiveShowTowPage" :src="pageBlob[nowPage + 0] || ''">
         <img :src="pageBlob[nowPage - 1] || ''">
       </template>
       <template v-else>
@@ -132,15 +132,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, watch, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { apiClient } from '@/func/client'
 import { usePushNotice } from '@/composables/utility'
+import { useGesture } from '@/composables/gesture'
 
 const router = useRouter()
 const route = useRoute()
 const { pushNotice } = usePushNotice()
 
+const imageAreaRef = ref<HTMLElement | null>(null)
 const menuDialog = ref(false)
 const subMenu = ref(false)
 const uuid = ref('')
@@ -152,6 +154,7 @@ const isCompletedRead = ref(false)
 const cachePageItems = [2, 4, 8, 16, 32, 64]
 const loadSizeB = ref(0)
 const loadSizeMB = ref(0)
+const userShowTowPage = ref(false) // ユーザーが設定した見開き表示の値
 
 const bookInfo = reactive<{
   page: number
@@ -171,11 +174,33 @@ const settings = reactive({
   cachePage: 32,
   mulchLoad: 4,
   showTowPage: false,
-  showBaseWidth: true,
+  showBaseWidth: false,
   showWindwSize: false,
   customHeight: 1024,
-  windowHeight: Math.round(window.innerHeight * window.devicePixelRatio)
+  windowHeight: Math.round(window.innerHeight * window.devicePixelRatio),
+  windowWidth: window.innerWidth
 })
+
+// ウィンドウサイズに基づいて見開き表示を自動調整
+// 横幅が縦幅より短い場合（縦長）は見開きOFFにする
+const isPortraitMode = computed(() => {
+  return settings.windowWidth < window.innerHeight
+})
+
+// 実際に適用される見開き表示設定
+// ポートレートモード（縦長）の場合は強制的にOFF
+const effectiveShowTowPage = computed(() => {
+  if (isPortraitMode.value) {
+    return false
+  }
+  return userShowTowPage.value
+})
+
+// ウィンドウリサイズ時のハンドラー
+const handleResize = () => {
+  settings.windowWidth = window.innerWidth
+  settings.windowHeight = Math.round(window.innerHeight * window.devicePixelRatio)
+}
 
 // ライブラリに戻る
 const goLibrary = () => {
@@ -244,6 +269,8 @@ const getDLoadingPage = async () => {
   if (settings.showWindwSize) {
     heightParam = settings.windowHeight
   }
+  // APIは整数を期待しているため、確実に整数化
+  heightParam = Math.round(heightParam)
 
   try {
     // Blob取得: openapi-fetchのparseAsオプションでblob取得
@@ -273,7 +300,7 @@ const getDLoadingPage = async () => {
 }
 
 const actionPageNext = () => {
-  if (settings.showTowPage) {
+  if (effectiveShowTowPage.value) {
     nowPage.value += 2
   } else {
     nowPage.value += 1
@@ -293,8 +320,27 @@ const actionPageNext = () => {
   }
 }
 
+const actionPageBack = () => {
+  if (effectiveShowTowPage.value) {
+    nowPage.value -= 2
+  } else {
+    nowPage.value -= 1
+  }
+  if (nowPage.value <= 0) {
+    nowPage.value = 1
+  }
+}
+
 const actionFirstPage = () => {
   nowPage.value = 1
+}
+
+const actionMenuOpen = () => {
+  menuDialog.value = true
+}
+
+const actionSubMenuToggle = () => {
+  subMenu.value = !subMenu.value
 }
 
 const loadSettings = () => {
@@ -310,6 +356,11 @@ const loadSettings = () => {
     localStorage.removeItem('readerSettings')
   }
 }
+
+// settings.showTowPageとuserShowTowPageを同期
+watch(() => settings.showTowPage, (newValue) => {
+  userShowTowPage.value = newValue
+})
 
 watch(nowPage, () => {
   getDLoadingPage()
@@ -337,7 +388,6 @@ onMounted(async () => {
 
   // 先読み用アレイ初期化
   pageBlob.value = Array(4).fill(null)
-  getDLoadingPage()
 
   // 書籍情報取得
   try {
@@ -358,6 +408,9 @@ onMounted(async () => {
     console.error('書籍情報取得エラー:', error)
   }
 
+  // 書籍情報取得後に画像ロード開始
+  getDLoadingPage()
+
   apiClient.PATCH('/api/books/user-data', {
     body: {
       uuids: [uuid.value],
@@ -366,10 +419,28 @@ onMounted(async () => {
   })
 
   loadSettings()
+
+  // userShowTowPageを初期化（設定から読み込んだ値をセット）
+  userShowTowPage.value = settings.showTowPage
+
+  // ウィンドウリサイズイベントリスナーを追加
+  window.addEventListener('resize', handleResize)
+
+  // ジェスチャー設定
+  useGesture(imageAreaRef, {
+    onTap: actionPageNext,
+    onSwipeLeft: actionPageBack,
+    onSwipeRight: actionPageNext,
+    onSwipeUp: goLibrary,
+    onSwipeDown: actionMenuOpen,
+    onPress: actionSubMenuToggle
+  })
 })
 
 onBeforeUnmount(() => {
   pageMove.value = true
+  // ウィンドウリサイズイベントリスナーを削除
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -380,21 +451,33 @@ onBeforeUnmount(() => {
   align-items: center;
   height: 100%;
   cursor: pointer;
+  touch-action: none; // タッチジェスチャーを独自に処理
+  user-select: none; // テキスト選択を無効化
+}
+
+// 画像要素がポインターイベントをブロックしないように
+.image-area img {
+  pointer-events: none;
 }
 
 .image-base-width > img {
   max-width: 100%;
+  max-height: 100vh;
   height: auto;
   width: auto;
+  object-fit: contain;
 }
 
 .image-base-height > img {
   max-height: 100vh;
-  height: 100vh;
+  max-width: 100vw;
+  height: auto;
+  width: auto;
+  object-fit: contain;
 }
 
 .image-base-height {
-  max-height: 100vh;
   height: 100vh;
+  width: 100vw;
 }
 </style>

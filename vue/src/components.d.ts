@@ -7,7 +7,6 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AppFooter: typeof import('./components/AppFooter.vue')['default']
     BaseAuthorChip: typeof import('./components/BaseAuthorChip.vue')['default']
     BookDetailDialog: typeof import('./components/dialog/BookDetailDialog.vue')['default']
     BooksListTable: typeof import('./components/BooksListTable.vue')['default']
