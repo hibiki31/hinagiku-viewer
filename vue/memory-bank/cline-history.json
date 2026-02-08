@@ -1,0 +1,55 @@
+{
+  "updated_at": "2026-02-08T17:06:43.688162+00:00",
+  "task_count": 4,
+  "total_cost": 3.5898,
+  "tasks": [
+    {
+      "id": "1770568553080",
+      "date": "2026-02-08 16:35:53",
+      "title": "プロジェクトのファイルのパーミッションを直せ、特にgitは既に問題が起きている",
+      "cost": 0.8153,
+      "tokens_in": 120,
+      "tokens_out": 3702,
+      "cache_writes": 80830,
+      "cache_reads": 433905,
+      "model": "claude-opus-4-6",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770568748793",
+      "date": "2026-02-08 16:39:08",
+      "title": "clineあなたがブラウザで動作確認が行えるよう、環境を整備せよ",
+      "cost": 0.2405,
+      "tokens_in": 100,
+      "tokens_out": 2655,
+      "cache_writes": 19509,
+      "cache_reads": 103449,
+      "model": "claude-opus-4-6",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770569162114",
+      "date": "2026-02-08 16:46:02",
+      "title": "通知の背景が透明だったり、Appberと被っています。修正してください。",
+      "cost": 0.5034,
+      "tokens_in": 150,
+      "tokens_out": 5774,
+      "cache_writes": 31778,
+      "cache_reads": 319287,
+      "model": "claude-opus-4-6",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770569527621",
+      "date": "2026-02-08 16:52:07",
+      "title": "clineの履歴を保存したい",
+      "cost": 2.0306,
+      "tokens_in": 310,
+      "tokens_out": 21494,
+      "cache_writes": 129697,
+      "cache_reads": 1362129,
+      "model": "claude-opus-4-6",
+      "cline_version": "3.57.1"
+    }
+  ]
+}
