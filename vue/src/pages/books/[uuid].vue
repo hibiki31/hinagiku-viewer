@@ -425,7 +425,8 @@ const settings = reactive({
   showWindwSize: false,
   customHeight: 1024,
   windowHeight: Math.round(window.innerHeight * window.devicePixelRatio),
-  windowWidth: window.innerWidth
+  windowWidth: window.innerWidth,
+  shouldExpandImage: false // 画像を拡大すべきかどうか
 })
 
 // ウィンドウサイズに基づいて見開き表示を自動調整
@@ -669,7 +670,10 @@ const imageLoad = () => {
   // 2ページ分が画面幅に収まるかどうかで見開き表示を判定
   userShowTowPage.value = (fitWidth <= screenWidth)
 
-  console.log(`画像サイズ判定: Page1(${width1}x${height1}), Page2(${width2}x${height2}), fitWidth=${Math.round(fitWidth)}, screenWidth=${screenWidth}, 見開き=${userShowTowPage.value}`)
+  // 画像の高さがウィンドウの高さより小さい場合、拡大フラグを立てる
+  settings.shouldExpandImage = height1 < screenHeight
+
+  console.log(`画像サイズ判定: Page1(${width1}x${height1}), Page2(${width2}x${height2}), fitWidth=${Math.round(fitWidth)}, screenWidth=${screenWidth}, 見開き=${userShowTowPage.value}, 拡大=${settings.shouldExpandImage}`)
 }
 
 // settings.showTowPageとuserShowTowPageを同期
@@ -778,6 +782,7 @@ onBeforeUnmount(() => {
 .image-base-width > img {
   max-width: 100%;
   max-height: 100vh;
+  min-height: 100vh; // 画像がウィンドウより小さい場合は拡大
   height: auto;
   width: auto;
   object-fit: contain;
@@ -785,6 +790,7 @@ onBeforeUnmount(() => {
 
 .image-base-height > img {
   max-height: 100vh;
+  min-height: 100vh; // 画像がウィンドウより小さい場合は拡大
   max-width: 100vw;
   height: auto;
   width: auto;
