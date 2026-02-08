@@ -94,6 +94,19 @@
       <template v-else>
         <v-progress-circular indeterminate size="50" color="primary" />
       </template>
+      <!-- 画像サイズ確認用の非表示要素 -->
+      <div style="display: none;">
+        <img
+          ref="viewerPage2Ref"
+          :src="pageBlob[nowPage + 0] || ''"
+          @load="imageLoad"
+        >
+        <img
+          ref="viewerPage1Ref"
+          :src="pageBlob[nowPage - 1] || ''"
+          @load="imageLoad"
+        >
+      </div>
     </div>
     <!-- 下部メニュー -->
     <div
@@ -143,6 +156,8 @@ const route = useRoute()
 const { pushNotice } = usePushNotice()
 
 const imageAreaRef = ref<HTMLElement | null>(null)
+const viewerPage1Ref = ref<HTMLImageElement | null>(null)
+const viewerPage2Ref = ref<HTMLImageElement | null>(null)
 const menuDialog = ref(false)
 const subMenu = ref(false)
 const uuid = ref('')
@@ -200,6 +215,8 @@ const effectiveShowTowPage = computed(() => {
 const handleResize = () => {
   settings.windowWidth = window.innerWidth
   settings.windowHeight = Math.round(window.innerHeight * window.devicePixelRatio)
+  // リサイズ時に画像判定を再実行
+  imageLoad()
 }
 
 // ライブラリに戻る
@@ -355,6 +372,46 @@ const loadSettings = () => {
     console.log(e)
     localStorage.removeItem('readerSettings')
   }
+}
+
+/**
+ * 画像読み込み時に、見開き表示の可否を自動判定する
+ * webの過去実装から移植
+ */
+const imageLoad = () => {
+  if (!viewerPage1Ref.value || !viewerPage2Ref.value) {
+    return
+  }
+
+  const elementPage1 = viewerPage1Ref.value
+  const elementPage2 = viewerPage2Ref.value
+  const width1 = elementPage1.naturalWidth
+  const width2 = elementPage2.naturalWidth
+  const height1 = elementPage1.naturalHeight
+  const height2 = elementPage2.naturalHeight
+
+  // 画像が読み込まれていない場合は処理しない
+  if (!width1 || !height1) {
+    return
+  }
+
+  // 現在の画面サイズ
+  const screenWidth = settings.windowWidth
+  const screenHeight = window.innerHeight
+
+  // 各ページを画面の高さに合わせたときの幅を計算
+  const fitWidth1 = width1 * screenHeight / height1
+  const fitWidth2 = width2 * screenHeight / height2
+  const fitWidth = fitWidth1 + fitWidth2
+
+  // 1ページ目の画像のアスペクト比から表示モードを判定
+  // 画像が横長なら横幅基準、縦長なら高さ基準
+  settings.showBaseWidth = (width1 / height1) > (screenWidth / screenHeight)
+
+  // 2ページ分が画面幅に収まるかどうかで見開き表示を判定
+  userShowTowPage.value = (fitWidth <= screenWidth)
+
+  console.log(`画像サイズ判定: Page1(${width1}x${height1}), Page2(${width2}x${height2}), fitWidth=${Math.round(fitWidth)}, screenWidth=${screenWidth}, 見開き=${userShowTowPage.value}`)
 }
 
 // settings.showTowPageとuserShowTowPageを同期
