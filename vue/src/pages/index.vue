@@ -1,5 +1,28 @@
 <template>
   <div class="booksList">
+    <!-- 前回の続きを開くか確認するダイアログ -->
+    <v-dialog v-model="resumeDialog" max-width="450" persistent>
+      <v-card>
+        <v-card-title class="text-h6">
+          読書を再開しますか？
+        </v-card-title>
+        <v-card-text>
+          前回読んでいた本があります。続きから開きますか？
+          <div class="text-body-2 text-grey mt-2">
+            ページ: {{ resumeBookPage }}
+          </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn variant="text" @click="dismissResume">
+            開かない
+          </v-btn>
+          <v-btn color="primary" variant="flat" @click="acceptResume">
+            続きから開く
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <SearchDialog ref="searchDialogRef" @search="search" />
     <BookDetailDialog ref="bookDetailDialogRef" @search="search" />
     <RangeChangeDialog ref="rangeChangeDialogRef" @search="search" />
@@ -153,6 +176,11 @@ const exportDialog = ref(false)
 const libraryList = ref<GetLibrary[]>([])
 const version = '3.0.0'
 
+// 前回の続きを開くか確認するダイアログ
+const resumeDialog = ref(false)
+const resumeBookUUID = ref('')
+const resumeBookPage = ref(0)
+
 const searchQuery = computed(() => readerStateStore.searchQuery)
 const booksCount = computed(() => readerStateStore.booksCount)
 const showListMode = computed(() => readerStateStore.showListMode)
@@ -277,19 +305,19 @@ const toDuplicateView = () => {
   router.push('/duplicate')
 }
 
-onMounted(async () => {
-  // 前回開いていた本を取得
-  const uuid = localStorage.openBookUUID
-  const page = localStorage.openBookPage
-  // 前回開いていた本が取得できたら本を開く
-  if (uuid && page) {
-    router.push(`/books/${uuid}?startPage=${page}`)
-    return
-  } else {
-    localStorage.removeItem('openBookUUID')
-    localStorage.removeItem('openBookPage')
-  }
+// 前回の続きを開くダイアログのハンドラー
+const acceptResume = () => {
+  resumeDialog.value = false
+  router.push(`/books/${resumeBookUUID.value}?startPage=${resumeBookPage.value}`)
+}
 
+const dismissResume = () => {
+  resumeDialog.value = false
+  localStorage.removeItem('openBookUUID')
+  localStorage.removeItem('openBookPage')
+}
+
+const initLibraryAndSearch = async () => {
   // ライブラリ情報取得
   try {
     const response = await axios.get('/api/librarys')
@@ -300,5 +328,22 @@ onMounted(async () => {
 
   // 初期ロード
   search()
+}
+
+onMounted(async () => {
+  // 前回開いていた本を取得
+  const uuid = localStorage.openBookUUID
+  const openPage = localStorage.openBookPage
+  // 前回開いていた本が取得できたらダイアログで確認
+  if (uuid && openPage) {
+    resumeBookUUID.value = uuid
+    resumeBookPage.value = Number(openPage)
+    resumeDialog.value = true
+  } else {
+    localStorage.removeItem('openBookUUID')
+    localStorage.removeItem('openBookPage')
+  }
+
+  await initLibraryAndSearch()
 })
 </script>
