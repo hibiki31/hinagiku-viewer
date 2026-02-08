@@ -117,10 +117,10 @@
             </v-card-subtitle>
             <v-card-text class="pt-0">
               <v-rating
-                :model-value="bookInfo.userData.rate ?? undefined"
+                :model-value="bookInfo.userData?.rate ?? undefined"
                 size="large"
                 hover
-                @update:model-value="(value) => { bookInfo.userData.rate = value as number; bookInfoSubmit(); }"
+                @update:model-value="(value) => { if (bookInfo.userData) bookInfo.userData.rate = value as number; bookInfoSubmit(); }"
               />
             </v-card-text>
           </v-card>
@@ -248,7 +248,7 @@
             <v-col cols="6">
               <div class="text-subtitle-2 text-medium-emphasis mb-1">評価</div>
               <v-rating
-                :model-value="bookInfo.userData.rate ?? undefined"
+                :model-value="bookInfo.userData?.rate ?? undefined"
                 size="small"
                 readonly
                 density="compact"
@@ -256,7 +256,7 @@
             </v-col>
             <v-col cols="6">
               <div class="text-subtitle-2 text-medium-emphasis mb-1">読んだ回数</div>
-              <div class="text-body-2">{{ bookInfo.userData.readTimes || 0 }} 回</div>
+              <div class="text-body-2">{{ bookInfo.userData?.readTimes || 0 }} 回</div>
             </v-col>
           </v-row>
 
@@ -466,7 +466,7 @@ const bookInfoSubmit = () => {
   apiClient.PUT('/api/books/user-data', {
     body: {
       uuids: [bookInfo.uuid!],
-      rate: bookInfo.userData.rate ?? undefined
+      rate: bookInfo.userData?.rate ?? undefined
     }
   }).then(({ error }) => {
     if (!error) {
@@ -499,7 +499,7 @@ const getDLoadingPage = async () => {
     return
   }
   // 指定ページが0以下 or ページ数より大きかったら終了
-  if (page <= 0 || page > bookInfo.page) {
+  if (page <= 0 || page > (bookInfo.page || 0)) {
     return
   }
   // ロード中
@@ -549,8 +549,8 @@ const actionPageNext = () => {
   } else {
     nowPage.value += 1
   }
-  if (bookInfo.page <= nowPage.value) {
-    nowPage.value = bookInfo.page
+  if ((bookInfo.page || 0) <= nowPage.value) {
+    nowPage.value = bookInfo.page || 0
     if (!isCompletedRead.value) {
       apiClient.PATCH('/api/books/user-data', {
         body: {
@@ -709,10 +709,10 @@ onMounted(async () => {
     if (error) throw error
     if (data && data.rows.length > 0) {
       Object.assign(bookInfo, data.rows[0])
-      if (bookInfo.userData.openPage !== null && bookInfo.userData.openPage !== undefined) {
+      if (bookInfo.userData?.openPage !== null && bookInfo.userData?.openPage !== undefined) {
         nowPage.value = bookInfo.userData.openPage
       }
-      pageBlob.value = [...pageBlob.value, ...Array(bookInfo.page - 4).fill(null)]
+      pageBlob.value = [...pageBlob.value, ...Array((bookInfo.page || 4) - 4).fill(null)]
     }
   } catch (error) {
     console.error('書籍情報取得エラー:', error)
