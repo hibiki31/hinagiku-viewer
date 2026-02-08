@@ -5,500 +5,270 @@
 ### バックエンド
 - **言語**: Python 3.11+
 - **Webフレームワーク**: FastAPI 0.116.1
-- **ASGI Server**: 
-  - Uvicorn 0.35.0（開発環境）
-  - Gunicorn 23.0.0（本番環境）
+- **ASGI Server**: Uvicorn 0.35.0（開発） / Gunicorn 23.0.0（本番）
 - **ORM**: SQLAlchemy 2.0.43
 - **マイグレーション**: Alembic 1.16.5
-- **データベースドライバ**: psycopg2 2.9.10
-- **認証**: 
-  - PyJWT 2.8.0
-  - passlib 1.7.4（bcryptでハッシュ化）
-- **HTTP通信**: httpx 0.24.1
-- **画像処理**: 
-  - Pillow 11.3.0
-  - opencv-contrib-python 4.8.0.76
-  - imagehash 4.3.1
-- **データ処理**: 
-  - pandas 2.0.3
-  - matplotlib
-- **文字列比較**: rapidfuzz 3.6.1
-- **その他**: python-multipart 0.0.20
+- **DBドライバ**: psycopg2 2.9.10
+- **認証**: PyJWT 2.8.0 + passlib 1.7.4（bcrypt）
+- **画像処理**: Pillow 11.3.0 + opencv-contrib-python 4.8.0.76 + imagehash 4.3.1
+- **その他**: httpx 0.24.1, pandas 2.0.3, rapidfuzz 3.6.1, python-multipart 0.0.20
 
-### フロントエンド
+### フロントエンド（主力: vue/）
 
-#### メインアプリ（web/）
+#### Vue 3 + Vite（vue/）— 主力
+- **フレームワーク**: Vue 3.4+
+- **ビルドツール**: Vite 5
+- **UIフレームワーク**: Vuetify 3.6+
+- **言語**: TypeScript 5.6
+- **状態管理**: Pinia 2.1+
+- **ルーティング**: Vue Router 4.4+（ファイルベース: unplugin-vue-router 0.10）
+- **HTTP通信**: 
+  - Axios 1.8+（現在のメインクライアント）
+  - openapi-fetch 0.13+（型安全クライアント、移行先）
+- **自動インポート**: unplugin-auto-import 0.17, unplugin-vue-components 0.27
+- **レイアウト**: vite-plugin-vue-layouts 0.11
+- **スタイル**: Sass 1.77（modern-compiler API）
+- **通知**: @kyvg/vue3-notification 3.4
+- **Cookie**: js-cookie 3.0
+- **アイコン**: @mdi/font 7.4
+- **パッケージマネージャー**: pnpm
+
+#### Vue 2（web/）— レガシー本番
 - **フレームワーク**: Vue.js 2.6.11
 - **UIフレームワーク**: Vuetify 2.x
 - **状態管理**: Vuex 3.4.0
 - **ルーティング**: Vue Router 3.2.0
 - **HTTP通信**: Axios 0.21.4
 - **ビルドツール**: Vue CLI 4.5.0
-- **スタイル**: 
-  - Sass 1.32.12
-  - node-sass 4.12.0
-- **その他**: 
-  - vue-cookies 1.7.4
-  - vue-notification 1.3.20
-  - vue-jwt-decode 0.1.0
-  - vue2-hammer 2.1.2（タッチジェスチャー）
-  - velocity-animate 1.5.2（アニメーション）
+- **パッケージマネージャー**: npm
 
-#### 次世代アプリ（開発中）
-- **nuxt/**: Nuxt 3 + Vue 3 + Vuetify 3
-- **vue/**: Vue 3 + Vite + Vuetify 3
+#### Nuxt 3（nuxt/）— 移行実験（非推奨）
+- Nuxt 3 + Vue 3 + Vuetify 3
+- 今後は使用せず、vue/に注力
 
 ### データベース
 - **RDBMS**: PostgreSQL 16
-- **理由**: 
-  - ACID準拠の堅牢性
-  - JSON型サポート
-  - 高度なインデックス機能
-  - オープンソース
 
 ### Webサーバー
 - **Nginx**: リバースプロキシ & 静的ファイル配信
 
 ### コンテナ化
-- **Docker**: コンテナ化
-- **Docker Compose**: オーケストレーション
+- **Docker** + **Docker Compose**
+
+## Vue 3フロントエンド詳細（vue/）
+
+### プロジェクト構造
+```
+vue/
+├── .devcontainer/          # DevContainer設定
+│   ├── devcontainer.json
+│   ├── Dockerfile
+│   └── post.sh
+├── .claude/                # Claude Code設定
+├── src/
+│   ├── main.ts             # エントリーポイント
+│   ├── App.vue             # ルートコンポーネント（認証初期化、インターセプター）
+│   ├── api.d.ts            # OpenAPI自動生成型定義
+│   ├── auto-imports.d.ts   # 自動インポート型定義（生成）
+│   ├── components.d.ts     # コンポーネント型定義（生成）
+│   ├── typed-router.d.ts   # ルーター型定義（生成）
+│   ├── pages/              # ファイルベースルーティング
+│   │   ├── index.vue       # 書籍一覧
+│   │   ├── login.vue       # ログイン
+│   │   ├── duplicate.vue   # 重複管理
+│   │   └── books/
+│   │       └── [uuid].vue  # 書籍リーダー
+│   ├── components/         # 再利用可能コンポーネント
+│   │   ├── BooksListTable.vue
+│   │   ├── BooksListThum.vue
+│   │   ├── BaseAuthorChip.vue
+│   │   ├── AppFooter.vue
+│   │   └── dialog/
+│   │       ├── SearchDialog.vue
+│   │       ├── BookDetailDialog.vue
+│   │       ├── RangeChangeDialog.vue
+│   │       └── SetupDialog.vue
+│   ├── composables/        # Composition API ユーティリティ
+│   │   ├── utility.ts      # 通知、URL生成、フォーマット等
+│   │   └── rules.ts        # バリデーションルール
+│   ├── func/               # 関数・クライアント
+│   │   ├── axios.ts        # Axiosインスタンス
+│   │   ├── client.ts       # openapi-fetchクライアント
+│   │   ├── auth.ts         # 認証ユーティリティ
+│   │   └── sleep.ts        # スリープ関数
+│   ├── stores/             # Pinia ストア
+│   │   ├── index.ts
+│   │   ├── userData.ts     # 認証状態
+│   │   ├── readerState.ts  # 書籍一覧・リーダー状態
+│   │   ├── auth.ts         # 認証設定
+│   │   └── app.ts          # アプリ全般
+│   ├── layouts/            # レイアウト
+│   │   └── default.vue
+│   ├── plugins/            # プラグイン
+│   │   ├── index.ts
+│   │   └── vuetify.ts      # Vuetify設定（テーマ等）
+│   ├── router/             # ルーター
+│   │   └── index.ts        # ガード設定
+│   ├── styles/
+│   │   └── settings.scss   # Vuetify SCSS設定
+│   └── assets/             # 静的アセット
+├── public/                 # 公開静的ファイル
+├── index.html              # HTMLテンプレート
+├── vite.config.mts         # Vite設定
+├── tsconfig.json           # TypeScript設定
+├── eslint.config.js        # ESLint設定
+├── package.json            # 依存関係
+├── pnpm-lock.yaml          # ロックファイル
+├── CLAUDE.md               # Claude Code向けガイド
+└── .env.local              # 環境変数（Git管理外）
+```
+
+### Vite設定（vite.config.mts）
+- **プラグイン**: VueRouter（ファイルベース）, Layouts, AutoImport, Components, Vue, Vuetify, Fonts
+- **エイリアス**: `@` → `src/`
+- **開発サーバー**: ポート3000
+- **SCSS**: modern-compiler API
+
+### 環境変数
+```bash
+# .env.local
+VITE_APP_API_HOST=http://localhost   # Axiosクライアント用
+VITE_API_ENDPOINT=http://localhost   # openapi-fetchクライアント用
+```
+
+### API型生成
+```bash
+npx openapi-typescript https://hinav.hinagiku.me/api/openapi.json -o ./src/api.d.ts
+```
+生成された`api.d.ts`は`paths`（エンドポイント）と`components`（スキーマ）をエクスポート。
+使用例: `type BookBase = components['schemas']['BookBase']`
+
+### 主要なPiniaストア設計
+
+#### userData（認証）
+```typescript
+state: { isLoaded, isAuthed, accessToken, username, isAdmin }
+actions: authenticaitonSuccessful(token), authenticaitonFail(), authVerification()
+```
+- accessTokenはCookieに保存（有効期限365日）
+- ログイン成功時にaxiosデフォルトヘッダーに設定
+
+#### readerState（書籍一覧・リーダー）
+```typescript
+state: { booksList, booksCount, readerPage, showListMode, openBook, searchQuery }
+actions: setBooksResult(), setSearchQuery(), setOpenBook(), setShowListMode(), serachBooks()
+```
+- searchQueryはlocalStorageに永続化
+- 初期化時にlocalStorageから復元
 
 ## 開発環境セットアップ
 
-### 必須ツール
-- Docker & Docker Compose
-- Git
-- （オプション）Node.js & npm（フロントエンド開発時）
-- （オプション）Python 3.11+（API開発時）
+### DevContainer（推奨）
+vue/ディレクトリ内の`.devcontainer/`に設定済み:
+- Node.js環境
+- pnpmプリインストール
+- ポート3000フォワード
+- Claude Code拡張
+- Volar, ESLint, Prettier等のVS Code拡張
 
-### リポジトリクローン
+### 開発コマンド
 ```bash
-git clone https://github.com/hibiki31/hinagiku-viewer.git
-cd hinagiku-viewer
+cd vue/
+pnpm install          # 依存関係インストール
+pnpm dev              # 開発サーバー（http://localhost:3000）
+pnpm build            # ビルド（型チェック + Viteビルド並列）
+pnpm build-only       # Viteビルドのみ
+pnpm type-check       # vue-tsc --build --force
+pnpm lint             # ESLint --fix
 ```
 
-### 設定ファイル準備
+### バックエンド開発
 ```bash
-# Docker Compose設定をコピー
+cd api/
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+python3 main.py       # 開発サーバー
+python3 worker.py     # Worker起動
+```
+
+### Docker開発
+```bash
 cp docker-compose.example.yml compose.yaml
-
-# API環境変数（必要に応じて）
-cp api/.env.example api/.env
-```
-
-### データディレクトリ作成
-```bash
-mkdir -p data/{book_library,book_cache,book_send,book_export,book_fail,app_data,nginx,postgres_data}
-```
-
-### 起動
-```bash
-# ビルド & 起動
 docker compose build
 docker compose up -d
-
-# ログ確認
-docker compose logs -f
-
-# 状態確認
-docker compose ps
+docker compose exec api alembic upgrade head  # 初回マイグレーション
 ```
 
-### データベースマイグレーション
-```bash
-# 初回のみ
-docker compose exec api alembic upgrade head
-```
-
-### アクセス
-- Webアプリ: http://localhost
-- API ドキュメント: http://localhost/api
-
-## 開発ワークフロー
-
-### バックエンド開発（API）
-
-#### ローカル開発（Dockerなし）
-```bash
-cd api
-
-# 仮想環境作成
-python3 -m venv venv
-source venv/bin/activate
-
-# 依存関係インストール
-pip install -r requirements.txt
-
-# 開発サーバー起動（自動リロード）
-python3 main.py
-# または
-python3 dev.py
-
-# Worker起動
-python3 worker.py
-```
-
-#### Docker開発
-```bash
-# API再ビルド
-docker compose build api
-
-# 再起動
-docker compose restart api
-
-# ログ確認
-docker compose logs -f api
-```
-
-#### データベースマイグレーション
-```bash
-# マイグレーションファイル作成
-docker compose exec api alembic revision --autogenerate -m "変更内容"
-
-# 適用
-docker compose exec api alembic upgrade head
-
-# ロールバック
-docker compose exec api alembic downgrade -1
-
-# リセット（全削除）
-docker compose exec api alembic downgrade base
-```
-
-#### テスト実行
-```bash
-cd api/tests
-
-# 全テスト実行
-python test.py
-
-# 個別テスト
-python test_01_startup.py
-python test_02_library.py
-python test_10_scenario.py
-```
-
-### フロントエンド開発（Web）
-
-#### ローカル開発
-```bash
-cd web
-
-# 依存関係インストール
-npm install
-
-# 開発サーバー起動
-npm run serve
-# → http://localhost:8080
-
-# ビルド
-npm run build
-
-# リント
-npm run lint
-```
-
-#### Docker開発
-```bash
-# Webサーバー再ビルド
-docker compose build web
-
-# 再起動
-docker compose restart web
-```
-
-### 次世代フロントエンド開発（Nuxt/Vue3）
-
-#### Nuxt 3（nuxt/）
-```bash
-cd nuxt
-
-# 依存関係インストール
-yarn install
-
-# 開発サーバー起動
-yarn dev
-```
-
-#### Vue 3 + Vite（vue/）
-```bash
-cd vue
-
-# 依存関係インストール
-pnpm install
-
-# 開発サーバー起動
-pnpm dev
-```
-
-## プロジェクト構造詳細
-
-### API（api/）
+## API構造（api/）
 ```
 api/
-├── main.py                 # FastAPIアプリケーション
+├── main.py                 # FastAPIアプリ
 ├── worker.py               # バックグラウンドワーカー
 ├── settings.py             # 環境設定
 ├── requirements.txt        # Python依存関係
-├── Dockerfile              # コンテナイメージ定義
-├── alembic.ini             # Alembicマイグレーション設定
-├── alembic/
-│   ├── env.py
-│   └── versions/           # マイグレーションファイル
+├── alembic/                # DBマイグレーション
 ├── mixins/                 # 共通ユーティリティ
-│   ├── database.py         # DB接続・セッション管理
+│   ├── database.py         # DB接続・セッション
 │   ├── log.py              # ロガー設定
-│   ├── schema.py           # 共通スキーマ
-│   ├── convertor.py        # 画像変換・サムネイル生成
+│   ├── schema.py           # 共通スキーマ（CamelCase変換）
+│   ├── convertor.py        # 画像変換・サムネイル
 │   ├── purser.py           # ファイル名パース
-│   ├── utility.py          # 汎用ユーティリティ
 │   └── router.py           # ユーティリティAPI
 ├── books/                  # 書籍ドメイン
-│   ├── models.py           # SQLAlchemyモデル
-│   ├── schemas.py          # Pydanticスキーマ
-│   └── router.py           # APIエンドポイント
 ├── users/                  # ユーザードメイン
 ├── authors/                # 著者ドメイン
 ├── tags/                   # タグドメイン
 ├── media/                  # メディア配信
 ├── user_datas/             # ユーザー固有データ
 ├── tasks/                  # バックグラウンドタスク
-│   ├── library_import.py   # インポート処理
-│   ├── library_export.py   # エクスポート処理
-│   ├── library_delete.py   # 削除処理
-│   ├── library_fixmetadata.py # メタデータ修正
-│   ├── library_sim.py      # 重複チェック
-│   ├── library_rule.py     # ルール適用
-│   └── media_cache.py      # キャッシュ生成
-└── tests/                  # テストコード
-```
-
-### Web（web/）
-```
-web/
-├── src/
-│   ├── main.js             # エントリーポイント
-│   ├── App.vue             # ルートコンポーネント
-│   ├── router/             # ルーティング設定
-│   ├── store/              # Vuex ストア
-│   ├── views/              # ページコンポーネント
-│   ├── components/         # 再利用可能コンポーネント
-│   ├── axios/              # API通信設定
-│   ├── mixins/             # Vue mixins
-│   └── plugins/            # プラグイン（Vuetify等）
-├── public/                 # 静的ファイル
-├── Dockerfile              # Nginxイメージ
-├── nginx.conf              # Nginx設定
-├── package.json            # npm依存関係
-└── vue.config.js           # Vue CLI設定
+└── tests/                  # テスト
 ```
 
 ## 環境変数
 
 ### API（api/.env）
-```bash
-# データベース接続
-SQLALCHEMY_DATABASE_URL=postgresql://postgres:password@db:5432/mydatabase
+| 変数 | 説明 | デフォルト |
+|------|------|-----------|
+| SQLALCHEMY_DATABASE_URL | DB接続文字列 | postgresql://postgres:password@db:5432/mydatabase |
+| DATA_ROOT | データディレクトリ | /opt/data |
+| APP_ROOT | アプリルート | /opt/app |
+| IS_DEV | 開発モード | false |
+| DEBUG_LOG | デバッグログ | false |
+| GNICORN_WORKERS | Gunicornワーカー数 | 4 |
+| CONVERT_THREAD | 変換スレッド数 | CPUコア数 |
+| SECRET_KEY | JWT秘密鍵 | （要変更） |
 
-# データディレクトリルート
-DATA_ROOT=/opt/data
+### Vue 3（vue/.env.local）
+| 変数 | 説明 |
+|------|------|
+| VITE_APP_API_HOST | APIホスト（Axiosクライアント用） |
+| VITE_API_ENDPOINT | APIエンドポイント（openapi-fetchクライアント用） |
 
-# アプリケーションルート
-APP_ROOT=/opt/app
-
-# 開発モード
-IS_DEV=false
-
-# デバッグログ
-DEBUG_LOG=false
-
-# Gunicorn ワーカー数
-GNICORN_WORKERS=4
-
-# 変換スレッド数（CPUコア数が推奨）
-# CONVERT_THREAD=4
-
-# JWT秘密鍵（本番環境では必ず変更）
-SECRET_KEY=ランダムな文字列
-```
-
-### Docker Compose（compose.yaml）
-```yaml
-environment:
-  SQLALCHEMY_DATABASE_URL: postgresql://user:pass@db:5432/dbname
-  DATA_ROOT: /opt/data
-  IS_DEV: "false"
-```
-
-## 技術的な制約
-
-### Python
-- バージョン: 3.11以上推奨
-- 非同期処理: asyncio使用可能だが現状は同期処理中心
-
-### データベース
-- PostgreSQL 16推奨
-- SQLAlchemy 2.0の新しいAPI使用
-- Pydantic V2対応
-
-### フロントエンド
-- Vue 2はレガシー、Vue 3への移行検討中
-- Vuetify 2（Vue 2用）→ Vuetify 3（Vue 3用）への移行必要
-
-### ファイルシステム
-- Zipファイル内の画像のみ対応
-- ファイル名の長さ制限（OS依存）
-- /tmp/hinav/を一時ディレクトリとして使用
-
-### Docker
-- マルチステージビルド使用
-- アルパインベースではなく標準イメージ使用（ネイティブライブラリのため）
-
-## 依存関係管理
-
-### Python（api/）
-```bash
-# 依存関係の追加
-pip install パッケージ名
-pip freeze > requirements.txt
-
-# パッケージ更新確認
-pip install pip-review
-pip-review
-
-# 更新適用
-pip-review --auto
-```
-
-### Node.js（web/）
-```bash
-# 依存関係の追加
-npm install パッケージ名
-npm install --save-dev パッケージ名
-
-# 更新確認
-npm outdated
-
-# 更新
-npm update
-```
-
-## パフォーマンスチューニング
-
-### Gunicorn設定（api/mixins/gnicorn_config.py）
-- Workers: CPU コア数 × 2 + 1
-- Worker class: uvicorn.workers.UvicornWorker
-- Timeout: 120秒
-
-### PostgreSQL
-- 接続プーリング: SQLAlchemyのデフォルト
-- インデックス: 主キー、外部キー、検索頻度の高いカラム
-
-### Nginx
-- gzip圧縮有効化
-- 静的ファイルキャッシュ
-- リバースプロキシバッファリング
-
-### Worker
-- マルチプロセス: CONVERT_THREAD設定
-- ポーリング間隔: 10秒
-
-## セキュリティ対策
-
-### 認証
-- JWT + OAuth2 Password Flow
-- bcryptでパスワードハッシュ化
-- トークン有効期限管理
-
-### CORS
-- 開発環境: 全許可（`allow_origins=["*"]`）
-- 本番環境: 必要なオリジンのみ許可推奨
-
-### SQLインジェクション
-- SQLAlchemy ORM使用で対策
-- パラメータバインディング
-
-### XSS
-- Vueの自動エスケープ機能
-- v-htmlの使用は最小限
-
-### ファイルアップロード
-- 拡張子チェック
-- ファイルサイズ制限
-- Zipファイルのみ許可
+## ポート使用状況
+| ポート | サービス | 用途 |
+|--------|----------|------|
+| 80 | Nginx | 外部公開（本番） |
+| 3000 | Vite | Vue 3開発サーバー |
+| 8000 | FastAPI | APIサーバー（内部） |
+| 8080 | Vue CLI | Vue 2開発サーバー |
+| 5432 | PostgreSQL | データベース（内部） |
 
 ## トラブルシューティング
 
 ### よくあるエラー
 
-#### OSError: [Errno 36] File name too long
-- **原因**: Zipファイル内のファイル名が長すぎる
-- **対処**: ファイル名を短縮するか、ファイルシステムの制限を確認
+| エラー | 原因 | 対処 |
+|--------|------|------|
+| OSError: [Errno 36] | ファイル名長すぎ | ファイル名短縮 or パス制限確認 |
+| Alembicマイグレーションエラー | モデルとDB不一致 | `alembic downgrade base` → `alembic upgrade head` |
+| Docker起動エラー | ポート競合/権限 | `docker compose down` → `docker compose up -d` → ログ確認 |
+| 401エラー | JWT期限切れ | 再ログイン / CORS設定確認 |
+| Vite HMRエラー | 動的インポート失敗 | ページリロード（router.onErrorで自動リトライ済み） |
 
-#### Alembicマイグレーションエラー
-- **原因**: モデル定義とDB状態の不一致
-- **対処**: 
-  ```bash
-  alembic downgrade base  # リセット
-  alembic upgrade head    # 再適用
-  ```
+### デバッグツール
+- **API**: FastAPI自動ドキュメント `/api`、ログファイル `data/app_data/logs/`
+- **フロントエンド**: Vue Devtools、ブラウザDevTools
+- **DB**: `docker compose exec db psql -U postgres -d mydatabase`
 
-#### Docker起動エラー
-- **原因**: ポート競合、ボリューム権限
-- **対処**:
-  ```bash
-  docker compose down
-  docker compose up -d
-  docker compose logs
-  ```
-
-#### API接続エラー
-- **原因**: CORS設定、JWT有効期限切れ
-- **対処**: 
-  - ブラウザコンソールで詳細確認
-  - 再ログイン
-  - CORS設定確認
-
-## デバッグツール
-
-### API
-- FastAPI自動生成ドキュメント: `/api`
-- ログファイル: `data/app_data/logs/`
-- SQLAlchemy echo: `create_engine(..., echo=True)`
-
-### フロントエンド
-- Vue Devtools（ブラウザ拡張）
-- ブラウザデベロッパーツール
-- Vuex状態確認
-
-### データベース
-```bash
-# PostgreSQLコンテナに接続
-docker compose exec db psql -U postgres -d mydatabase
-
-# テーブル一覧
-\dt
-
-# スキーマ確認
-\d books
-
-# クエリ実行
-SELECT * FROM books LIMIT 10;
-```
-
-## CI/CD（現状）
-- 現在は手動デプロイ
-- GitHub Actionsの設定は未実装
-- 将来的な自動化を検討
-
-## モニタリング・ログ
-- アプリケーションログ: `data/app_data/logs/`
-- Nginxログ: `data/nginx/`
-- PostgreSQLログ: Docker Composeログ経由
-- メトリクス収集: 未実装（将来検討）
-
-## バックアップ戦略
-- データベース: `pg_dump`でバックアップ
-- 書籍ファイル: `data/book_library/`をバックアップ
-- 設定ファイル: Gitで管理
-- Docker ボリューム: 定期バックアップ推奨
+## 最終更新日
+2026-02-08: Vue 3フロントエンド詳細追加、構造整理

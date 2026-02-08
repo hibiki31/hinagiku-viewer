@@ -315,7 +315,115 @@ app.add_middleware(
 
 ## フロントエンド設計パターン
 
-### Vue 2アーキテクチャ（web/）
+### Vue 3アーキテクチャ（vue/）— 主力
+
+#### ファイルベースルーティング
+`unplugin-vue-router`により`src/pages/`配下の`.vue`ファイルからルートを自動生成:
+```
+src/pages/
+├── index.vue           → /          （書籍一覧）
+├── login.vue           → /login     （ログイン）
+├── duplicate.vue       → /duplicate （重複管理）
+└── books/
+    └── [uuid].vue      → /books/:uuid（書籍リーダー）
+```
+
+#### レイアウトシステム
+`vite-plugin-vue-layouts`で`src/layouts/`のレイアウトを適用。デフォルトレイアウト`default.vue`。
+
+#### コンポーネント設計パターン
+- `<script setup lang="ts">` + Composition API
+- Vue API自動インポート（`ref`, `computed`, `watch`等）
+- Vuetify/カスタムコンポーネント自動インポート
+- ダイアログは`ref`で参照し`openDialog()`メソッドで開く
+
+```typescript
+// ダイアログパターン例
+const searchDialogRef = ref()
+// テンプレートから: searchDialogRef?.openDialog()
+```
+
+#### 状態管理（Pinia）
+```
+stores/
+├── userData.ts     # 認証（Cookie永続化）
+├── readerState.ts  # 書籍一覧・リーダー（localStorage永続化）
+├── auth.ts         # 認証設定
+└── app.ts          # アプリ全般
+```
+
+**認証ストア（userData）パターン:**
+- Cookie `accessToken` でセッション管理
+- `authenticaitonSuccessful()`: Cookie設定 + axiosヘッダー設定
+- `authenticaitonFail()`: Cookie削除 + ヘッダー削除
+
+**リーダーストア（readerState）パターン:**
+- `searchQuery`をlocalStorageに自動永続化
+- 初期化時にlocalStorageから復元
+- `serachBooks()`でAPI呼び出し + 結果格納
+
+#### API通信パターン（2クライアント共存）
+
+**Axiosクライアント（現在のメイン）:**
+```typescript
+// func/axios.ts
+const api = axios.create({
+  baseURL: import.meta.env.VITE_APP_API_HOST || '',
+})
+// App.vueでインターセプター設定（401→自動ログアウト）
+```
+
+**openapi-fetchクライアント（型安全・移行先）:**
+```typescript
+// func/client.ts
+const client = createClient<paths>({
+  baseUrl: import.meta.env.VITE_API_ENDPOINT,
+})
+// Bearerトークンミドルウェア付き
+```
+
+**移行方針**: 新規コードはopenapi-fetchを優先。既存Axiosは段階的に移行。
+
+#### 認証フロー
+```
+App.vue mount
+  ├─ Cookie "accessToken" 確認
+  │   ├─ あり → GET /api/auth/validate
+  │   │          ├─ 成功 → authenticaitonSuccessful()
+  │   │          │         ├─ /login にいる → / にリダイレクト
+  │   │          │         └─ それ以外 → そのまま
+  │   │          └─ 失敗 → authenticaitonFail()
+  │   └─ なし → authenticaitonFail()
+  └─ バージョンチェック → GET /api/version → 不一致で自動リロード
+```
+
+#### ルーターガード
+```
+beforeEach:
+  ├─ 認証済み + /login → / にリダイレクト
+  ├─ 未認証 + /login以外 → /login にリダイレクト
+  └─ その他 → 通過
+```
+
+#### 書籍リーダーの先読みパターン
+```
+onMounted → getDLoadingPage()
+  ├─ 現在ページから cachePage 分先まで確認
+  ├─ 未ロードページを発見 → Blobとして取得
+  ├─ mulchLoad（並列数）まで同時リクエスト
+  ├─ 成功 → URL.createObjectURL() で img src に設定
+  ├─ 失敗 → 1秒後にリトライ
+  └─ 設定はlocalStorage "readerSettings" に永続化
+```
+
+#### 通知パターン
+```typescript
+// @kyvg/vue3-notification + Vuetify v-alert
+const { pushNotice } = usePushNotice()
+pushNotice('メッセージ', 'success')  // type: 'success'|'error'|'info'|'warn'
+```
+
+### Vue 2アーキテクチャ（web/）— レガシー
 ```
 src/
 ├── main.js           # エントリーポイント
@@ -327,16 +435,7 @@ src/
 ├── axios/            # API通信設定
 └── plugins/          # Vuetify等のプラグイン
 ```
-
-### 状態管理（Vuex）
-- ユーザー認証状態
-- 書籍一覧・フィルタ状態
-- グローバルローディング状態
-
-### API通信パターン
-- Axiosインスタンス作成
-- JWTトークンを自動付与（Interceptor）
-- エラーハンドリング統一
+※ Vue 2は旧本番環境。Vue 3（vue/）への移行で置き換え予定。
 
 ## デプロイパターン
 

@@ -52,9 +52,9 @@ Zipファイルで管理された書籍（電子書籍・コミック等）を�
 ## 技術スタック
 - **バックエンド**: FastAPI (Python 3.11+)
 - **フロントエンド**: 
-  - Vue 2 + Vuetify 2 (メインアプリ: web/)
-  - Vue 3 + Nuxt 3 (開発中: nuxt/)
-  - Vue 3 + Vite (開発中: vue/)
+  - **Vue 3 + Vite + Vuetify 3 (主力: vue/)** ← 現在の開発対象
+  - Vue 2 + Vuetify 2 (レガシー本番: web/)
+  - Vue 3 + Nuxt 3 (移行実験・非推奨: nuxt/)
 - **データベース**: PostgreSQL 16
 - **マイグレーション**: Alembic
 - **コンテナ化**: Docker + Docker Compose
@@ -71,10 +71,11 @@ Zipファイルで管理された書籍（電子書籍・コミック等）を�
 ```
 /workspaces/hinagiku-viewer/
 ├── api/          # FastAPI バックエンド
-├── web/          # Vue 2 フロントエンド（本番用）
-├── nuxt/         # Nuxt 3 フロントエンド（開発中）
-├── vue/          # Vue 3 + Vite フロントエンド（開発中）
+├── vue/          # Vue 3 + Vite フロントエンド（★主力）
+├── web/          # Vue 2 フロントエンド（レガシー本番）
+├── nuxt/         # Nuxt 3 フロントエンド（移行実験・非推奨）
 ├── data/         # データディレクトリ（ボリュームマウント）
+├── memory-bank/  # プロジェクトドキュメント（Cline Memory Bank）
 └── compose.yaml  # Docker Compose設定
 ```
 
