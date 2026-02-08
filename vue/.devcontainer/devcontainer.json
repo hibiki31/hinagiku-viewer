@@ -2,17 +2,17 @@
   "name": "Hinav-Vue",
   "context": ".",
   "dockerFile": "./Dockerfile",
+  "remoteUser": "node",
+  "containerUser": "node",
   "forwardPorts": [3000],
   "mounts": [
     "source=node_modules_hinav_dev,target=${containerWorkspaceFolder}/node_modules,type=volume",
     "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
-    "source=claude-auth,target=/root/.claude,type=volume"
+    "source=claude-auth,target=/home/node/.claude,type=volume"
   ],
   "postCreateCommand": "/workspaces/hinagiku-viewer/vue/.devcontainer/post.sh",
   "customizations": {
-    // Configure properties specific to VS Code.
     "vscode": {
-      // Add the IDs of extensions you want installed when the container is created.
       "extensions": [
         "azemoh.one-monokai",
         "mhutchie.git-graph",
@@ -28,6 +28,6 @@
   },
   "containerEnv": {
     "CHOKIDAR_USEPOLLING": "true",
-    "CLAUDE_CONFIG_DIR": "/root/.claude"
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude"
   }
 }

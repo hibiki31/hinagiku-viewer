@@ -6,7 +6,8 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'X-Requested-With': 'XMLHttpRequest'
   },
-  responseType: 'json'
+  responseType: 'json',
+  withCredentials: true
 })
 
 export default api
