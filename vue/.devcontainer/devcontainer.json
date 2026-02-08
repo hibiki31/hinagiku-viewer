@@ -4,7 +4,9 @@
   "dockerFile": "./Dockerfile",
   "forwardPorts": [3000],
   "mounts": [
-    "source=node_modules_hinav_dev,target=${containerWorkspaceFolder}/node_modules,type=volume"
+    "source=node_modules_hinav_dev,target=${containerWorkspaceFolder}/node_modules,type=volume",
+    "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
+    "source=claude-auth,target=/root/.claude,type=volume"
   ],
   "postCreateCommand": "/workspaces/hinagiku-viewer/vue/.devcontainer/post.sh",
   "customizations": {
@@ -19,11 +21,13 @@
         "esbenp.prettier-vscode",
         "EditorConfig.EditorConfig",
         "hollowtree.vue-snippets",
-        "saoudrizwan.claude-dev"
+        "saoudrizwan.claude-dev",
+        "MS-CEINTL.vscode-language-pack-ja"
       ]
     }
   },
   "containerEnv": {
-    "CHOKIDAR_USEPOLLING": "true"
+    "CHOKIDAR_USEPOLLING": "true",
+    "CLAUDE_CONFIG_DIR": "/root/.claude"
   }
 }
