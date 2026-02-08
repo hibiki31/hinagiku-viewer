@@ -9,7 +9,11 @@ import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
 // Utilities
 import { defineConfig } from 'vite'
+import { readFileSync } from 'node:fs'
 import { fileURLToPath, URL } from 'node:url'
+
+// package.json からバージョン情報を取得
+const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'))
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -53,7 +57,10 @@ export default defineConfig({
       },
     }),
   ],
-  define: { 'process.env': {} },
+  define: {
+    'process.env': {},
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

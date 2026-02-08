@@ -36,8 +36,8 @@ import { usePushNotice } from '@/composables/utility'
 const userDataStore = useUserDataStore()
 const { pushNotice } = usePushNotice()
 
-// package.jsonからバージョン取得（実際にはハードコード）
-const version = '3.0.0'
+// package.json の version からビルド時に注入
+const version = __APP_VERSION__
 
 onMounted(async () => {
   // axiosインターセプター設定

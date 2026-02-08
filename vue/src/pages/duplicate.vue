@@ -101,7 +101,7 @@ const { getCoverURL } = useGetCoverURL()
 
 const showDrawer = ref(true)
 const isLoading = ref(true)
-const version = '3.0.0'
+const version = __APP_VERSION__
 const booksList = ref<DuplicateBook[]>([])
 
 const serachDuplicate = async () => {

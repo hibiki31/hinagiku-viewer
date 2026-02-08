@@ -174,7 +174,7 @@ const showDrawer = ref(true)
 const isLoading = ref(true)
 const exportDialog = ref(false)
 const libraryList = ref<GetLibrary[]>([])
-const version = '3.0.0'
+const version = __APP_VERSION__
 
 // 前回の続きを開くか確認するダイアログ
 const resumeDialog = ref(false)
