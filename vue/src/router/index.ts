@@ -16,8 +16,14 @@ const router = createRouter({
 })
 
 // 認証ガード
-router.beforeEach((to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
+router.beforeEach(async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
   const userDataStore = useUserDataStore()
+
+  // 初回は認証の初期化（Cookie からトークン復元＋バリデーション）を待つ
+  if (!userDataStore.isInitialized) {
+    await userDataStore.init()
+  }
+
   const isAuthed = userDataStore.isAuthed
 
   // ログインしているのにログインページに行く場合

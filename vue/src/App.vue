@@ -30,13 +30,10 @@
 
 <script lang="ts" setup>
 import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useUserDataStore } from '@/stores/userData'
 import axios from '@/func/axios'
-import Cookies from 'js-cookie'
 import { usePushNotice } from '@/composables/utility'
 
-const router = useRouter()
 const userDataStore = useUserDataStore()
 const { pushNotice } = usePushNotice()
 
@@ -65,27 +62,6 @@ onMounted(async () => {
       throw error
     }
   )
-
-  // トークン取得
-  const accessToken = Cookies.get('accessToken')
-
-  if (accessToken) {
-    try {
-      await axios.get('/api/auth/validate', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
-      })
-      userDataStore.authenticaitonSuccessful(accessToken)
-      if (router.currentRoute.value.path === '/login') {
-        router.push('/')
-      }
-    } catch {
-      userDataStore.authenticaitonFail()
-    }
-  } else {
-    userDataStore.authenticaitonFail()
-  }
 
   // バージョンチェック
   try {

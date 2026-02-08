@@ -296,7 +296,7 @@ const createCache = (book: BookBase) => {
     url: '/media/books',
     data: {
       uuid: book.uuid,
-      height: window.innerHeight * window.devicePixelRatio
+      height: Math.round(window.innerHeight * window.devicePixelRatio)
     }
   })
 }

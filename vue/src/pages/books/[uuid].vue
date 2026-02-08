@@ -174,7 +174,7 @@ const settings = reactive({
   showBaseWidth: true,
   showWindwSize: false,
   customHeight: 1024,
-  windowHeight: window.innerHeight * window.devicePixelRatio
+  windowHeight: Math.round(window.innerHeight * window.devicePixelRatio)
 })
 
 // ライブラリに戻る
