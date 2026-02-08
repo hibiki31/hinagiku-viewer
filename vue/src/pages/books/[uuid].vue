@@ -1,78 +1,294 @@
 <template>
   <div class="books" style="height: 100vh">
     <!-- メニューダイアログ -->
-    <v-dialog v-model="menuDialog" scrollable max-width="500px">
+    <v-dialog v-model="menuDialog" scrollable max-width="600px">
       <v-card>
-        <v-card-text class="pt-6">
-          <v-btn @click="nowPage += 1">
-            ページ調整
-          </v-btn>
-          <v-btn class="ml-3" @click="goLibrary()">
-            ライブラリへ戻る
-          </v-btn>
-          <v-row class="mt-3 pa-0">
-            <v-col cols="12" sm="4">
-              <v-select
-                v-model="settings.cachePage"
-                :items="cachePageItems"
-                label="先読みページ数"
-                density="compact"
+        <v-card-title class="d-flex align-center pa-4">
+          <v-icon class="mr-2">mdi-cog</v-icon>
+          設定メニュー
+        </v-card-title>
+        <v-divider />
+        <v-card-text class="pt-4">
+          <!-- ナビゲーション -->
+          <v-card variant="outlined" class="mb-4">
+            <v-card-subtitle class="pb-2">
+              <v-icon size="small" class="mr-1">mdi-navigation</v-icon>
+              ナビゲーション
+            </v-card-subtitle>
+            <v-card-text class="pt-0">
+              <v-row dense>
+                <v-col cols="6">
+                  <v-btn block variant="tonal" prepend-icon="mdi-information" @click="metadataDialog = true">
+                    本の情報
+                  </v-btn>
+                </v-col>
+                <v-col cols="6">
+                  <v-btn block variant="tonal" prepend-icon="mdi-home" @click="goLibrary()">
+                    ライブラリ
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+
+          <!-- ページ設定 -->
+          <v-card variant="outlined" class="mb-4">
+            <v-card-subtitle class="pb-2">
+              <v-icon size="small" class="mr-1">mdi-book-open-page-variant</v-icon>
+              ページ設定
+            </v-card-subtitle>
+            <v-card-text class="pt-0">
+              <v-slider
+                v-model="nowPage"
+                label="ページ"
+                :min="1"
+                :max="bookInfo.page"
+                thumb-label
+                :step="1"
               />
-            </v-col>
-            <v-col cols="12" sm="4">
-              <v-select
-                v-model="settings.customHeight"
-                :items="[600, 1080, 1920]"
-                label="ページ縦サイズ"
-                density="compact"
+              <v-row dense>
+                <v-col cols="12" sm="6">
+                  <v-switch
+                    v-model="settings.showTowPage"
+                    label="見開き表示"
+                    density="compact"
+                    hide-details
+                    color="primary"
+                  />
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <v-switch
+                    v-model="settings.showWindwSize"
+                    label="画面サイズで表示"
+                    density="compact"
+                    hide-details
+                    color="primary"
+                  />
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+
+          <!-- 画質設定 -->
+          <v-card variant="outlined" class="mb-4">
+            <v-card-subtitle class="pb-2">
+              <v-icon size="small" class="mr-1">mdi-image-size-select-large</v-icon>
+              画質設定
+            </v-card-subtitle>
+            <v-card-text class="pt-0">
+              <v-row dense>
+                <v-col cols="12" sm="6">
+                  <v-select
+                    v-model="settings.cachePage"
+                    :items="cachePageItems"
+                    label="先読みページ数"
+                    density="compact"
+                    hide-details
+                  />
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <v-select
+                    v-model="settings.customHeight"
+                    :items="[600, 1080, 1920]"
+                    label="ページ縦サイズ"
+                    density="compact"
+                    hide-details
+                  />
+                </v-col>
+                <v-col cols="12" sm="6" class="pt-3">
+                  <v-text-field
+                    v-model="loadSizeMB"
+                    label="ロードサイズ (MB)"
+                    readonly
+                    density="compact"
+                    hide-details
+                    prefix="📊"
+                  />
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+
+          <!-- 評価 -->
+          <v-card variant="outlined">
+            <v-card-subtitle class="pb-2">
+              <v-icon size="small" class="mr-1">mdi-star</v-icon>
+              評価
+            </v-card-subtitle>
+            <v-card-text class="pt-0">
+              <v-rating
+                :model-value="bookInfo.userData.rate ?? undefined"
+                size="large"
+                hover
+                @update:model-value="(value) => { bookInfo.userData.rate = value as number; bookInfoSubmit(); }"
               />
+            </v-card-text>
+          </v-card>
+        </v-card-text>
+        <v-divider />
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="primary" variant="text" @click="menuDialog = false">
+            閉じる
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- メタデータダイアログ -->
+    <v-dialog v-model="metadataDialog" max-width="700px">
+      <v-card>
+        <v-card-title class="d-flex align-center pa-4">
+          <v-icon class="mr-2">mdi-information</v-icon>
+          本の情報
+        </v-card-title>
+        <v-divider />
+        <v-card-text class="pt-4">
+          <!-- タイトル -->
+          <v-row dense class="mb-2">
+            <v-col cols="12">
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">タイトル</div>
+              <div class="text-body-1">{{ bookInfo.title || '(タイトルなし)' }}</div>
             </v-col>
-            <v-col cols="12" sm="4">
-              <v-text-field
-                v-model="loadSizeMB"
-                label="ロードサイズ MB"
-                clearable
+          </v-row>
+
+          <v-divider class="my-3" />
+
+          <!-- 著者 -->
+          <v-row dense class="mb-2">
+            <v-col cols="12">
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">著者</div>
+              <div v-if="bookInfo.authors && bookInfo.authors.length > 0">
+                <v-chip
+                  v-for="author in bookInfo.authors"
+                  :key="author.id"
+                  class="mr-2 mb-2"
+                  size="small"
+                  variant="outlined"
+                >
+                  {{ author.name }}
+                </v-chip>
+              </div>
+              <div v-else class="text-body-2 text-medium-emphasis">
+                (著者情報なし)
+              </div>
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-3" />
+
+          <!-- 出版社・ジャンル -->
+          <v-row dense class="mb-2">
+            <v-col cols="6">
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">出版社</div>
+              <div class="text-body-2">{{ bookInfo.publisher?.name || '(不明)' }}</div>
+            </v-col>
+            <v-col cols="6">
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">ジャンル</div>
+              <div class="text-body-2">{{ bookInfo.genreId || '(未設定)' }}</div>
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-3" />
+
+          <!-- ページ数・ファイルサイズ -->
+          <v-row dense class="mb-2">
+            <v-col cols="6">
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">ページ数</div>
+              <div class="text-body-2">{{ bookInfo.page }} ページ</div>
+            </v-col>
+            <v-col cols="6">
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">ファイルサイズ</div>
+              <div class="text-body-2">{{ formatFileSize(bookInfo.size || 0) }}</div>
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-3" />
+
+          <!-- タグ -->
+          <v-row dense class="mb-2">
+            <v-col cols="12">
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">タグ</div>
+              <div v-if="bookInfo.tags && bookInfo.tags.length > 0">
+                <v-chip
+                  v-for="tag in bookInfo.tags"
+                  :key="tag.id"
+                  class="mr-2 mb-2"
+                  size="small"
+                  color="primary"
+                  variant="tonal"
+                >
+                  {{ tag.name }}
+                </v-chip>
+              </div>
+              <div v-else class="text-body-2 text-medium-emphasis">
+                (タグなし)
+              </div>
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-3" />
+
+          <!-- 日付情報 -->
+          <v-row dense class="mb-2">
+            <v-col cols="6">
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">追加日</div>
+              <div class="text-body-2">{{ formatDate(bookInfo.addDate) }}</div>
+            </v-col>
+            <v-col cols="6">
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">ファイル日付</div>
+              <div class="text-body-2">{{ formatDate(bookInfo.fileDate) }}</div>
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-3" />
+
+          <!-- 読書情報 -->
+          <v-row dense class="mb-2">
+            <v-col cols="6">
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">評価</div>
+              <v-rating
+                :model-value="bookInfo.userData.rate ?? undefined"
+                size="small"
                 readonly
                 density="compact"
               />
             </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="12" sm="6">
-              <v-switch
-                v-model="settings.showTowPage"
-                label="見開き表示"
-                density="compact"
-                hide-details
-              />
-            </v-col>
-            <v-col cols="12" sm="6">
-              <v-switch
-                v-model="settings.showWindwSize"
-                label="画面サイズで表示"
-                density="compact"
-                hide-details
-              />
+            <v-col cols="6">
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">読んだ回数</div>
+              <div class="text-body-2">{{ bookInfo.userData.readTimes || 0 }} 回</div>
             </v-col>
           </v-row>
-          <v-slider
-            v-model="nowPage"
-            label="ページ"
-            :min="0"
-            :max="bookInfo.page"
-            thumb-label
-          />
-          <v-rating
-            :model-value="bookInfo.userData.rate ?? undefined"
-            size="small"
-            class="pa-1"
-            @update:model-value="(value) => { bookInfo.userData.rate = value as number; bookInfoSubmit(); }"
-          />
+
+          <v-divider class="my-3" />
+
+          <!-- ファイル情報 -->
+          <v-row dense class="mb-2">
+            <v-col cols="12">
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">ファイル名</div>
+              <div class="text-body-2 text-break">{{ bookInfo.importFileName }}</div>
+            </v-col>
+          </v-row>
+
+          <v-row dense class="mb-2">
+            <v-col cols="12">
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">UUID</div>
+              <div class="text-body-2 font-monospace text-break">{{ bookInfo.uuid }}</div>
+            </v-col>
+          </v-row>
+
+          <v-row dense class="mb-2">
+            <v-col cols="12">
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">SHA1ハッシュ</div>
+              <div class="text-body-2 font-monospace text-break">{{ bookInfo.sha1 }}</div>
+            </v-col>
+          </v-row>
         </v-card-text>
         <v-divider />
         <v-card-actions>
-          <v-btn color="blue-darken-1" variant="text" @click="menuDialog = false">
-            Close
+          <v-spacer />
+          <v-btn color="primary" variant="text" @click="metadataDialog = false">
+            閉じる
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -150,6 +366,9 @@ import { useRouter, useRoute } from 'vue-router'
 import { apiClient } from '@/func/client'
 import { usePushNotice } from '@/composables/utility'
 import { useGesture } from '@/composables/gesture'
+import type { components } from '@/api'
+
+type BookBase = components['schemas']['BookBase']
 
 const router = useRouter()
 const route = useRoute()
@@ -159,6 +378,7 @@ const imageAreaRef = ref<HTMLElement | null>(null)
 const viewerPage1Ref = ref<HTMLImageElement | null>(null)
 const viewerPage2Ref = ref<HTMLImageElement | null>(null)
 const menuDialog = ref(false)
+const metadataDialog = ref(false)
 const subMenu = ref(false)
 const uuid = ref('')
 const nowPage = ref(1)
@@ -171,17 +391,24 @@ const loadSizeB = ref(0)
 const loadSizeMB = ref(0)
 const userShowTowPage = ref(false) // ユーザーが設定した見開き表示の値
 
-const bookInfo = reactive<{
-  page: number
-  uuid?: string
-  userData: {
-    rate: number | null
-    openPage?: number | null
-  }
-}>({
+const bookInfo = reactive<Partial<BookBase>>({
   page: 0,
+  uuid: undefined,
+  title: undefined,
+  authors: [],
+  publisher: { name: null, id: null },
+  tags: [],
+  size: 0,
+  sha1: '',
+  importFileName: '',
+  addDate: '',
+  fileDate: '',
+  genreId: undefined,
   userData: {
-    rate: null
+    rate: null,
+    openPage: null,
+    readTimes: null,
+    lastOpenDate: null
   }
 })
 
@@ -358,6 +585,32 @@ const actionMenuOpen = () => {
 
 const actionSubMenuToggle = () => {
   subMenu.value = !subMenu.value
+}
+
+// ファイルサイズをフォーマット
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
+}
+
+// 日付をフォーマット
+const formatDate = (dateString?: string): string => {
+  if (!dateString) return '(不明)'
+  try {
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date)
+  } catch {
+    return '(不明)'
+  }
 }
 
 const loadSettings = () => {
