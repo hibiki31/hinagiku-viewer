@@ -29,49 +29,26 @@
 
 <script lang="ts" setup>
 import { onMounted } from 'vue'
-import { useUserDataStore } from '@/stores/userData'
-import axios from '@/func/axios'
+import { apiClient } from '@/func/client'
 import { usePushNotice } from '@/composables/utility'
 
-const userDataStore = useUserDataStore()
 const { pushNotice } = usePushNotice()
 
 // package.json の version からビルド時に注入
 const version = __APP_VERSION__
 
 onMounted(async () => {
-  // axiosインターセプター設定
-  axios.interceptors.response.use(
-    response => {
-      return response
-    },
-    error => {
-      if (!error.response) {
-        throw error
-      }
-      const status = error.response.status
-      if (status === 401) {
-        if (userDataStore.isAuthed) {
-          pushNotice('認証エラーが発生したためログアウトします', 'error')
-          userDataStore.authenticaitonFail()
-          location.reload()
-        }
-        return false
-      }
-      throw error
-    }
-  )
-
   // バージョンチェック
   try {
-    const res = await axios.get('/api/version')
-    if (version !== res.data.version) {
-      if (localStorage.apiVersion === res.data.version) {
+    const { data, error } = await apiClient.GET('/api/version')
+    if (error) throw error
+    if (data && version !== data.version) {
+      if (localStorage.apiVersion === data.version) {
         pushNotice('クライアントとAPIでバージョン齟齬があります', 'error')
         return
       }
-      pushNotice(res.data.version + 'にバージョンアップを行います', 'info')
-      localStorage.apiVersion = res.data.version
+      pushNotice(data.version + 'にバージョンアップを行います', 'info')
+      localStorage.apiVersion = data.version
       setTimeout(() => {
         location.reload()
       }, 3000)

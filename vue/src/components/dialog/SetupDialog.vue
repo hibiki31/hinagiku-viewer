@@ -36,7 +36,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import axios from '@/func/axios'
+import { apiClient } from '@/func/client'
 import { usePushNotice } from '@/composables/utility'
 import { required, limitLength64, characterRestrictions, firstCharacterRestrictions } from '@/composables/rules'
 
@@ -62,16 +62,15 @@ const runMethod = async () => {
   }
 
   try {
-    await axios.request({
-      method: 'post',
-      url: '/api/auth/setup',
-      data: postData
+    const { error } = await apiClient.POST('/api/auth/setup', {
+      body: postData
     })
+    if (error) throw error
     pushNotice('Success setup', 'success')
     dialogState.value = false
   } catch (error: unknown) {
-    const axiosError = error as { response?: { data?: { detail?: string } } }
-    pushNotice(axiosError.response?.data?.detail || 'セットアップに失敗しました', 'error')
+    const fetchError = error as { detail?: string }
+    pushNotice(fetchError.detail || 'セットアップに失敗しました', 'error')
   }
 }
 

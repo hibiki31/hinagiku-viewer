@@ -70,16 +70,15 @@ export function useApiErrorHandler() {
   const { pushNotice } = usePushNotice()
 
   const apiErrorHandler = (error: unknown) => {
-    const axiosError = error as { response?: { status?: number; data?: string } }
-    if (!axiosError.response) {
+    const fetchError = error as { status?: number; detail?: string; message?: string }
+    if (!fetchError.status) {
       pushNotice('サーバーエラーが発生しました', 'error')
       return
     }
-    const status = axiosError.response.status
-    if (status === 401 || status === 400) {
+    if (fetchError.status === 401 || fetchError.status === 400) {
       pushNotice('認証エラーが発生しました', 'error')
     } else {
-      pushNotice(axiosError.response.data || 'エラーが発生しました', 'error')
+      pushNotice(fetchError.detail || fetchError.message || 'エラーが発生しました', 'error')
     }
   }
   return { apiErrorHandler }
@@ -90,9 +89,9 @@ export function useApiErrorHandler() {
  */
 export function useGetCoverURL() {
   const getCoverURL = (uuid: string): string => {
-    const api = import.meta.env.VITE_APP_API_HOST
+    const api = import.meta.env.VITE_API_ENDPOINT
     if (api) {
-      return import.meta.env.VITE_APP_API_HOST + '/media/books/' + uuid
+      return api + '/media/books/' + uuid
     } else {
       return '/media/books/' + uuid
     }

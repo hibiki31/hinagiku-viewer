@@ -71,7 +71,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserDataStore } from '@/stores/userData'
-import axios from '@/func/axios'
+import { apiClient } from '@/func/client'
 import { usePushNotice } from '@/composables/utility'
 import SetupDialog from '@/components/dialog/SetupDialog.vue'
 
@@ -99,27 +99,34 @@ const openSetupDialog = () => {
 
 const doLogin = async () => {
   isLoadingLogin.value = true
-  const loginFormData = new URLSearchParams()
-  loginFormData.append('username', loginForm.username)
-  loginFormData.append('password', loginForm.password)
 
   try {
-    const res = await axios.post('/api/auth', loginFormData, {
-      headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
+    const { data, error } = await apiClient.POST('/api/auth', {
+      body: {
+        username: loginForm.username,
+        password: loginForm.password,
+        scope: '',
+      },
+      bodySerializer: (body) => {
+        const params = new URLSearchParams()
+        for (const [key, value] of Object.entries(body)) {
+          if (value !== undefined && value !== null) {
+            params.append(key, String(value))
           }
+        }
+        return params
+      },
     })
-    if (res.status === 200) {
+    if (error) throw error
+    if (data) {
       pushNotice('ログイン成功', 'success')
-      const accessToken = res.data.access_token
+      const accessToken = data.access_token
       userDataStore.authenticaitonSuccessful(accessToken)
       router.push('/')
-    } else {
-      pushNotice('エラーが発生しました', 'error')
     }
   } catch (error: unknown) {
-    const axiosError = error as { response?: { status?: number } }
-    if (axiosError.response?.status === 401) {
+    const fetchError = error as { status?: number }
+    if (fetchError.status === 401) {
       pushNotice('ユーザ名またはパスワードが違います', 'error')
     } else {
       pushNotice('サーバエラーが発生しました', 'error')

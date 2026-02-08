@@ -150,7 +150,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useReaderStateStore } from '@/stores/readerState'
-import axios from '@/func/axios'
+import { apiClient } from '@/func/client'
 import { usePushNotice } from '@/composables/utility'
 import SearchDialog from '@/components/dialog/SearchDialog.vue'
 import BookDetailDialog from '@/components/dialog/BookDetailDialog.vue'
@@ -264,12 +264,11 @@ const scrollToUUID = () => {
 
 const loadLibrary = async () => {
   try {
-    const response = await axios.request({
-      method: 'patch',
-      url: '/media/library',
-      data: { state: 'load' }
+    const { error } = await apiClient.PATCH('/media/library', {
+      body: { state: 'load' }
     })
-    pushNotice('ライブラリのリロードを開始' + response.data.status, 'success')
+    if (error) throw error
+    pushNotice('ライブラリのリロードを開始', 'success')
   } catch {
     pushNotice('ライブラリのリロードに失敗しました', 'error')
   }
@@ -291,10 +290,8 @@ const toReaderPage = async (item: BookBase) => {
 
 const createCache = (book: BookBase) => {
   pushNotice('キャッシュの作成をリクエスト', 'info')
-  axios.request({
-    method: 'patch',
-    url: '/media/books',
-    data: {
+  apiClient.PATCH('/media/books', {
+    body: {
       uuid: book.uuid,
       height: Math.round(window.innerHeight * window.devicePixelRatio)
     }
@@ -320,8 +317,11 @@ const dismissResume = () => {
 const initLibraryAndSearch = async () => {
   // ライブラリ情報取得
   try {
-    const response = await axios.get('/api/librarys')
-    libraryList.value = response.data
+    const { data, error } = await apiClient.GET('/api/librarys')
+    if (error) throw error
+    if (data) {
+      libraryList.value = data
+    }
   } catch (error) {
     console.error('ライブラリ情報取得エラー:', error)
   }

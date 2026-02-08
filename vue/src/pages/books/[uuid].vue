@@ -134,7 +134,7 @@
 <script setup lang="ts">
 import { ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import axios from '@/func/axios'
+import { apiClient } from '@/func/client'
 import { usePushNotice } from '@/composables/utility'
 
 const router = useRouter()
@@ -180,10 +180,8 @@ const settings = reactive({
 // ライブラリに戻る
 const goLibrary = () => {
   if (!isCompletedRead.value) {
-    axios.request({
-      method: 'patch',
-      url: '/api/books/user-data',
-      data: {
+    apiClient.PATCH('/api/books/user-data', {
+      body: {
         uuids: [uuid.value],
         status: 'pause',
         page: nowPage.value
@@ -196,18 +194,16 @@ const goLibrary = () => {
 }
 
 const bookInfoSubmit = () => {
-  axios
-    .request({
-      method: 'put',
-      url: '/api/books/user-data',
-      data: {
-        uuids: [bookInfo.uuid],
-        rate: bookInfo.userData.rate
-      }
-    })
-    .then(() => {
+  apiClient.PUT('/api/books/user-data', {
+    body: {
+      uuids: [bookInfo.uuid!],
+      rate: bookInfo.userData.rate ?? undefined
+    }
+  }).then(({ error }) => {
+    if (!error) {
       pushNotice('評価を更新しました', 'success')
-    })
+    }
+  })
 }
 
 // ページを進めるときに
@@ -250,16 +246,21 @@ const getDLoadingPage = async () => {
   }
 
   try {
-    const response = await axios.get(`/media/books/${uuid.value}/${page}`, {
-      responseType: 'blob',
-      params: {
-        direct: 'True',
-        height: heightParam
+    // Blob取得: openapi-fetchのparseAsオプションでblob取得
+    const response = await fetch(
+      `${import.meta.env.VITE_API_ENDPOINT || ''}/media/books/${uuid.value}/${page}?height=${heightParam}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${(await import('js-cookie')).default.get('accessToken') || ''}`
+        }
       }
-    })
-    loadSizeB.value += Number(response.headers['content-length'])
+    )
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    const contentLength = response.headers.get('content-length')
+    loadSizeB.value += Number(contentLength)
     loadSizeMB.value = Math.round(loadSizeB.value / 10000) / 100
-    pageBlob.value[page - 1] = window.URL.createObjectURL(response.data)
+    const blob = await response.blob()
+    pageBlob.value[page - 1] = window.URL.createObjectURL(blob)
     nowLoading.value -= 1
     getDLoadingPage()
   } catch (error) {
@@ -280,10 +281,8 @@ const actionPageNext = () => {
   if (bookInfo.page <= nowPage.value) {
     nowPage.value = bookInfo.page
     if (!isCompletedRead.value) {
-      axios.request({
-        method: 'patch',
-        url: '/api/books/user-data',
-        data: {
+      apiClient.PATCH('/api/books/user-data', {
+        body: {
           uuids: [uuid.value],
           status: 'close'
         }
@@ -342,22 +341,25 @@ onMounted(async () => {
 
   // 書籍情報取得
   try {
-    const response = await axios.get('/api/books', {
-      params: { uuid: uuid.value }
+    const { data, error } = await apiClient.GET('/api/books', {
+      params: {
+        query: { uuid: uuid.value }
+      }
     })
-    Object.assign(bookInfo, response.data.rows[0])
-    if (bookInfo.userData.openPage !== null && bookInfo.userData.openPage !== undefined) {
-      nowPage.value = bookInfo.userData.openPage
+    if (error) throw error
+    if (data && data.rows.length > 0) {
+      Object.assign(bookInfo, data.rows[0])
+      if (bookInfo.userData.openPage !== null && bookInfo.userData.openPage !== undefined) {
+        nowPage.value = bookInfo.userData.openPage
+      }
+      pageBlob.value = [...pageBlob.value, ...Array(bookInfo.page - 4).fill(null)]
     }
-    pageBlob.value = [...pageBlob.value, ...Array(bookInfo.page - 4).fill(null)]
   } catch (error) {
     console.error('書籍情報取得エラー:', error)
   }
 
-  axios.request({
-    method: 'patch',
-    url: '/api/books/user-data',
-    data: {
+  apiClient.PATCH('/api/books/user-data', {
+    body: {
       uuids: [uuid.value],
       status: 'open'
     }

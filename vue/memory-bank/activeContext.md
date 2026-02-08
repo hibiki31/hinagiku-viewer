@@ -19,7 +19,7 @@
 
 ### 状態
 - Vue 3フロントエンドの主要4ページが実装完了
-- APIクライアントの共存状態（Axios + openapi-fetch）
+- APIクライアントをopenapi-fetchに完全統一（Axios完全排除済み）
 - 本番切り替え前の最終調整フェーズ
 
 ## 最近の変更（Vue 3固有）
@@ -49,7 +49,7 @@
 | 基盤構築 | ✅ 完了 | Vite, TypeScript, Vuetify 3 |
 | ルーティング | ✅ 完了 | ファイルベース、型安全 |
 | 状態管理 | ✅ 完了 | Pinia 4ストア |
-| API通信 | 🔄 共存中 | Axios + openapi-fetch |
+| API通信 | ✅ 完了 | openapi-fetch統一（Axios排除済み） |
 | 認証フロー | ✅ 完了 | JWT + Cookie |
 | 主要ページ | ✅ 完了 | 4ページ実装済み |
 | 管理者UI | ❌ 未実装 | 移行予定 |
@@ -57,12 +57,13 @@
 
 ## アクティブな決定と考慮事項（Vue 3固有）
 
-### 1. APIクライアント移行
-**現状**: Axiosとopenapi-fetchが共存
-**方針**: 
-- 新規コードは `func/client.ts` (openapi-fetch) を優先
-- 既存コードの段階的移行
-- 型安全性を最大限活用
+### 1. APIクライアント統一完了
+**現状**: openapi-fetchに完全統一済み（2026-02-08）
+**成果**: 
+- `func/client.ts` (openapi-fetch) で全API呼び出しを統一
+- `func/axios.ts` 削除、axiosパッケージ完全排除
+- 401エラーハンドリングミドルウェア統合
+- 型安全なAPI呼び出し（`paths`型によるエンドポイント型推論）
 
 ### 2. コンポーネント自動インポート
 **決定**: `unplugin-vue-components`で自動インポート
@@ -81,9 +82,9 @@
 
 ### 短期（1-2週間）
 1. 未実装ページの移植
-2. openapi-fetchクライアントへの移行作業
-3. エラーハンドリングの統一
-4. テーマ切替機能の実装検討
+2. エラーハンドリングの統一
+3. テーマ切替機能の実装検討
+4. 環境変数の統一（`VITE_API_ENDPOINT` に一本化）
 
 ### 中期（1-3ヶ月）
 1. Docker環境への統合
@@ -118,10 +119,10 @@
 - `src/api.d.ts` の型定義（OpenAPIスキーマから生成）
 
 ### 技術的負債
-1. Axiosとopenapi-fetchの混在
-2. バージョン番号のハードコード（`3.0.0`）
-3. `authenticaitonSuccessful`/`authenticaitonFail` のタイポ
-4. テストカバレッジなし
+1. バージョン番号のハードコード（`3.0.0`）
+2. `authenticaitonSuccessful`/`authenticaitonFail` のタイポ
+3. テストカバレッジなし
+4. 書籍リーダーのBlob取得が素のfetch（openapi-fetchのparseAs非対応のため）
 
 ## 最終更新日
-2026-02-08: Vue 3メモリーバンク構造化
+2026-02-08: Axiosからopenapi-fetchへの完全移行完了

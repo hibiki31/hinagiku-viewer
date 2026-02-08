@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import axios from '@/func/axios'
+import { apiClient } from '@/func/client'
 import { useReaderStateStore } from '@/stores/readerState'
 import { usePushNotice, useFitByte } from '@/composables/utility'
 import BaseAuthorChip from '@/components/BaseAuthorChip.vue'
@@ -79,8 +79,11 @@ const openDialog = async (book: BookBase) => {
   readerStateStore.setOpenBook(book)
   dialogState.value = true
   try {
-    const response = await axios.get('/api/librarys')
-    libraryList.value = response.data
+    const { data, error } = await apiClient.GET('/api/librarys')
+    if (error) throw error
+    if (data) {
+      libraryList.value = data
+    }
   } catch {
     console.error('ライブラリ情報取得エラー')
   }
@@ -88,14 +91,13 @@ const openDialog = async (book: BookBase) => {
 
 const bookInfoSubmit = async () => {
   try {
-    await axios.request({
-      method: 'put',
-      url: '/api/books/user-data',
-      data: {
-        uuids: [openBook.value.uuid],
-        rate: openBook.value.userData.rate
+    const { error } = await apiClient.PUT('/api/books/user-data', {
+      body: {
+        uuids: [openBook.value.uuid!],
+        rate: openBook.value.userData.rate ?? undefined
       }
     })
+    if (error) throw error
     pushNotice('評価を更新しました', 'success')
     emit('search')
   } catch {
@@ -105,11 +107,10 @@ const bookInfoSubmit = async () => {
 
 const changeBookLibrary = async () => {
   try {
-    await axios.request({
-      method: 'put',
-      url: '/api/books',
-      data: { uuids: [openBook.value.uuid], libraryId: openBook.value.libraryId }
+    const { error } = await apiClient.PUT('/api/books', {
+      body: { uuids: [openBook.value.uuid!], libraryId: openBook.value.libraryId }
     })
+    if (error) throw error
     pushNotice('ライブラリを変更しました', 'success')
     emit('search')
   } catch {

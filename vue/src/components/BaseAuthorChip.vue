@@ -77,7 +77,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useReaderStateStore } from '@/stores/readerState'
-import axios from '@/func/axios'
+import { apiClient } from '@/func/client'
 import { usePushNotice, useApiErrorHandler } from '@/composables/utility'
 import { required, limitLength64 } from '@/composables/rules'
 import type { components } from '@/api'
@@ -114,11 +114,10 @@ const getAuthorColor = (isFavorite: boolean): string => {
 
 const favoriteAuthor = async (author: BookAuthors, favorite: boolean) => {
   try {
-    await axios.request({
-      method: 'patch',
-      url: '/api/authors',
-      data: { authorId: author.id, isFavorite: favorite }
+    const { error } = await apiClient.PATCH('/api/authors', {
+      body: { authorId: author.id, isFavorite: favorite }
     })
+    if (error) throw error
     pushNotice('著者のお気に入り変更', 'success')
     author.isFavorite = favorite
   } catch (error) {
@@ -135,13 +134,15 @@ const searchAuthor = (authorName: string) => {
 
 const postAuthor = async () => {
   try {
-    const response = await axios.request({
-      method: 'post',
-      url: `/api/books/${props.openBook.uuid}/authors`,
-      data: { authorName: postAuthorName.value }
+    const { data, error } = await apiClient.POST('/api/books/{book_uuid}/authors', {
+      params: { path: { book_uuid: props.openBook.uuid } },
+      body: { authorName: postAuthorName.value }
     })
+    if (error) throw error
     pushNotice('著者追加成功', 'success')
-    readerStateStore.setOpenBook(response.data)
+    if (data) {
+      readerStateStore.setOpenBook(data as any)
+    }
     await readerStateStore.serachBooks()
   } catch (error) {
     apiErrorHandler(error)
@@ -151,13 +152,15 @@ const postAuthor = async () => {
 
 const deleteAuthor = async (book: { uuid: string }, id: number) => {
   try {
-    const response = await axios.request({
-      method: 'delete',
-      url: `/api/books/${book.uuid}/authors`,
-      data: { authorId: id }
+    const { data, error } = await apiClient.DELETE('/api/books/{book_uuid}/authors', {
+      params: { path: { book_uuid: book.uuid } },
+      body: { authorId: id }
     })
+    if (error) throw error
     pushNotice('著者削除', 'success')
-    readerStateStore.setOpenBook(response.data)
+    if (data) {
+      readerStateStore.setOpenBook(data as any)
+    }
     await readerStateStore.serachBooks()
   } catch (error) {
     apiErrorHandler(error)

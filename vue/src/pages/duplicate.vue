@@ -81,7 +81,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from '@/func/axios'
+import { apiClient } from '@/func/client'
 import { usePushNotice, useGetCoverURL } from '@/composables/utility'
 
 interface DuplicateBook {
@@ -106,12 +106,11 @@ const booksList = ref<DuplicateBook[]>([])
 
 const serachDuplicate = async () => {
   try {
-    const response = await axios.request({
-      method: 'patch',
-      url: '/media/library',
-      data: { state: 'sim_all' }
+    const { error } = await apiClient.PATCH('/media/library', {
+      body: { state: 'sim_all' }
     })
-    pushNotice('重複の検索を開始' + response.data.status, 'success')
+    if (error) throw error
+    pushNotice('重複の検索を開始', 'success')
   } catch {
     pushNotice('重複の検索に失敗しました', 'error')
   }
@@ -119,8 +118,10 @@ const serachDuplicate = async () => {
 
 const reload = async () => {
   try {
-    const response = await axios.get('/media/books/duplicate')
-    booksList.value = response.data
+    const { data, error } = await apiClient.GET('/media/books/duplicate')
+    if (error) throw error
+    // api.d.tsの型がunknownのためキャスト
+    booksList.value = data as unknown as DuplicateBook[]
     isLoading.value = false
   } catch {
     pushNotice('データの読み込みに失敗しました', 'error')
@@ -130,11 +131,11 @@ const reload = async () => {
 
 const deleteBook = async (uuid: string) => {
   try {
-    const response = await axios.request({
-      method: 'delete',
-      url: '/api/books/' + uuid
+    const { error } = await apiClient.DELETE('/api/books/{book_uuid}', {
+      params: { path: { book_uuid: uuid } }
     })
-    pushNotice('削除しました' + response.data.status, 'success')
+    if (error) throw error
+    pushNotice('削除しました', 'success')
     reload()
   } catch {
     pushNotice('削除に失敗しました', 'error')

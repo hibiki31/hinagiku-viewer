@@ -44,7 +44,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import axios from '@/func/axios'
+import { apiClient } from '@/func/client'
 import { useReaderStateStore } from '@/stores/readerState'
 import { usePushNotice } from '@/composables/utility'
 import type { components } from '@/api'
@@ -71,8 +71,11 @@ const uuids = computed(() => readerStateStore.booksList.map((x: BookBase) => x.u
 const openDialog = async () => {
   dialogState.value = true
   try {
-    const response = await axios.get('/api/librarys')
-    libraryList.value = response.data
+    const { data, error } = await apiClient.GET('/api/librarys')
+    if (error) throw error
+    if (data) {
+      libraryList.value = data
+    }
   } catch {
     console.error('ライブラリ情報取得エラー')
   }
@@ -81,11 +84,10 @@ const openDialog = async () => {
 const submitDialog = async () => {
   if (changeLibrary.value) {
     try {
-      await axios.request({
-        method: 'put',
-        url: '/api/books',
-        data: { uuids: uuids.value, libraryId: queryLibrary.value }
+      const { error } = await apiClient.PUT('/api/books', {
+        body: { uuids: uuids.value, libraryId: queryLibrary.value }
       })
+      if (error) throw error
       pushNotice('ライブラリを一括変更しました', 'success')
     } catch {
       pushNotice('ライブラリの変更に失敗しました', 'error')
@@ -93,11 +95,10 @@ const submitDialog = async () => {
   }
   if (changeRate.value) {
     try {
-      await axios.request({
-        method: 'put',
-        url: '/api/books/user-data',
-        data: { uuids: uuids.value, rate: queryRate.value }
+      const { error } = await apiClient.PUT('/api/books/user-data', {
+        body: { uuids: uuids.value, rate: queryRate.value ?? undefined }
       })
+      if (error) throw error
       pushNotice('評価を一括更新しました', 'success')
     } catch {
       pushNotice('評価の更新に失敗しました', 'error')

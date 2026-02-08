@@ -34,8 +34,8 @@ pnpm dev
 ### Vue 3開発での重要事項
 1. **新規ページは `src/pages/` に配置** → ファイルベースルーティングで自動生成
 2. **API型は `src/api.d.ts` から取得**
-3. **新規API通信は `func/client.ts` の openapi-fetch クライアントを優先**
-4. **既存コードのメンテナンスでは Axios も使用可能** (`func/axios.ts`)
+3. **API通信は `func/client.ts` の openapi-fetch クライアント (`apiClient`) を使用**
+4. **Axiosは完全排除済み** — 新規コードでは絶対に使用しないこと
 5. **通知は `usePushNotice()` composable を使用**
 6. **カバー画像URLは `useGetCoverURL()` composable を使用**
 

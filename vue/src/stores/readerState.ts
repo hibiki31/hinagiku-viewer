@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from '@/func/axios'
+import { apiClient } from '@/func/client'
 import type { components } from '@/api'
 
 type BookBase = components['schemas']['BookBase']
@@ -107,10 +107,26 @@ export const useReaderStateStore = defineStore('readerState', {
       }
 
       try {
-        const response = await axios.get('/api/books', {
-          params: query
+        const { data, error } = await apiClient.GET('/api/books', {
+          params: {
+            query: {
+              fullText: query.fullText || undefined,
+              titleLike: query.titleLike || undefined,
+              authorLike: query.authorLike || undefined,
+              rate: query.rate ?? undefined,
+              genreId: query.genre || undefined,
+              libraryId: query.libraryId ?? undefined,
+              limit: query.limit,
+              offset: query.offset,
+              sortKey: query.sortKey,
+              sortDesc: query.sortDesc,
+            }
+          }
         })
-        this.setBooksResult(response.data)
+        if (error) throw error
+        if (data) {
+          this.setBooksResult(data)
+        }
       } catch (error) {
         console.error('書籍検索エラー:', error)
       }

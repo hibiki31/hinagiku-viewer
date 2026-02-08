@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from '@/func/axios'
+import { apiClient } from '@/func/client'
 import Cookies from 'js-cookie'
 
 interface UserDataState {
@@ -36,11 +36,8 @@ export const useUserDataStore = defineStore('userData', {
 
         if (accessToken) {
           try {
-            await axios.get('/api/auth/validate', {
-              headers: {
-                Authorization: `Bearer ${accessToken}`
-              }
-            })
+            const { error } = await apiClient.GET('/api/auth/validate')
+            if (error) throw error
             this.authenticaitonSuccessful(accessToken)
           } catch {
             this.authenticaitonFail()
@@ -57,8 +54,6 @@ export const useUserDataStore = defineStore('userData', {
 
     authenticaitonSuccessful(accessToken: string, username?: string) {
       Cookies.set('accessToken', accessToken, { expires: 365 })
-      // axiosのデフォルトヘッダーに認証トークンを設定
-      axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
 
       this.accessToken = accessToken
       this.username = username || null
@@ -70,18 +65,14 @@ export const useUserDataStore = defineStore('userData', {
       this.isAuthed = false
       this.isLoaded = false
       Cookies.remove('accessToken')
-      delete axios.defaults.headers.common['Authorization']
     },
 
     async authVerification() {
       if (!this.accessToken) return
 
       try {
-        await axios.get('/api/auth/validate', {
-          headers: {
-            Authorization: `Bearer ${this.accessToken}`
-          }
-        })
+        const { error } = await apiClient.GET('/api/auth/validate')
+        if (error) throw error
       } catch {
         this.authenticaitonFail()
       }
