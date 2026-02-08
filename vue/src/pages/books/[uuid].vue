@@ -365,6 +365,7 @@ import { ref, reactive, watch, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { apiClient } from '@/func/client'
 import { usePushNotice } from '@/composables/utility'
+import { useTitle } from '@/composables/title'
 import { useGesture } from '@/composables/gesture'
 import type { components } from '@/api'
 
@@ -411,6 +412,10 @@ const bookInfo = reactive<Partial<BookBase>>({
     lastOpenDate: null
   }
 })
+
+// ページタイトルを本のタイトルで動的に設定
+const bookTitle = computed(() => bookInfo.title || '読込中...')
+useTitle(bookTitle)
 
 const settings = reactive({
   cachePage: 32,

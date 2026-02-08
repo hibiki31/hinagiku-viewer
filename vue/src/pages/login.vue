@@ -75,7 +75,11 @@ import { useRouter } from 'vue-router'
 import { useUserDataStore } from '@/stores/userData'
 import { apiClient } from '@/func/client'
 import { usePushNotice } from '@/composables/utility'
+import { useTitle } from '@/composables/title'
 import SetupDialog from '@/components/dialog/SetupDialog.vue'
+
+// ページタイトル設定
+useTitle('ログイン')
 
 const router = useRouter()
 const userDataStore = useUserDataStore()

@@ -228,12 +228,16 @@ import { useReaderStateStore } from '@/stores/readerState'
 import { useUserDataStore } from '@/stores/userData'
 import { apiClient } from '@/func/client'
 import { usePushNotice } from '@/composables/utility'
+import { useTitle } from '@/composables/title'
 import SearchDialog from '@/components/dialog/SearchDialog.vue'
 import BookDetailDialog from '@/components/dialog/BookDetailDialog.vue'
 import RangeChangeDialog from '@/components/dialog/RangeChangeDialog.vue'
 import BooksListTable from '@/components/BooksListTable.vue'
 import BooksListThum from '@/components/BooksListThum.vue'
 import type { components } from '@/api'
+
+// ページタイトル設定
+useTitle('ホーム')
 
 type GetLibrary = components['schemas']['GetLibrary']
 type BookBase = components['schemas']['BookBase']

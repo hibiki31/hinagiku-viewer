@@ -92,6 +92,10 @@ import { useRouter } from 'vue-router'
 import { useUserDataStore } from '@/stores/userData'
 import { apiClient } from '@/func/client'
 import { usePushNotice, useGetCoverURL } from '@/composables/utility'
+import { useTitle } from '@/composables/title'
+
+// ページタイトル設定
+useTitle('重複リスト')
 
 interface DuplicateBook {
   duplicate_uuid: string
