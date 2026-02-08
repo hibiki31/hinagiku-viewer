@@ -89,7 +89,7 @@ export function useApiErrorHandler() {
  */
 export function useGetCoverURL() {
   const getCoverURL = (uuid: string): string => {
-    const api = import.meta.env.VITE_API_ENDPOINT
+    const api = import.meta.env.VITE_APP_API_HOST
     if (api) {
       return api + '/media/books/' + uuid
     } else {

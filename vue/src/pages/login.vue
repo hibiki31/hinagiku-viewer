@@ -12,7 +12,7 @@
               <v-progress-circular indeterminate color="primary" />
             </v-card-text>
           </v-card>
-          <v-card v-else class="elevation-12">
+          <v-card v-else class="elevation-12" max-width="400">
             <v-toolbar color="primary" dark>
               <v-toolbar-title>Login</v-toolbar-title>
               <v-spacer />
@@ -24,6 +24,7 @@
                   :rules="[rules.required]"
                   label="userId"
                   name="userId"
+                  variant="underlined"
                   prepend-icon="mdi-account"
                   required
                   type="text"
@@ -35,6 +36,7 @@
                   :rules="[rules.required]"
                   label="Password"
                   name="password"
+                  variant="underlined"
                   prepend-icon="mdi-lock"
                   required
                   type="password"
@@ -114,7 +116,10 @@ const doLogin = async () => {
             params.append(key, String(value))
           }
         }
-        return params
+        return params.toString()
+      },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
     })
     if (error) throw error

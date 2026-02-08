@@ -34,7 +34,7 @@ const errorMiddleware: Middleware = {
 }
 
 export const apiClient = createClient<paths>({
-  baseUrl: import.meta.env.VITE_API_ENDPOINT || "",
+  baseUrl: import.meta.env.VITE_APP_API_HOST || "",
 })
 
 apiClient.use(authMiddleware)

@@ -26,6 +26,14 @@
         </v-list-item>
       </v-list>
       <v-divider />
+      <v-list nav density="compact">
+        <v-list-item>
+          <v-btn class="ma-1" size="small" color="error" block @click="handleLogout">
+            ログアウト
+            <v-icon class="pl-2">mdi-logout</v-icon>
+          </v-btn>
+        </v-list-item>
+      </v-list>
       <!-- ライセンス -->
       <v-divider class="pb-2" />
       <div class="text-subtitle-2 ml-3">
@@ -81,6 +89,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserDataStore } from '@/stores/userData'
 import { apiClient } from '@/func/client'
 import { usePushNotice, useGetCoverURL } from '@/composables/utility'
 
@@ -96,6 +105,7 @@ interface DuplicateBook {
 }
 
 const router = useRouter()
+const userDataStore = useUserDataStore()
 const { pushNotice } = usePushNotice()
 const { getCoverURL } = useGetCoverURL()
 
@@ -144,6 +154,13 @@ const deleteBook = async (uuid: string) => {
 
 const toBookList = () => {
   router.push('/')
+}
+
+// ログアウト処理
+const handleLogout = () => {
+  userDataStore.logout()
+  pushNotice('ログアウトしました', 'success')
+  router.push('/login')
 }
 
 onMounted(() => {

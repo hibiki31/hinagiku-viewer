@@ -248,7 +248,7 @@ const getDLoadingPage = async () => {
   try {
     // Blob取得: openapi-fetchのparseAsオプションでblob取得
     const response = await fetch(
-      `${import.meta.env.VITE_API_ENDPOINT || ''}/media/books/${uuid.value}/${page}?height=${heightParam}`,
+      `${import.meta.env.VITE_APP_API_HOST || ''}/media/books/${uuid.value}/${page}?height=${heightParam}`,
       {
         headers: {
           'Authorization': `Bearer ${(await import('js-cookie')).default.get('accessToken') || ''}`

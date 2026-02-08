@@ -117,6 +117,15 @@
           @update:model-value="(value) => readerStateStore.setShowListMode(!!value)"
         />
       </v-list-item>
+      <v-divider />
+      <v-list nav density="compact">
+        <v-list-item>
+          <v-btn class="ma-1" size="small" color="error" block @click="handleLogout">
+            ログアウト
+            <v-icon class="pl-2">mdi-logout</v-icon>
+          </v-btn>
+        </v-list-item>
+      </v-list>
       <!-- ライセンス -->
       <v-divider class="pb-2" />
       <div class="text-subtitle-2 ml-3">
@@ -150,6 +159,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useReaderStateStore } from '@/stores/readerState'
+import { useUserDataStore } from '@/stores/userData'
 import { apiClient } from '@/func/client'
 import { usePushNotice } from '@/composables/utility'
 import SearchDialog from '@/components/dialog/SearchDialog.vue'
@@ -164,6 +174,7 @@ type BookBase = components['schemas']['BookBase']
 
 const router = useRouter()
 const readerStateStore = useReaderStateStore()
+const userDataStore = useUserDataStore()
 const { pushNotice } = usePushNotice()
 
 const searchDialogRef = ref()
@@ -300,6 +311,13 @@ const createCache = (book: BookBase) => {
 
 const toDuplicateView = () => {
   router.push('/duplicate')
+}
+
+// ログアウト処理
+const handleLogout = () => {
+  userDataStore.logout()
+  pushNotice('ログアウトしました', 'success')
+  router.push('/login')
 }
 
 // 前回の続きを開くダイアログのハンドラー

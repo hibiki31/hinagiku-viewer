@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-02-08T17:06:43.688162+00:00",
-  "task_count": 4,
-  "total_cost": 3.5898,
+  "updated_at": "2026-02-08T17:57:47.072877+00:00",
+  "task_count": 9,
+  "total_cost": 10.0567,
   "tasks": [
     {
       "id": "1770568553080",
@@ -49,6 +49,66 @@
       "cache_writes": 129697,
       "cache_reads": 1362129,
       "model": "claude-opus-4-6",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770570518483",
+      "date": "2026-02-08 17:08:38",
+      "title": "技術的負債にバージョン番号のハードコード（`3.0.0`）があるが、改善案を提案せよ。",
+      "cost": 0.909,
+      "tokens_in": 80,
+      "tokens_out": 4437,
+      "cache_writes": 106850,
+      "cache_reads": 259698,
+      "model": "claude-opus-4-6",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770570808881",
+      "date": "2026-02-08 17:13:28",
+      "title": "本のステータスを、サムネイルの上に表示させていますが、サムネイルからはみ出た部分が消えてしまっています。必要に応じて旧/webの実装も参照し、対応せよ。",
+      "cost": 0.1048,
+      "tokens_in": 50,
+      "tokens_out": 1805,
+      "cache_writes": 5733,
+      "cache_reads": 47117,
+      "model": "claude-opus-4-6",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770570971556",
+      "date": "2026-02-08 17:16:11",
+      "title": "サムネイルは画像を拡大してください。縦サイズを優先し、はみ出た横はカットしてください。",
+      "cost": 0.061,
+      "tokens_in": 30,
+      "tokens_out": 991,
+      "cache_writes": 3747,
+      "cache_reads": 25260,
+      "model": "claude-opus-4-6",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770571128216",
+      "date": "2026-02-08 17:18:48",
+      "title": "Axiosとopenapi-fetchの混在について、memorybank、ソースコードを確認し改善案を提案してください。",
+      "cost": 4.9063,
+      "tokens_in": 480,
+      "tokens_out": 47943,
+      "cache_writes": 365452,
+      "cache_reads": 4093958,
+      "model": "claude-opus-4-6",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770573220260",
+      "date": "2026-02-08 17:53:40",
+      "title": "ログアウト機能を実装せよ",
+      "cost": 0.4858,
+      "tokens_in": 150,
+      "tokens_out": 7836,
+      "cache_writes": 56794,
+      "cache_reads": 516134,
+      "model": "claude-sonnet-4-5-20250929",
       "cline_version": "3.57.1"
     }
   ]

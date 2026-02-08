@@ -76,6 +76,18 @@ export const useUserDataStore = defineStore('userData', {
       } catch {
         this.authenticaitonFail()
       }
+    },
+
+    /**
+     * ログアウト処理
+     * Cookieとストアの認証情報をクリアする
+     */
+    logout() {
+      Cookies.remove('accessToken')
+      this.accessToken = null
+      this.username = null
+      this.isAuthed = false
+      this.isAdmin = false
     }
   }
 })
