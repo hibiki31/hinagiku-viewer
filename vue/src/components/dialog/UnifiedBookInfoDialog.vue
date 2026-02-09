@@ -488,6 +488,15 @@
         >
           最初のページへ
         </v-btn>
+        <v-btn
+          v-if="showReaderSettings"
+          prepend-icon="mdi-home"
+          variant="tonal"
+          color="secondary"
+          @click="handleGoToLibrary"
+        >
+          ライブラリに戻る
+        </v-btn>
         <v-spacer />
         <v-btn
           variant="text"
@@ -539,6 +548,7 @@ const emit = defineEmits<{
   cachePageChanged: [value: number]
   customHeightChanged: [value: number]
   goToFirstPage: []
+  goToLibrary: []
   authorClick: [author: { id: number | null; name: string | null }]
 }>()
 
@@ -854,6 +864,11 @@ const handleCustomHeightChange = (value: number | string) => {
 
 const handleGoToFirstPage = () => {
   emit('goToFirstPage')
+}
+
+const handleGoToLibrary = () => {
+  emit('goToLibrary')
+  dialogState.value = false
 }
 
 const handleOpenBook = () => {

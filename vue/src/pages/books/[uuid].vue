@@ -9,6 +9,7 @@
       @cache-page-changed="handleCachePageChanged"
       @custom-height-changed="handleCustomHeightChanged"
       @go-to-first-page="actionFirstPage"
+      @go-to-library="goLibrary"
     />
 
     <!-- 旧メニューダイアログ（削除予定） -->
@@ -641,7 +642,8 @@ const actionPageNext = () => {
       })
     }
     isCompletedRead.value = true
-    menuDialog.value = true
+    // 最終ページに到達したら統一メニューを表示
+    actionMenuOpen()
   }
 }
 
