@@ -13,47 +13,82 @@
     </v-app-bar>
 
     <v-navigation-drawer v-model="showDrawer" app>
-      <v-list nav density="compact">
-        <v-list-item>
-          <v-btn class="ma-1" size="small" color="primary" block @click="serachDuplicate">
-            重複検索
-            <v-icon class="pl-2">
-              mdi-content-duplicate
-            </v-icon>
-          </v-btn>
-        </v-list-item>
-        <v-list-item>
-          <v-btn class="ma-1" size="small" block @click="toBookList">
-            書籍リスト
-            <v-icon class="pl-2">
-              mdi-book-multiple
-            </v-icon>
-          </v-btn>
-        </v-list-item>
-      </v-list>
+      <!-- ヘッダー -->
+      <v-list-item
+        class="px-2 py-3"
+        prepend-icon="mdi-book-open-variant"
+        title="Hinagiku Viewer"
+        :subtitle="`v${version}`"
+      >
+        <template #prepend>
+          <v-icon color="primary" size="x-large">
+            mdi-book-open-variant
+          </v-icon>
+        </template>
+      </v-list-item>
+
       <v-divider />
-      <v-list nav density="compact">
-        <v-list-item>
-          <v-btn class="ma-1" size="small" color="error" block @click="handleLogout">
-            ログアウト
-            <v-icon class="pl-2">
-              mdi-logout
-            </v-icon>
-          </v-btn>
-        </v-list-item>
+
+      <!-- 操作メニュー -->
+      <v-list nav density="comfortable">
+        <v-list-subheader>操作</v-list-subheader>
+
+        <v-list-item
+          prepend-icon="mdi-content-duplicate"
+          title="重複検索"
+          @click="serachDuplicate"
+        />
+
+        <v-list-item
+          prepend-icon="mdi-book-multiple"
+          title="書籍リスト"
+          @click="toBookList"
+        />
       </v-list>
-      <v-divider class="pb-2" />
-      <div class="text-subtitle-2 ml-3">
-        Develop by
-        <a href="https://github.com/hibiki31" class="text-blue">@hibiki31</a>
-      </div>
-      <div class="text-subtitle-2 ml-3">
-        v{{ version }}
-      </div>
-      <div class="text-subtitle-2 ml-3">
-        Icons made by
-        <a href="https://www.flaticon.com/authors/icon-pond" title="Icon Pond" class="text-blue">Icon Pond</a>
-      </div>
+
+      <v-divider />
+
+      <!-- ログアウト -->
+      <v-list nav density="comfortable">
+        <v-list-item
+          prepend-icon="mdi-logout"
+          title="ログアウト"
+          base-color="error"
+          @click="handleLogout"
+        />
+      </v-list>
+
+      <!-- フッター情報 -->
+      <template #append>
+        <v-divider />
+        <v-list density="compact" class="py-2">
+          <v-list-item density="compact" class="text-caption">
+            <div class="text-center">
+              Develop by
+              <a
+                href="https://github.com/hibiki31"
+                class="text-primary text-decoration-none"
+                target="_blank"
+              >
+                @hibiki31
+              </a>
+            </div>
+          </v-list-item>
+          <v-list-item density="compact" class="text-caption">
+            <div class="text-center">
+              Icons made by
+              <a
+                href="https://www.flaticon.com/authors/icon-pond"
+                title="Icon Pond"
+                class="text-primary text-decoration-none"
+                target="_blank"
+              >
+                Icon Pond
+              </a>
+            </div>
+          </v-list-item>
+        </v-list>
+      </template>
     </v-navigation-drawer>
 
     <v-main>
