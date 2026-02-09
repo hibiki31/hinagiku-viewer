@@ -30,7 +30,9 @@
         <v-list-item>
           <v-btn class="ma-1" size="small" color="error" block @click="handleLogout">
             ログアウト
-            <v-icon class="pl-2">mdi-logout</v-icon>
+            <v-icon class="pl-2">
+              mdi-logout
+            </v-icon>
           </v-btn>
         </v-list-item>
       </v-list>

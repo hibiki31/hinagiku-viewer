@@ -12,7 +12,7 @@
               <v-progress-circular indeterminate color="primary" />
             </v-card-text>
           </v-card>
-          <v-card v-else class="elevation-12 mx-auto" max-width="400">
+          <v-card v-else class="elevation-12 mx-auto" max-width="500">
             <v-toolbar color="primary" dark>
               <v-toolbar-title>Login</v-toolbar-title>
               <v-spacer />

@@ -193,29 +193,53 @@ api.interceptors.response.use(
 #### openapi-fetchクライアント（型安全・移行先）
 ```typescript
 // func/client.ts
-import createClient from 'openapi-fetch'
+import createClient, { type Middleware } from 'openapi-fetch'
 import type { paths } from '@/api'
+import Cookies from 'js-cookie'
+import { useUserDataStore } from '@/stores/userData'
 
-export const client = createClient<paths>({
-  baseUrl: import.meta.env.VITE_API_ENDPOINT,
-})
-
-// Bearerトークンミドルウェア
-client.use({
-  onRequest({ request }) {
+// 認証ミドルウェア: CookieからBearerトークンを取得
+const authMiddleware: Middleware = {
+  async onRequest({ request }) {
     const token = Cookies.get('accessToken')
     if (token) {
       request.headers.set('Authorization', `Bearer ${token}`)
     }
     return request
   },
+}
+
+// エラーハンドリングミドルウェア: 401レスポンス時に自動ログアウト
+const errorMiddleware: Middleware = {
+  async onResponse({ response }) {
+    if (response.status === 401) {
+      const userDataStore = useUserDataStore()
+      if (userDataStore.isAuthed) {
+        userDataStore.authenticaitonFail()
+        window.location.reload()
+      }
+    }
+    return response
+  },
+}
+
+export const apiClient = createClient<paths>({
+  baseUrl: import.meta.env.VITE_APP_API_HOST || '',
 })
 
+apiClient.use(authMiddleware)
+apiClient.use(errorMiddleware)
+
 // 使用例
-const { data, error } = await client.GET('/api/books', {
+const { data, error } = await apiClient.GET('/api/books', {
   params: { query: { limit: 10, offset: 0 } }
 })
 ```
+
+**重要**: 
+- `errorMiddleware`内の`useUserDataStore`は**静的インポート**を使用
+- 以前は動的インポート（`await import()`）を使用していたが、他のページで既に静的インポートされているため、Viteのコード分割が無効化されビルド警告が発生していた
+- 静的インポートに変更してもパフォーマンスに影響なし（既に全ページで読み込まれているため）
 
 **移行方針**: 新規コードはopenapi-fetchを優先、既存Axiosは段階的に移行
 
@@ -347,6 +371,61 @@ const { getCoverURL } = useGetCoverURL()
 const coverUrl = getCoverURL(book.uuid, 400)
 ```
 
+#### ページタイトル動的設定（title.ts）
+```typescript
+export const useSetTitle = (title: string) => {
+  onMounted(() => {
+    document.title = `${title} - Hinagiku Viewer`
+  })
+}
+
+// 使用例（各ページコンポーネント内）
+useSetTitle('書籍一覧')
+```
+
+#### ジェスチャー認識（gesture.ts）
+```typescript
+export const useGesture = (options: {
+  threshold?: number
+  onSwipe?: (direction: 'left' | 'right' | 'up' | 'down') => void
+}) => {
+  const startX = ref(0)
+  const startY = ref(0)
+  const threshold = options.threshold || 50
+
+  const handleStart = (x: number, y: number) => {
+    startX.value = x
+    startY.value = y
+  }
+
+  const handleEnd = (x: number, y: number) => {
+    const deltaX = x - startX.value
+    const deltaY = y - startY.value
+
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (Math.abs(deltaX) > threshold) {
+        options.onSwipe?.(deltaX > 0 ? 'right' : 'left')
+      }
+    } else {
+      if (Math.abs(deltaY) > threshold) {
+        options.onSwipe?.(deltaY > 0 ? 'down' : 'up')
+      }
+    }
+  }
+
+  return { handleStart, handleEnd }
+}
+
+// 使用例（書籍リーダー）
+const { handleStart, handleEnd } = useGesture({
+  threshold: 50,
+  onSwipe: (direction) => {
+    if (direction === 'left') nextPage()
+    if (direction === 'right') prevPage()
+  }
+})
+```
+
 ### localStorage永続化パターン
 
 #### 検索条件（stores/readerState.ts）
@@ -392,6 +471,107 @@ watch([cachePage, mulchLoad, twoPage, customHeight, pageHeight], () => {
 })
 ```
 
+### 見開き自動判定パターン
+
+書籍リーダーで画像のアスペクト比から見開きを自動判定：
+
+```typescript
+// pages/books/[uuid].vue
+const checkTwoPageAuto = () => {
+  const img = new Image()
+  img.onload = () => {
+    const aspectRatio = img.width / img.height
+    // 横長（アスペクト比 > 1.3）なら見開きと判定
+    twoPageAuto.value = aspectRatio > 1.3
+  }
+  img.src = books.value[currentPage.value]?.src || ''
+}
+
+// ページ変更時に自動判定
+watch(currentPage, () => {
+  if (twoPageAutoEnable.value) {
+    checkTwoPageAuto()
+  }
+})
+```
+
+### PWAパターン
+
+vite-plugin-pwaによるService Worker自動生成とオフライン対応：
+
+```typescript
+// vite.config.mts
+import { VitePWA } from 'vite-plugin-pwa'
+
+export default defineConfig({
+  plugins: [
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'icon-*.png'],
+      manifest: {
+        name: 'Hinagiku Viewer',
+        short_name: 'Hinagiku',
+        theme_color: '#082240',
+        icons: [
+          { src: 'icon-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icon-512x512.png', sizes: '512x512', type: 'image/png' }
+        ]
+      },
+      workbox: {
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/api\./,
+            handler: 'NetworkFirst',
+            options: { cacheName: 'api-cache' }
+          }
+        ]
+      }
+    })
+  ]
+})
+```
+
+### Docker本番環境パターン
+
+#### マルチステージビルド（Dockerfile）
+```dockerfile
+# ビルドステージ
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package.json pnpm-lock.yaml ./
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
+COPY . .
+RUN pnpm build
+
+# 本番ステージ
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+#### Nginx設定（nginx.conf）
+```nginx
+server {
+    listen 80;
+    server_name localhost;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # SPAフォールバック
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # 静的ファイルのキャッシュ
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}
+```
+
 ## 設計上の重要な決定（Vue 3固有）
 
 ### 1. ファイルベースルーティング
@@ -422,12 +602,20 @@ watch([cachePage, mulchLoad, twoPage, customHeight, pageHeight], () => {
 - バックエンド負荷軽減
 - オフライン対応
 
-### 5. 2クライアント共存
-**決定**: AxiosとopenAPIクライアントを共存させる
-**理由**: 
-- 既存コードの段階的移行
-- 型安全性を段階的に導入
-- リスク分散
+### 5. PWA対応
+**決定**: vite-plugin-pwaでオフライン機能実装
+**理由**:
+- インストール可能なWebアプリ
+- オフライン動作可能
+- モバイル体験向上
+- Service Worker自動生成
+
+### 6. Docker本番環境
+**決定**: Nginx + 静的ビルドでの本番デプロイ
+**理由**:
+- 軽量で高速
+- スケーラブル
+- 既存インフラとの統合容易
 
 ## パフォーマンス最適化パターン（Vue 3固有）
 
@@ -448,4 +636,4 @@ const HeavyComponent = defineAsyncComponent(() =>
 - 条件によって描画される要素: `v-if`
 
 ## 最終更新日
-2026-02-08: Vue 3メモリーバンク構造化
+2026-02-09: PWA対応、Docker本番環境パターン、ジェスチャー認識追加

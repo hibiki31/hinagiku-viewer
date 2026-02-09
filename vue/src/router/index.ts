@@ -12,7 +12,7 @@ import { useUserDataStore } from '@/stores/userData'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: setupLayouts(routes),
+  routes: setupLayouts([...routes]),
 })
 
 // 認証ガード

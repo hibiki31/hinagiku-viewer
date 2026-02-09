@@ -205,8 +205,10 @@ def generate_markdown(tasks: List[Dict]) -> str:
     for i, t in enumerate(tasks, 1):
         cost = t.get("cost", 0)
         cost_str = f"${cost:.4f}" if cost else "N/A"
+        # タイトルに改行が含まれている場合は1行目のみを使用
+        title = t['title'].split('\n')[0].strip()
         lines.append(
-            f"| {i} | {t['date']} | {t['title']} | {cost_str} "
+            f"| {i} | {t['date']} | {title} | {cost_str} "
             f"| {t.get('tokens_in', 0):,} | {t.get('tokens_out', 0):,} |"
         )
 

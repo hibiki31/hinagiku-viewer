@@ -11,7 +11,9 @@
           variant="text"
           style="background-color: white"
         >
-          <v-alert-title class="text-subtitle-2">{{ props.item.title }}</v-alert-title>
+          <v-alert-title class="text-subtitle-2">
+            {{ props.item.title }}
+          </v-alert-title>
           {{ props.item.text }}
         </v-alert>
       </template>

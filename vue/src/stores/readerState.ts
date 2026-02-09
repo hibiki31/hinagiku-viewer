@@ -51,7 +51,9 @@ const baseState: ReaderStateState = {
     libraryId: null,
     fullText: '',
     authorLike: null,
-    titleLike: null
+    titleLike: null,
+    sortKey: undefined,
+    sortDesc: false
   }
 }
 

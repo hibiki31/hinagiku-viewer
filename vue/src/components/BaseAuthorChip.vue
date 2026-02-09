@@ -141,7 +141,7 @@ const postAuthor = async () => {
     if (error) throw error
     pushNotice('著者追加成功', 'success')
     if (data) {
-      readerStateStore.setOpenBook(data as any)
+      readerStateStore.setOpenBook(data as BookBase)
     }
     await readerStateStore.serachBooks()
   } catch (error) {
@@ -159,7 +159,7 @@ const deleteAuthor = async (book: { uuid: string }, id: number) => {
     if (error) throw error
     pushNotice('著者削除', 'success')
     if (data) {
-      readerStateStore.setOpenBook(data as any)
+      readerStateStore.setOpenBook(data as BookBase)
     }
     await readerStateStore.serachBooks()
   } catch (error) {

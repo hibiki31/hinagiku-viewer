@@ -173,10 +173,10 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       sass: {
-        api: 'modern-compiler',
+        // Vite 7では modern-compiler が自動的に使用されます
       },
       scss: {
-        api: 'modern-compiler',
+        // Vite 7では modern-compiler が自動的に使用されます
       },
     },
   },

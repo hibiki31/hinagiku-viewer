@@ -1,6 +1,7 @@
 import type { paths } from "@/api"
 import createClient, { type Middleware } from "openapi-fetch"
 import Cookies from "js-cookie"
+import { useUserDataStore } from "@/stores/userData"
 
 /**
  * 認証ミドルウェア: CookieからBearerトークンを取得しリクエストヘッダーに付与
@@ -21,8 +22,6 @@ const authMiddleware: Middleware = {
 const errorMiddleware: Middleware = {
   async onResponse({ response }) {
     if (response.status === 401) {
-      // 循環参照を避けるため動的インポート
-      const { useUserDataStore } = await import("@/stores/userData")
       const userDataStore = useUserDataStore()
       if (userDataStore.isAuthed) {
         userDataStore.authenticaitonFail()

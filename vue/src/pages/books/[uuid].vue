@@ -1,10 +1,23 @@
 <template>
   <div class="books" style="height: 100vh">
-    <!-- メニューダイアログ -->
-    <v-dialog v-model="menuDialog" scrollable max-width="600px">
+    <!-- 統一メニューダイアログ -->
+    <UnifiedBookInfoDialog
+      ref="unifiedBookInfoDialogRef"
+      @page-changed="handlePageChanged"
+      @show-two-page-changed="handleShowTwoPageChanged"
+      @show-window-size-changed="handleShowWindowSizeChanged"
+      @cache-page-changed="handleCachePageChanged"
+      @custom-height-changed="handleCustomHeightChanged"
+      @go-to-first-page="actionFirstPage"
+    />
+
+    <!-- 旧メニューダイアログ（削除予定） -->
+    <v-dialog v-model="menuDialog" scrollable max-width="600px" style="display: none;">
       <v-card>
         <v-card-title class="d-flex align-center pa-4">
-          <v-icon class="mr-2">mdi-cog</v-icon>
+          <v-icon class="mr-2">
+            mdi-cog
+          </v-icon>
           設定メニュー
         </v-card-title>
         <v-divider />
@@ -12,7 +25,9 @@
           <!-- ナビゲーション -->
           <v-card variant="outlined" class="mb-4">
             <v-card-subtitle class="pb-2">
-              <v-icon size="small" class="mr-1">mdi-navigation</v-icon>
+              <v-icon size="small" class="mr-1">
+                mdi-navigation
+              </v-icon>
               ナビゲーション
             </v-card-subtitle>
             <v-card-text class="pt-0">
@@ -34,7 +49,9 @@
           <!-- ページ設定 -->
           <v-card variant="outlined" class="mb-4">
             <v-card-subtitle class="pb-2">
-              <v-icon size="small" class="mr-1">mdi-book-open-page-variant</v-icon>
+              <v-icon size="small" class="mr-1">
+                mdi-book-open-page-variant
+              </v-icon>
               ページ設定
             </v-card-subtitle>
             <v-card-text class="pt-0">
@@ -72,7 +89,9 @@
           <!-- 画質設定 -->
           <v-card variant="outlined" class="mb-4">
             <v-card-subtitle class="pb-2">
-              <v-icon size="small" class="mr-1">mdi-image-size-select-large</v-icon>
+              <v-icon size="small" class="mr-1">
+                mdi-image-size-select-large
+              </v-icon>
               画質設定
             </v-card-subtitle>
             <v-card-text class="pt-0">
@@ -112,7 +131,9 @@
           <!-- 評価 -->
           <v-card variant="outlined">
             <v-card-subtitle class="pb-2">
-              <v-icon size="small" class="mr-1">mdi-star</v-icon>
+              <v-icon size="small" class="mr-1">
+                mdi-star
+              </v-icon>
               評価
             </v-card-subtitle>
             <v-card-text class="pt-0">
@@ -135,11 +156,13 @@
       </v-card>
     </v-dialog>
 
-    <!-- メタデータダイアログ -->
-    <v-dialog v-model="metadataDialog" max-width="700px">
+    <!-- 旧メタデータダイアログ（削除予定） -->
+    <v-dialog v-model="metadataDialog" max-width="700px" style="display: none;">
       <v-card>
         <v-card-title class="d-flex align-center pa-4">
-          <v-icon class="mr-2">mdi-information</v-icon>
+          <v-icon class="mr-2">
+            mdi-information
+          </v-icon>
           本の情報
         </v-card-title>
         <v-divider />
@@ -147,8 +170,12 @@
           <!-- タイトル -->
           <v-row dense class="mb-2">
             <v-col cols="12">
-              <div class="text-subtitle-2 text-medium-emphasis mb-1">タイトル</div>
-              <div class="text-body-1">{{ bookInfo.title || '(タイトルなし)' }}</div>
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                タイトル
+              </div>
+              <div class="text-body-1">
+                {{ bookInfo.title || '(タイトルなし)' }}
+              </div>
             </v-col>
           </v-row>
 
@@ -157,7 +184,9 @@
           <!-- 著者 -->
           <v-row dense class="mb-2">
             <v-col cols="12">
-              <div class="text-subtitle-2 text-medium-emphasis mb-1">著者</div>
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                著者
+              </div>
               <div v-if="bookInfo.authors && bookInfo.authors.length > 0">
                 <v-chip
                   v-for="author in bookInfo.authors"
@@ -180,12 +209,20 @@
           <!-- 出版社・ジャンル -->
           <v-row dense class="mb-2">
             <v-col cols="6">
-              <div class="text-subtitle-2 text-medium-emphasis mb-1">出版社</div>
-              <div class="text-body-2">{{ bookInfo.publisher?.name || '(不明)' }}</div>
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                出版社
+              </div>
+              <div class="text-body-2">
+                {{ bookInfo.publisher?.name || '(不明)' }}
+              </div>
             </v-col>
             <v-col cols="6">
-              <div class="text-subtitle-2 text-medium-emphasis mb-1">ジャンル</div>
-              <div class="text-body-2">{{ bookInfo.genreId || '(未設定)' }}</div>
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                ジャンル
+              </div>
+              <div class="text-body-2">
+                {{ bookInfo.genreId || '(未設定)' }}
+              </div>
             </v-col>
           </v-row>
 
@@ -194,12 +231,20 @@
           <!-- ページ数・ファイルサイズ -->
           <v-row dense class="mb-2">
             <v-col cols="6">
-              <div class="text-subtitle-2 text-medium-emphasis mb-1">ページ数</div>
-              <div class="text-body-2">{{ bookInfo.page }} ページ</div>
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                ページ数
+              </div>
+              <div class="text-body-2">
+                {{ bookInfo.page }} ページ
+              </div>
             </v-col>
             <v-col cols="6">
-              <div class="text-subtitle-2 text-medium-emphasis mb-1">ファイルサイズ</div>
-              <div class="text-body-2">{{ formatFileSize(bookInfo.size || 0) }}</div>
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                ファイルサイズ
+              </div>
+              <div class="text-body-2">
+                {{ formatFileSize(bookInfo.size || 0) }}
+              </div>
             </v-col>
           </v-row>
 
@@ -208,7 +253,9 @@
           <!-- タグ -->
           <v-row dense class="mb-2">
             <v-col cols="12">
-              <div class="text-subtitle-2 text-medium-emphasis mb-1">タグ</div>
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                タグ
+              </div>
               <div v-if="bookInfo.tags && bookInfo.tags.length > 0">
                 <v-chip
                   v-for="tag in bookInfo.tags"
@@ -232,12 +279,20 @@
           <!-- 日付情報 -->
           <v-row dense class="mb-2">
             <v-col cols="6">
-              <div class="text-subtitle-2 text-medium-emphasis mb-1">追加日</div>
-              <div class="text-body-2">{{ formatDate(bookInfo.addDate) }}</div>
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                追加日
+              </div>
+              <div class="text-body-2">
+                {{ formatDate(bookInfo.addDate) }}
+              </div>
             </v-col>
             <v-col cols="6">
-              <div class="text-subtitle-2 text-medium-emphasis mb-1">ファイル日付</div>
-              <div class="text-body-2">{{ formatDate(bookInfo.fileDate) }}</div>
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                ファイル日付
+              </div>
+              <div class="text-body-2">
+                {{ formatDate(bookInfo.fileDate) }}
+              </div>
             </v-col>
           </v-row>
 
@@ -246,7 +301,9 @@
           <!-- 読書情報 -->
           <v-row dense class="mb-2">
             <v-col cols="6">
-              <div class="text-subtitle-2 text-medium-emphasis mb-1">評価</div>
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                評価
+              </div>
               <v-rating
                 :model-value="bookInfo.userData?.rate ?? undefined"
                 size="small"
@@ -255,8 +312,12 @@
               />
             </v-col>
             <v-col cols="6">
-              <div class="text-subtitle-2 text-medium-emphasis mb-1">読んだ回数</div>
-              <div class="text-body-2">{{ bookInfo.userData?.readTimes || 0 }} 回</div>
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                読んだ回数
+              </div>
+              <div class="text-body-2">
+                {{ bookInfo.userData?.readTimes || 0 }} 回
+              </div>
             </v-col>
           </v-row>
 
@@ -265,22 +326,34 @@
           <!-- ファイル情報 -->
           <v-row dense class="mb-2">
             <v-col cols="12">
-              <div class="text-subtitle-2 text-medium-emphasis mb-1">ファイル名</div>
-              <div class="text-body-2 text-break">{{ bookInfo.importFileName }}</div>
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                ファイル名
+              </div>
+              <div class="text-body-2 text-break">
+                {{ bookInfo.importFileName }}
+              </div>
             </v-col>
           </v-row>
 
           <v-row dense class="mb-2">
             <v-col cols="12">
-              <div class="text-subtitle-2 text-medium-emphasis mb-1">UUID</div>
-              <div class="text-body-2 font-monospace text-break">{{ bookInfo.uuid }}</div>
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                UUID
+              </div>
+              <div class="text-body-2 font-monospace text-break">
+                {{ bookInfo.uuid }}
+              </div>
             </v-col>
           </v-row>
 
           <v-row dense class="mb-2">
             <v-col cols="12">
-              <div class="text-subtitle-2 text-medium-emphasis mb-1">SHA1ハッシュ</div>
-              <div class="text-body-2 font-monospace text-break">{{ bookInfo.sha1 }}</div>
+              <div class="text-subtitle-2 text-medium-emphasis mb-1">
+                SHA1ハッシュ
+              </div>
+              <div class="text-body-2 font-monospace text-break">
+                {{ bookInfo.sha1 }}
+              </div>
             </v-col>
           </v-row>
         </v-card-text>
@@ -367,6 +440,7 @@ import { apiClient } from '@/func/client'
 import { usePushNotice } from '@/composables/utility'
 import { useTitle } from '@/composables/title'
 import { useGesture } from '@/composables/gesture'
+import UnifiedBookInfoDialog from '@/components/dialog/UnifiedBookInfoDialog.vue'
 import type { components } from '@/api'
 
 type BookBase = components['schemas']['BookBase']
@@ -378,6 +452,7 @@ const { pushNotice } = usePushNotice()
 const imageAreaRef = ref<HTMLElement | null>(null)
 const viewerPage1Ref = ref<HTMLImageElement | null>(null)
 const viewerPage2Ref = ref<HTMLImageElement | null>(null)
+const unifiedBookInfoDialogRef = ref()
 const menuDialog = ref(false)
 const metadataDialog = ref(false)
 const subMenu = ref(false)
@@ -586,7 +661,38 @@ const actionFirstPage = () => {
 }
 
 const actionMenuOpen = () => {
-  menuDialog.value = true
+  // 統一メニューダイアログを開く
+  if (unifiedBookInfoDialogRef.value && bookInfo.uuid) {
+    const readerSettings = {
+      currentPage: nowPage.value,
+      showTwoPage: settings.showTowPage,
+      showWindowSize: settings.showWindwSize,
+      cachePage: settings.cachePage,
+      customHeight: settings.customHeight
+    }
+    unifiedBookInfoDialogRef.value.openDialog(bookInfo as BookBase, readerSettings)
+  }
+}
+
+// 統一メニューからのイベントハンドラー
+const handlePageChanged = (page: number) => {
+  nowPage.value = page
+}
+
+const handleShowTwoPageChanged = (value: boolean) => {
+  settings.showTowPage = value
+}
+
+const handleShowWindowSizeChanged = (value: boolean) => {
+  settings.showWindwSize = value
+}
+
+const handleCachePageChanged = (value: number) => {
+  settings.cachePage = value
+}
+
+const handleCustomHeightChanged = (value: number) => {
+  settings.customHeight = value
 }
 
 const actionSubMenuToggle = () => {

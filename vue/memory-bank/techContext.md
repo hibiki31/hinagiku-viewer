@@ -37,6 +37,7 @@
 - **vite-plugin-vue-layouts 0.11**: レイアウトシステム
 - **vite-plugin-vuetify 2**: Vuetify設定自動化
 - **vite-plugin-fonts 0.7**: Webフォント最適化
+- **vite-plugin-pwa 0.20**: PWA対応、Service Worker自動生成
 
 ### HTTP通信
 - **Axios 1.8+**: HTTP クライアント（現在のメイン）
@@ -63,9 +64,15 @@ vue/
 │
 ├── .clinerules             # Clineルール
 ├── memory-bank/            # メモリーバンク ← このディレクトリ
+├── PWA.md                  # PWA対応ドキュメント
+├── Dockerfile              # Docker本番環境用
+├── nginx.conf              # Nginx設定
 │
 ├── public/                 # 公開静的ファイル
-│   └── favicon.ico
+│   ├── favicon.ico
+│   ├── icon-*.png          # PWA用アイコン
+│   ├── icon-apple.png      # Apple用アイコン
+│   └── manifest.webmanifest # PWAマニフェスト
 │
 ├── src/
 │   ├── main.ts             # エントリーポイント
@@ -75,6 +82,7 @@ vue/
 │   ├── auto-imports.d.ts   # 自動インポート型定義（自動生成）
 │   ├── components.d.ts     # コンポーネント型定義（自動生成）
 │   ├── typed-router.d.ts   # ルーター型定義（自動生成）
+│   ├── pwa.d.ts            # PWA型定義
 │   │
 │   ├── pages/              # ページ（ファイルベースルーティング）
 │   │   ├── index.vue
@@ -96,7 +104,9 @@ vue/
 │   │
 │   ├── composables/        # Composition APIユーティリティ
 │   │   ├── utility.ts      # 通知、URL生成、フォーマット等
-│   │   └── rules.ts        # バリデーションルール
+│   │   ├── rules.ts        # バリデーションルール
+│   │   ├── title.ts        # ページタイトル動的設定
+│   │   └── gesture.ts      # マウス・タッチジェスチャー認識
 │   │
 │   ├── func/               # 関数・クライアント
 │   │   ├── axios.ts        # Axiosインスタンス
@@ -139,7 +149,10 @@ vue/
 ├── .browserslistrc         # ブラウザターゲット
 ├── .editorconfig           # エディタ設定
 ├── .gitignore              # Git除外設定
-└── README.md               # プロジェクト説明
+├── README.md               # プロジェクト説明
+│
+└── scripts/                # ユーティリティスクリプト
+    └── export-cline-history.py  # Clineタスク履歴エクスポート
 ```
 
 ## Vite設定（vite.config.mts）
@@ -169,6 +182,20 @@ export default defineConfig({
     }),
     vue(),
     vuetify({ autoImport: true }),
+    VitePWA({          // PWA対応
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'icon-*.png'],
+      manifest: {
+        name: 'Hinagiku Viewer',
+        short_name: 'Hinagiku',
+        description: '電子書籍ビューアー',
+        theme_color: '#082240',
+        icons: [
+          { src: 'icon-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icon-512x512.png', sizes: '512x512', type: 'image/png' }
+        ]
+      }
+    })
   ],
   resolve: {
     alias: {
@@ -182,6 +209,9 @@ export default defineConfig({
     preprocessorOptions: {
       scss: { api: 'modern-compiler' }
     }
+  },
+  define: {
+    '__APP_VERSION__': JSON.stringify(process.env.npm_package_version)
   }
 })
 ```
@@ -210,14 +240,20 @@ export default defineConfig({
 
 ### .env.local（Git管理外）
 ```bash
-VITE_APP_API_HOST=http://localhost   # Axiosクライアント用APIホスト
-VITE_API_ENDPOINT=http://localhost   # openapi-fetchクライアント用エンドポイント
+VITE_APP_API_HOST=http://localhost   # APIホスト（統一済み）
 ```
 
 ### 使用方法
 ```typescript
-import.meta.env.VITE_APP_API_HOST
-import.meta.env.VITE_API_ENDPOINT
+import.meta.env.VITE_APP_API_HOST      # APIホスト
+__APP_VERSION__                         # バージョン番号（ビルド時注入）
+```
+
+### バージョン番号の動的注入
+vite.config.mtsで`__APP_VERSION__`を定義し、package.jsonのバージョンを自動注入：
+```typescript
+// 使用例
+const version = __APP_VERSION__  // "1.0.0" など
 ```
 
 ## API型生成
@@ -263,6 +299,15 @@ pnpm type-check     # 型チェックのみ
 ### リント
 ```bash
 pnpm lint           # ESLint --fix
+```
+
+### Docker（本番環境）
+```bash
+# イメージビルド
+docker build -t hinagiku-vue .
+
+# コンテナ起動
+docker run -p 80:80 hinagiku-vue
 ```
 
 ## DevContainer環境
@@ -322,9 +367,17 @@ Vuetify変数のカスタマイズ
 - `authenticaitonSuccessful` / `authenticaitonFail`（正: `authentication`）
 - 既存コード全体で使用されているため、現状維持
 
-### バージョン番号ハードコード
-- 各ページに `3.0.0` がハードコード
-- 今後: package.jsonから動的取得検討
+### PWA対応の特徴
+- **Service Worker**: vite-plugin-pwaが自動生成
+- **オフライン対応**: キャッシュ戦略はNetworkFirst
+- **自動更新**: registerType: 'autoUpdate'
+- **マニフェスト**: インストール可能なWebアプリ
+- **詳細**: PWA.md参照
+
+### Docker本番環境の特徴
+- **マルチステージビルド**: Node.js（ビルド） + Nginx（実行）
+- **軽量イメージ**: Alpine Linux使用
+- **SPA対応**: Nginxでフォールバック設定（nginx.conf）
 
 ## トラブルシューティング
 
@@ -344,4 +397,4 @@ Vuetify変数のカスタマイズ
 - **Console**: エラーログ確認
 
 ## 最終更新日
-2026-02-08: Vue 3メモリーバンク構造化
+2026-02-09: PWA対応、Docker本番環境、バージョン番号自動注入、ジェスチャー機能追加

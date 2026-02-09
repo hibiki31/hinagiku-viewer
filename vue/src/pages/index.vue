@@ -24,7 +24,7 @@
       </v-card>
     </v-dialog>
     <SearchDialog ref="searchDialogRef" @search="search" />
-    <BookDetailDialog ref="bookDetailDialogRef" @search="search" />
+    <UnifiedBookInfoDialog ref="unifiedBookInfoDialogRef" @search="search" @open-book="toReaderPage" @author-click="handleAuthorClick" />
     <RangeChangeDialog ref="rangeChangeDialogRef" @search="search" />
     <!-- トップバー -->
     <v-app-bar color="primary" dark density="compact" flat app>
@@ -54,7 +54,9 @@
         :subtitle="`v${version}`"
       >
         <template #prepend>
-          <v-icon color="primary" size="x-large">mdi-book-open-variant</v-icon>
+          <v-icon color="primary" size="x-large">
+            mdi-book-open-variant
+          </v-icon>
         </template>
       </v-list-item>
 
@@ -97,7 +99,9 @@
               size="small"
               @click="queryRate = null"
             >
-              <v-icon start size="small">mdi-format-list-bulleted</v-icon>
+              <v-icon start size="small">
+                mdi-format-list-bulleted
+              </v-icon>
               全て
             </v-btn>
             <v-btn
@@ -106,7 +110,9 @@
               size="small"
               @click="queryRate = 0"
             >
-              <v-icon start size="small">mdi-star-off-outline</v-icon>
+              <v-icon start size="small">
+                mdi-star-off-outline
+              </v-icon>
               未評価
             </v-btn>
           </v-btn-group>
@@ -163,6 +169,50 @@
               <v-icon>{{ showListMode ? 'mdi-view-list' : 'mdi-view-grid' }}</v-icon>
             </template>
           </v-switch>
+        </v-list-item>
+
+        <!-- ソートキー選択 -->
+        <v-list-item>
+          <v-select
+            v-model="querySortKey"
+            :items="sortKeyOptions"
+            label="ソートキー"
+            item-title="title"
+            item-value="value"
+            density="comfortable"
+            prepend-inner-icon="mdi-sort"
+            variant="outlined"
+            hide-details
+            clearable
+          />
+        </v-list-item>
+
+        <!-- ソート順序 -->
+        <v-list-item>
+          <v-btn-group divided density="compact" variant="outlined" class="w-100">
+            <v-btn
+              :variant="querySortDesc === false ? 'flat' : 'outlined'"
+              :color="querySortDesc === false ? 'primary' : undefined"
+              size="small"
+              @click="querySortDesc = false"
+            >
+              <v-icon start size="small">
+                mdi-sort-ascending
+              </v-icon>
+              昇順
+            </v-btn>
+            <v-btn
+              :variant="querySortDesc === true ? 'flat' : 'outlined'"
+              :color="querySortDesc === true ? 'primary' : undefined"
+              size="small"
+              @click="querySortDesc = true"
+            >
+              <v-icon start size="small">
+                mdi-sort-descending
+              </v-icon>
+              降順
+            </v-btn>
+          </v-btn-group>
         </v-list-item>
       </v-list>
 
@@ -230,7 +280,7 @@ import { apiClient } from '@/func/client'
 import { usePushNotice } from '@/composables/utility'
 import { useTitle } from '@/composables/title'
 import SearchDialog from '@/components/dialog/SearchDialog.vue'
-import BookDetailDialog from '@/components/dialog/BookDetailDialog.vue'
+import UnifiedBookInfoDialog from '@/components/dialog/UnifiedBookInfoDialog.vue'
 import RangeChangeDialog from '@/components/dialog/RangeChangeDialog.vue'
 import BooksListTable from '@/components/BooksListTable.vue'
 import BooksListThum from '@/components/BooksListThum.vue'
@@ -248,7 +298,7 @@ const userDataStore = useUserDataStore()
 const { pushNotice } = usePushNotice()
 
 const searchDialogRef = ref()
-const bookDetailDialogRef = ref()
+const unifiedBookInfoDialogRef = ref()
 const rangeChangeDialogRef = ref()
 
 const showDrawer = ref(true)
@@ -261,6 +311,16 @@ const version = __APP_VERSION__
 const resumeDialog = ref(false)
 const resumeBookUUID = ref('')
 const resumeBookPage = ref(0)
+
+// ソートキーのオプション
+const sortKeyOptions = [
+  { title: 'タイトル', value: 'title' },
+  { title: '追加日', value: 'addDate' },
+  { title: '最終閲覧日', value: 'userData.lastOpenDate' },
+  { title: '評価', value: 'userData.rate' },
+  { title: 'ページ数', value: 'page' },
+  { title: 'サイズ', value: 'size' }
+]
 
 const searchQuery = computed(() => readerStateStore.searchQuery)
 const booksCount = computed(() => readerStateStore.booksCount)
@@ -315,6 +375,30 @@ const queryRate = computed({
   }
 })
 
+const querySortKey = computed({
+  get() {
+    return searchQuery.value.sortKey
+  },
+  set(value: string | undefined) {
+    const query = { ...searchQuery.value }
+    query.sortKey = value
+    readerStateStore.setSearchQuery(query)
+    search(true)
+  }
+})
+
+const querySortDesc = computed({
+  get() {
+    return searchQuery.value.sortDesc ?? false
+  },
+  set(value: boolean) {
+    const query = { ...searchQuery.value }
+    query.sortDesc = value
+    readerStateStore.setSearchQuery(query)
+    search(true)
+  }
+})
+
 const search = async (resetOffset = false) => {
   isLoading.value = true
   await readerStateStore.serachBooks(resetOffset)
@@ -356,7 +440,14 @@ const loadLibrary = async () => {
 }
 
 const openMenu = (item: BookBase) => {
-  bookDetailDialogRef.value?.openDialog(item)
+  unifiedBookInfoDialogRef.value?.openDialog(item)
+}
+
+const handleAuthorClick = (author: { id: number | null; name: string | null }) => {
+  const query = { ...searchQuery.value }
+  query.fullText = author.name || ''
+  readerStateStore.setSearchQuery(query)
+  search(true)
 }
 
 const toReaderPage = async (item: BookBase) => {
