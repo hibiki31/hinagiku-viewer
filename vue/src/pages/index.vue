@@ -36,6 +36,7 @@
         v-model="queryTitle"
         hide-details
         single-line
+        variant="underlined"
         density="compact"
       />
       <v-btn icon @click="searchDialogRef?.openDialog()">

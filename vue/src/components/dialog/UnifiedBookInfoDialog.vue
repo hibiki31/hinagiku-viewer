@@ -67,32 +67,108 @@
                   </v-avatar>
                 </template>
                 <v-list-item-title>
-                  <v-combobox
-                    v-model="authorNames"
-                    chips
-                    multiple
-                    density="compact"
-                    variant="outlined"
-                    hide-details
-                    :placeholder="authorNames.length === 0 ? '著者を追加してください' : '著者を追加'"
-                    closable-chips
-                    @update:model-value="handleAuthorsChange"
-                  >
-                    <template #chip="{ props, item }">
-                      <v-chip
-                        v-bind="props"
-                        :text="String(item.value || item.raw || item)"
-                        size="x-small"
-                        closable
-                      />
-                    </template>
-                  </v-combobox>
-                  <div v-if="authorNames.length === 0 && bookData.authors && bookData.authors.length > 0" class="text-caption text-warning mt-1">
-                    ⚠️ 著者データはありますが名前が未設定です
+                  <div class="d-flex flex-wrap align-center ga-1 mb-2">
+                    <v-menu
+                      v-for="(author, index) in bookData.authors"
+                      :key="author.id || index"
+                      location="bottom"
+                    >
+                      <template #activator="{ props: menuProps }">
+                        <v-tooltip location="bottom">
+                          <template #activator="{ props: tooltipProps }">
+                            <v-chip
+                              v-bind="{ ...menuProps, ...tooltipProps }"
+                              :color="author.isFavorite ? 'orange' : undefined"
+                              size="small"
+                              closable
+                              @click:close="handleDeleteAuthor(author)"
+                            >
+                              {{ author.name }}
+                            </v-chip>
+                          </template>
+                          <span>クリックでメニューを開く</span>
+                        </v-tooltip>
+                      </template>
+                      <v-card min-width="200">
+                        <v-list density="compact">
+                          <v-list-item @click="handleSearchAuthor(author)">
+                            <template #prepend>
+                              <v-icon color="primary">mdi-magnify</v-icon>
+                            </template>
+                            <v-list-item-title>この著者で検索する</v-list-item-title>
+                          </v-list-item>
+                          <v-list-item
+                            v-if="!author.isFavorite"
+                            @click="handleFavoriteAuthor(author, true)"
+                          >
+                            <template #prepend>
+                              <v-icon color="orange">mdi-star</v-icon>
+                            </template>
+                            <v-list-item-title>お気に入りに追加</v-list-item-title>
+                          </v-list-item>
+                          <v-list-item
+                            v-if="author.isFavorite"
+                            @click="handleFavoriteAuthor(author, false)"
+                          >
+                            <template #prepend>
+                              <v-icon>mdi-star-outline</v-icon>
+                            </template>
+                            <v-list-item-title>お気に入りから外す</v-list-item-title>
+                          </v-list-item>
+                        </v-list>
+                      </v-card>
+                    </v-menu>
+                    <v-tooltip location="bottom">
+                      <template #activator="{ props }">
+                        <v-btn
+                          v-bind="props"
+                          icon="mdi-plus-circle"
+                          size="x-small"
+                          variant="text"
+                          @click="handleAddAuthorDialog"
+                        />
+                      </template>
+                      <span>著者を追加</span>
+                    </v-tooltip>
+                  </div>
+                  <div v-if="(!bookData.authors || bookData.authors.length === 0)" class="text-caption text-medium-emphasis">
+                    著者が登録されていません
                   </div>
                 </v-list-item-title>
                 <v-list-item-subtitle class="text-caption">著者</v-list-item-subtitle>
               </v-list-item>
+
+              <!-- 著者追加ダイアログ -->
+              <v-dialog v-model="addAuthorDialogState" max-width="400">
+                <v-card>
+                  <v-card-title>著者を追加</v-card-title>
+                  <v-card-text>
+                    <v-text-field
+                      v-model="newAuthorName"
+                      label="著者名"
+                      counter="64"
+                      variant="outlined"
+                      density="comfortable"
+                      autofocus
+                      @keyup.enter="handleAddAuthorSubmit"
+                    />
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-spacer />
+                    <v-btn variant="text" @click="addAuthorDialogState = false">
+                      キャンセル
+                    </v-btn>
+                    <v-btn
+                      color="primary"
+                      variant="flat"
+                      :disabled="!newAuthorName || newAuthorName.length > 64"
+                      @click="handleAddAuthorSubmit"
+                    >
+                      追加
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
 
               <v-divider class="my-1" />
 
@@ -472,8 +548,9 @@ const libraryList = ref<GetLibrary[]>([])
 const showReaderSettings = ref(false)
 const readerSettings = ref<ReaderSettings | null>(null)
 const publisherName = ref<string>('')
-const authorNames = ref<string[]>([])
 const tagNames = ref<string[]>([])
+const addAuthorDialogState = ref(false)
+const newAuthorName = ref('')
 
 const bookData = reactive<Partial<BookBase>>({
   uuid: undefined,
@@ -503,23 +580,6 @@ const openDialog = async (book: BookBase, settings?: ReaderSettings) => {
   // 出版社名を設定
   publisherName.value = book.publisher?.name || ''
 
-  // 著者名を文字列配列として設定
-  console.log('openDialog - book.authors:', book.authors)
-
-  // 著者名を抽出（nameプロパティが文字列の場合のみ取得）
-  authorNames.value = (book.authors || [])
-    .map(a => {
-      if (typeof a === 'string') {
-        return a
-      }
-      if (a && typeof a === 'object' && 'name' in a && typeof a.name === 'string') {
-        return a.name
-      }
-      return ''
-    })
-    .filter(name => name && name.trim() !== '') // 空文字列や空白のみを除外
-  console.log('openDialog - authorNames (filtered):', authorNames.value)
-
   // タグ名を文字列配列として設定
   tagNames.value = (book.tags || [])
     .map(t => {
@@ -532,7 +592,6 @@ const openDialog = async (book: BookBase, settings?: ReaderSettings) => {
       return ''
     })
     .filter(name => name && name.trim() !== '')
-  console.log('openDialog - tagNames (filtered):', tagNames.value)
 
   // リーダー設定があれば表示
   showReaderSettings.value = !!settings
@@ -593,19 +652,105 @@ const handleTitleChange = async () => {
   }
 }
 
-const handleAuthorsChange = async () => {
+// 著者で検索
+const handleSearchAuthor = (author: BookBase['authors'][0]) => {
+  if (!author.name) return
+
+  // 著者クリックイベントを発火
+  emit('authorClick', { id: author.id, name: author.name })
+
+  // ダイアログを閉じる
+  dialogState.value = false
+}
+
+// 著者をお気に入りに追加/削除
+const handleFavoriteAuthor = async (author: BookBase['authors'][0], isFavorite: boolean) => {
+  if (!author.id) return
+
   try {
-    const { error } = await apiClient.PUT('/api/books', {
+    const { error } = await apiClient.PATCH('/api/authors', {
       body: {
-        uuids: [bookData.uuid!],
-        authors: authorNames.value.filter(Boolean)
+        authorId: author.id,
+        isFavorite: isFavorite
       }
     })
     if (error) throw error
-    pushNotice('著者を更新しました', 'success')
+
+    // ローカルデータを更新
+    author.isFavorite = isFavorite
+
+    pushNotice(
+      isFavorite ? '著者をお気に入りに追加しました' : '著者をお気に入りから外しました',
+      'success'
+    )
     emit('search')
   } catch {
-    pushNotice('著者の更新に失敗しました', 'error')
+    pushNotice('著者のお気に入り変更に失敗しました', 'error')
+  }
+}
+
+// 著者を削除
+const handleDeleteAuthor = async (author: BookBase['authors'][0]) => {
+  if (!author.id) return
+
+  try {
+    const { error } = await apiClient.DELETE('/api/books/{book_uuid}/authors', {
+      params: {
+        path: { book_uuid: bookData.uuid! }
+      },
+      body: {
+        authorId: author.id
+      }
+    })
+    if (error) throw error
+
+    // ローカルデータから削除
+    if (bookData.authors) {
+      const index = bookData.authors.findIndex((a) => a.id === author.id)
+      if (index !== -1) {
+        bookData.authors.splice(index, 1)
+      }
+    }
+
+    pushNotice('著者を削除しました', 'success')
+    emit('search')
+  } catch {
+    pushNotice('著者の削除に失敗しました', 'error')
+  }
+}
+
+// 著者追加ダイアログを開く
+const handleAddAuthorDialog = () => {
+  newAuthorName.value = ''
+  addAuthorDialogState.value = true
+}
+
+// 著者を追加
+const handleAddAuthorSubmit = async () => {
+  if (!newAuthorName.value || newAuthorName.value.length > 64) return
+
+  try {
+    const { data, error } = await apiClient.POST('/api/books/{book_uuid}/authors', {
+      params: {
+        path: { book_uuid: bookData.uuid! }
+      },
+      body: {
+        authorName: newAuthorName.value
+      }
+    })
+    if (error) throw error
+
+    // レスポンスから更新された本のデータを取得
+    if (data) {
+      Object.assign(bookData, data)
+    }
+
+    pushNotice('著者を追加しました', 'success')
+    addAuthorDialogState.value = false
+    newAuthorName.value = ''
+    emit('search')
+  } catch {
+    pushNotice('著者の追加に失敗しました', 'error')
   }
 }
 
