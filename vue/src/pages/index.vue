@@ -3,9 +3,7 @@
     <!-- 前回の続きを開くか確認するダイアログ -->
     <v-dialog v-model="resumeDialog" max-width="450" persistent>
       <v-card>
-        <v-card-title class="text-h6">
-          読書を再開しますか？
-        </v-card-title>
+        <v-card-title class="text-h6"> 読書を再開しますか？ </v-card-title>
         <v-card-text>
           前回読んでいた本があります。続きから開きますか？
           <div class="text-body-2 text-grey mt-2">
@@ -14,9 +12,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="dismissResume">
-            開かない
-          </v-btn>
+          <v-btn variant="text" @click="dismissResume"> 開かない </v-btn>
           <v-btn color="primary" variant="flat" @click="acceptResume">
             続きから開く
           </v-btn>
@@ -24,7 +20,12 @@
       </v-card>
     </v-dialog>
     <SearchDialog ref="searchDialogRef" @search="search" />
-    <UnifiedBookInfoDialog ref="unifiedBookInfoDialogRef" @search="search" @open-book="toReaderPage" @author-click="handleAuthorClick" />
+    <UnifiedBookInfoDialog
+      ref="unifiedBookInfoDialogRef"
+      @search="search"
+      @open-book="toReaderPage"
+      @author-click="handleAuthorClick"
+    />
     <RangeChangeDialog ref="rangeChangeDialogRef" @search="search" />
     <!-- トップバー -->
     <v-app-bar color="primary" dark density="compact" flat app>
@@ -89,19 +90,22 @@
               size="small"
               color="amber"
               active-color="amber"
-              @update:model-value="(value) => queryRate = value as number"
+              @update:model-value="(value) => (queryRate = value as number)"
             />
           </div>
-          <v-btn-group divided density="compact" variant="outlined" class="w-100">
+          <v-btn-group
+            divided
+            density="compact"
+            variant="outlined"
+            class="w-100"
+          >
             <v-btn
               :variant="queryRate === null ? 'flat' : 'outlined'"
               :color="queryRate === null ? 'primary' : undefined"
               size="small"
               @click="queryRate = null"
             >
-              <v-icon start size="small">
-                mdi-format-list-bulleted
-              </v-icon>
+              <v-icon start size="small"> mdi-format-list-bulleted </v-icon>
               全て
             </v-btn>
             <v-btn
@@ -110,9 +114,7 @@
               size="small"
               @click="queryRate = 0"
             >
-              <v-icon start size="small">
-                mdi-star-off-outline
-              </v-icon>
+              <v-icon start size="small"> mdi-star-off-outline </v-icon>
               未評価
             </v-btn>
           </v-btn-group>
@@ -163,16 +165,20 @@
             color="primary"
             density="comfortable"
             hide-details
-            @update:model-value="(value) => readerStateStore.setShowListMode(!!value)"
+            @update:model-value="
+              (value) => readerStateStore.setShowListMode(!!value)
+            "
           >
             <template #prepend>
-              <v-icon>{{ showListMode ? 'mdi-view-list' : 'mdi-view-grid' }}</v-icon>
+              <v-icon>{{
+                showListMode ? "mdi-view-list" : "mdi-view-grid"
+              }}</v-icon>
             </template>
           </v-switch>
         </v-list-item>
 
         <!-- ソートキー選択 -->
-        <v-list-item>
+        <div class="pr-2 pl-2">
           <v-select
             v-model="querySortKey"
             :items="sortKeyOptions"
@@ -185,20 +191,23 @@
             hide-details
             clearable
           />
-        </v-list-item>
+        </div>
 
         <!-- ソート順序 -->
         <v-list-item>
-          <v-btn-group divided density="compact" variant="outlined" class="w-100">
+          <v-btn-group
+            divided
+            density="compact"
+            variant="outlined"
+            class="w-100"
+          >
             <v-btn
               :variant="querySortDesc === false ? 'flat' : 'outlined'"
               :color="querySortDesc === false ? 'primary' : undefined"
               size="small"
               @click="querySortDesc = false"
             >
-              <v-icon start size="small">
-                mdi-sort-ascending
-              </v-icon>
+              <v-icon start size="small"> mdi-sort-ascending </v-icon>
               昇順
             </v-btn>
             <v-btn
@@ -207,9 +216,7 @@
               size="small"
               @click="querySortDesc = true"
             >
-              <v-icon start size="small">
-                mdi-sort-descending
-              </v-icon>
+              <v-icon start size="small"> mdi-sort-descending </v-icon>
               降順
             </v-btn>
           </v-btn-group>
@@ -235,7 +242,11 @@
           <v-list-item density="compact" class="text-caption">
             <div class="text-center">
               Develop by
-              <a href="https://github.com/hibiki31" class="text-primary text-decoration-none" target="_blank">
+              <a
+                href="https://github.com/hibiki31"
+                class="text-primary text-decoration-none"
+                target="_blank"
+              >
                 @hibiki31
               </a>
             </div>
@@ -256,7 +267,11 @@
         </v-list>
       </template>
     </v-navigation-drawer>
-    <v-progress-linear v-show="isLoading" indeterminate color="yellow-darken-2" />
+    <v-progress-linear
+      v-show="isLoading"
+      indeterminate
+      color="yellow-darken-2"
+    />
     <!-- メインの一覧 -->
     <v-container v-show="!isLoading">
       <BooksListTable
@@ -265,264 +280,280 @@
         @open-menu="openMenu"
         @search="search"
       />
-      <BooksListThum v-else @to-reader-page="toReaderPage" @open-menu="openMenu" />
+      <BooksListThum
+        v-else
+        @to-reader-page="toReaderPage"
+        @open-menu="openMenu"
+      />
     </v-container>
-    <v-pagination v-model="page" :length="maxPage" :total-visible="17" class="ma-3" />
+    <v-pagination
+      v-model="page"
+      :length="maxPage"
+      :total-visible="17"
+      class="ma-3"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useReaderStateStore } from '@/stores/readerState'
-import { useUserDataStore } from '@/stores/userData'
-import { apiClient } from '@/func/client'
-import { usePushNotice } from '@/composables/utility'
-import { useTitle } from '@/composables/title'
-import SearchDialog from '@/components/dialog/SearchDialog.vue'
-import UnifiedBookInfoDialog from '@/components/dialog/UnifiedBookInfoDialog.vue'
-import RangeChangeDialog from '@/components/dialog/RangeChangeDialog.vue'
-import BooksListTable from '@/components/BooksListTable.vue'
-import BooksListThum from '@/components/BooksListThum.vue'
-import type { components } from '@/api'
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import { useReaderStateStore } from "@/stores/readerState";
+import { useUserDataStore } from "@/stores/userData";
+import { apiClient } from "@/func/client";
+import { usePushNotice } from "@/composables/utility";
+import { useTitle } from "@/composables/title";
+import SearchDialog from "@/components/dialog/SearchDialog.vue";
+import UnifiedBookInfoDialog from "@/components/dialog/UnifiedBookInfoDialog.vue";
+import RangeChangeDialog from "@/components/dialog/RangeChangeDialog.vue";
+import BooksListTable from "@/components/BooksListTable.vue";
+import BooksListThum from "@/components/BooksListThum.vue";
+import type { components } from "@/api";
 
 // ページタイトル設定
-useTitle('ホーム')
+useTitle("ホーム");
 
-type GetLibrary = components['schemas']['GetLibrary']
-type BookBase = components['schemas']['BookBase']
+type GetLibrary = components["schemas"]["GetLibrary"];
+type BookBase = components["schemas"]["BookBase"];
 
-const router = useRouter()
-const readerStateStore = useReaderStateStore()
-const userDataStore = useUserDataStore()
-const { pushNotice } = usePushNotice()
+const router = useRouter();
+const readerStateStore = useReaderStateStore();
+const userDataStore = useUserDataStore();
+const { pushNotice } = usePushNotice();
 
-const searchDialogRef = ref()
-const unifiedBookInfoDialogRef = ref()
-const rangeChangeDialogRef = ref()
+const searchDialogRef = ref();
+const unifiedBookInfoDialogRef = ref();
+const rangeChangeDialogRef = ref();
 
-const showDrawer = ref(true)
-const isLoading = ref(true)
-const exportDialog = ref(false)
-const libraryList = ref<GetLibrary[]>([])
-const version = __APP_VERSION__
+const showDrawer = ref(true);
+const isLoading = ref(true);
+const exportDialog = ref(false);
+const libraryList = ref<GetLibrary[]>([]);
+const version = __APP_VERSION__;
 
 // 前回の続きを開くか確認するダイアログ
-const resumeDialog = ref(false)
-const resumeBookUUID = ref('')
-const resumeBookPage = ref(0)
+const resumeDialog = ref(false);
+const resumeBookUUID = ref("");
+const resumeBookPage = ref(0);
 
 // ソートキーのオプション
 const sortKeyOptions = [
-  { title: 'タイトル', value: 'title' },
-  { title: '追加日', value: 'addDate' },
-  { title: '最終閲覧日', value: 'userData.lastOpenDate' },
-  { title: '評価', value: 'userData.rate' },
-  { title: 'ページ数', value: 'page' },
-  { title: 'サイズ', value: 'size' }
-]
+  { title: "タイトル", value: "title" },
+  { title: "追加日", value: "addDate" },
+  { title: "最終閲覧日", value: "userData.lastOpenDate" },
+  { title: "評価", value: "userData.rate" },
+  { title: "ページ数", value: "page" },
+  { title: "サイズ", value: "size" },
+];
 
-const searchQuery = computed(() => readerStateStore.searchQuery)
-const booksCount = computed(() => readerStateStore.booksCount)
-const showListMode = computed(() => readerStateStore.showListMode)
-const maxPage = computed(() => Math.ceil(booksCount.value / searchQuery.value.limit))
+const searchQuery = computed(() => readerStateStore.searchQuery);
+const booksCount = computed(() => readerStateStore.booksCount);
+const showListMode = computed(() => readerStateStore.showListMode);
+const maxPage = computed(() =>
+  Math.ceil(booksCount.value / searchQuery.value.limit),
+);
 
 const page = computed({
   get() {
-    return Number(searchQuery.value.offset / searchQuery.value.limit) + 1
+    return Number(searchQuery.value.offset / searchQuery.value.limit) + 1;
   },
   set(value: number) {
-    const query = { ...searchQuery.value }
-    query.offset = query.limit * (value - 1)
-    readerStateStore.setSearchQuery(query)
-    search(false)
-  }
-})
+    const query = { ...searchQuery.value };
+    query.offset = query.limit * (value - 1);
+    readerStateStore.setSearchQuery(query);
+    search(false);
+  },
+});
 
 const queryTitle = computed({
   get() {
-    return searchQuery.value.fullText
+    return searchQuery.value.fullText;
   },
   set(value: string) {
-    const query = { ...searchQuery.value }
-    query.fullText = value
-    readerStateStore.setSearchQuery(query)
-    search(true)
-  }
-})
+    const query = { ...searchQuery.value };
+    query.fullText = value;
+    readerStateStore.setSearchQuery(query);
+    search(true);
+  },
+});
 
 const queryLibrary = computed({
   get() {
-    return searchQuery.value.libraryId
+    return searchQuery.value.libraryId;
   },
   set(value: number | null) {
-    const query = { ...searchQuery.value }
-    query.libraryId = value
-    readerStateStore.setSearchQuery(query)
-    search(true)
-  }
-})
+    const query = { ...searchQuery.value };
+    query.libraryId = value;
+    readerStateStore.setSearchQuery(query);
+    search(true);
+  },
+});
 
 const queryRate = computed({
   get() {
-    return searchQuery.value.rate
+    return searchQuery.value.rate;
   },
   set(value: number | null) {
-    const query = { ...searchQuery.value }
-    query.rate = value
-    readerStateStore.setSearchQuery(query)
-    search(true)
-  }
-})
+    const query = { ...searchQuery.value };
+    query.rate = value;
+    readerStateStore.setSearchQuery(query);
+    search(true);
+  },
+});
 
 const querySortKey = computed({
   get() {
-    return searchQuery.value.sortKey
+    return searchQuery.value.sortKey;
   },
   set(value: string | undefined) {
-    const query = { ...searchQuery.value }
-    query.sortKey = value
-    readerStateStore.setSearchQuery(query)
-    search(true)
-  }
-})
+    const query = { ...searchQuery.value };
+    query.sortKey = value;
+    readerStateStore.setSearchQuery(query);
+    search(true);
+  },
+});
 
 const querySortDesc = computed({
   get() {
-    return searchQuery.value.sortDesc ?? false
+    return searchQuery.value.sortDesc ?? false;
   },
   set(value: boolean) {
-    const query = { ...searchQuery.value }
-    query.sortDesc = value
-    readerStateStore.setSearchQuery(query)
-    search(true)
-  }
-})
+    const query = { ...searchQuery.value };
+    query.sortDesc = value;
+    readerStateStore.setSearchQuery(query);
+    search(true);
+  },
+});
 
 const search = async (resetOffset = false) => {
-  isLoading.value = true
-  await readerStateStore.serachBooks(resetOffset)
-  pushNotice(booksCount.value + '件', 'info')
-  isLoading.value = false
-  scrollToUUID()
-}
+  isLoading.value = true;
+  await readerStateStore.serachBooks(resetOffset);
+  pushNotice(booksCount.value + "件", "info");
+  isLoading.value = false;
+  scrollToUUID();
+};
 
 const reload = () => {
-  const query = { ...searchQuery.value }
-  query.fullText = ''
-  readerStateStore.setSearchQuery(query)
-  search(true)
-}
+  const query = { ...searchQuery.value };
+  query.fullText = "";
+  readerStateStore.setSearchQuery(query);
+  search(true);
+};
 
 const scrollToUUID = () => {
   setTimeout(() => {
-    const backBookUUID = localStorage.backBookUUID
+    const backBookUUID = localStorage.backBookUUID;
     if (backBookUUID) {
-      const element = document.getElementById(backBookUUID)
+      const element = document.getElementById(backBookUUID);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }
-    localStorage.removeItem('backBookUUID')
-  }, 300)
-}
+    localStorage.removeItem("backBookUUID");
+  }, 300);
+};
 
 const loadLibrary = async () => {
   try {
-    const { error } = await apiClient.PATCH('/media/library', {
-      body: { state: 'load' }
-    })
-    if (error) throw error
-    pushNotice('ライブラリのリロードを開始', 'success')
+    const { error } = await apiClient.PATCH("/media/library", {
+      body: { state: "load" },
+    });
+    if (error) throw error;
+    pushNotice("ライブラリのリロードを開始", "success");
   } catch {
-    pushNotice('ライブラリのリロードに失敗しました', 'error')
+    pushNotice("ライブラリのリロードに失敗しました", "error");
   }
-}
+};
 
 const openMenu = (item: BookBase) => {
-  unifiedBookInfoDialogRef.value?.openDialog(item)
-}
+  unifiedBookInfoDialogRef.value?.openDialog(item);
+};
 
-const handleAuthorClick = (author: { id: number | null; name: string | null }) => {
-  const query = { ...searchQuery.value }
-  query.fullText = author.name || ''
-  readerStateStore.setSearchQuery(query)
-  search(true)
-}
+const handleAuthorClick = (author: {
+  id: number | null;
+  name: string | null;
+}) => {
+  const query = { ...searchQuery.value };
+  query.fullText = author.name || "";
+  readerStateStore.setSearchQuery(query);
+  search(true);
+};
 
 const toReaderPage = async (item: BookBase) => {
   // ローカルストレージにパラメータ格納
-  createCache(item)
-  localStorage.setItem('searchQuery', JSON.stringify(searchQuery.value))
-  localStorage.setItem('backBookUUID', item.uuid)
+  createCache(item);
+  localStorage.setItem("searchQuery", JSON.stringify(searchQuery.value));
+  localStorage.setItem("backBookUUID", item.uuid);
 
   // 移動
-  router.push(`/books/${item.uuid}`)
-}
+  router.push(`/books/${item.uuid}`);
+};
 
 const createCache = (book: BookBase) => {
-  pushNotice('キャッシュの作成をリクエスト', 'info')
-  apiClient.PATCH('/media/books', {
+  pushNotice("キャッシュの作成をリクエスト", "info");
+  apiClient.PATCH("/media/books", {
     body: {
       uuid: book.uuid,
-      height: Math.round(window.innerHeight * window.devicePixelRatio)
-    }
-  })
-}
+      height: Math.round(window.innerHeight * window.devicePixelRatio),
+    },
+  });
+};
 
 const toDuplicateView = () => {
-  router.push('/duplicate')
-}
+  router.push("/duplicate");
+};
 
 // ログアウト処理
 const handleLogout = () => {
-  userDataStore.logout()
-  pushNotice('ログアウトしました', 'success')
-  router.push('/login')
-}
+  userDataStore.logout();
+  pushNotice("ログアウトしました", "success");
+  router.push("/login");
+};
 
 // 前回の続きを開くダイアログのハンドラー
 const acceptResume = () => {
-  resumeDialog.value = false
-  router.push(`/books/${resumeBookUUID.value}?startPage=${resumeBookPage.value}`)
-}
+  resumeDialog.value = false;
+  router.push(
+    `/books/${resumeBookUUID.value}?startPage=${resumeBookPage.value}`,
+  );
+};
 
 const dismissResume = () => {
-  resumeDialog.value = false
-  localStorage.removeItem('openBookUUID')
-  localStorage.removeItem('openBookPage')
-}
+  resumeDialog.value = false;
+  localStorage.removeItem("openBookUUID");
+  localStorage.removeItem("openBookPage");
+};
 
 const initLibraryAndSearch = async () => {
   // ライブラリ情報取得
   try {
-    const { data, error } = await apiClient.GET('/api/librarys')
-    if (error) throw error
+    const { data, error } = await apiClient.GET("/api/librarys");
+    if (error) throw error;
     if (data) {
-      libraryList.value = data
+      libraryList.value = data;
     }
   } catch (error) {
-    console.error('ライブラリ情報取得エラー:', error)
+    console.error("ライブラリ情報取得エラー:", error);
   }
 
   // 初期ロード
-  search()
-}
+  search();
+};
 
 onMounted(async () => {
   // 前回開いていた本を取得
-  const uuid = localStorage.openBookUUID
-  const openPage = localStorage.openBookPage
+  const uuid = localStorage.openBookUUID;
+  const openPage = localStorage.openBookPage;
   // 前回開いていた本が取得できたらダイアログで確認
   if (uuid && openPage) {
-    resumeBookUUID.value = uuid
-    resumeBookPage.value = Number(openPage)
-    resumeDialog.value = true
+    resumeBookUUID.value = uuid;
+    resumeBookPage.value = Number(openPage);
+    resumeDialog.value = true;
   } else {
-    localStorage.removeItem('openBookUUID')
-    localStorage.removeItem('openBookPage')
+    localStorage.removeItem("openBookUUID");
+    localStorage.removeItem("openBookPage");
   }
 
-  await initLibraryAndSearch()
-})
+  await initLibraryAndSearch();
+});
 </script>
