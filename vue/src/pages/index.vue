@@ -276,7 +276,7 @@
         color="yellow-darken-2"
       />
       <!-- メインの一覧 -->
-      <v-container v-show="!isLoading">
+      <v-container v-show="!isLoading" max-width="1900px">
         <BooksListTable
           v-if="showListMode"
           @to-reader-page="toReaderPage"
