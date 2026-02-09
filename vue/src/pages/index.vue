@@ -268,31 +268,34 @@
         </v-list>
       </template>
     </v-navigation-drawer>
-    <v-progress-linear
-      v-show="isLoading"
-      indeterminate
-      color="yellow-darken-2"
-    />
-    <!-- メインの一覧 -->
-    <v-container v-show="!isLoading">
-      <BooksListTable
-        v-if="showListMode"
-        @to-reader-page="toReaderPage"
-        @open-menu="openMenu"
-        @search="search"
+    <!-- メインコンテンツ -->
+    <v-main>
+      <v-progress-linear
+        v-show="isLoading"
+        indeterminate
+        color="yellow-darken-2"
       />
-      <BooksListThum
-        v-else
-        @to-reader-page="toReaderPage"
-        @open-menu="openMenu"
+      <!-- メインの一覧 -->
+      <v-container v-show="!isLoading">
+        <BooksListTable
+          v-if="showListMode"
+          @to-reader-page="toReaderPage"
+          @open-menu="openMenu"
+          @search="search"
+        />
+        <BooksListThum
+          v-else
+          @to-reader-page="toReaderPage"
+          @open-menu="openMenu"
+        />
+      </v-container>
+      <v-pagination
+        v-model="page"
+        :length="maxPage"
+        :total-visible="17"
+        class="ma-3"
       />
-    </v-container>
-    <v-pagination
-      v-model="page"
-      :length="maxPage"
-      :total-visible="17"
-      class="ma-3"
-    />
+    </v-main>
   </div>
 </template>
 

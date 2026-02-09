@@ -375,7 +375,7 @@
         'image-base-height': !settings.showBaseWidth
       }"
       class="image-area"
-      @contextmenu.prevent="menuDialog = true"
+      @contextmenu.prevent="actionMenuOpen"
     >
       <template v-if="pageBlob[nowPage - 1]">
         <img v-if="effectiveShowTowPage" :src="pageBlob[nowPage + 0] || ''">

@@ -29,6 +29,11 @@ export function useGesture(
   const TAP_MAX_DISTANCE = 10 // タップと判定する最大移動距離（ピクセル）
 
   const handlePointerDown = (e: PointerEvent) => {
+    // 右クリック（コンテキストメニュー）は無視
+    if (e.button === 2) {
+      return
+    }
+
     startX.value = e.clientX
     startY.value = e.clientY
     startTime.value = Date.now()

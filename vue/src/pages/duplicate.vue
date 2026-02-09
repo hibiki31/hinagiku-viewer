@@ -50,41 +50,43 @@
         <a href="https://www.flaticon.com/authors/icon-pond" title="Icon Pond" class="text-blue">Icon Pond</a>
       </div>
     </v-navigation-drawer>
-    <v-progress-linear v-show="isLoading" indeterminate color="yellow-darken-2" />
-    <v-container v-show="!isLoading">
-      <div v-for="item in booksList" :id="item.duplicate_uuid" :key="item.duplicate_uuid" class="pb-5">
-        {{ item.duplicate_uuid }}
-        <v-row>
-          <v-col
-            v-for="item_book in item.books"
-            :id="item_book.duplicate_uuid"
-            :key="item_book.duplicate_uuid"
-            xs="4"
-            sm="3"
-            md="3"
-            lg="3"
-            class="pt-5"
-          >
-            <v-card>
-              <v-row>
-                <v-col cols="4">
-                  <v-img aspect-ratio="0.7" :src="getCoverURL(item_book.uuid)" />
-                </v-col>
-                <v-col cols="8">
-                  {{ parseInt(String(item_book.size / 1024 / 1024), 10) }} MB 評価：{{
-                    item_book.rate === null ? 'なし' : item_book.rate
-                  }}
-                  <div>{{ item_book.file }}</div>
-                  <v-btn icon @click="deleteBook(item_book.uuid)">
-                    <v-icon>mdi-delete-outline</v-icon>
-                  </v-btn>
-                </v-col>
-              </v-row>
-            </v-card>
-          </v-col>
-        </v-row>
-      </div>
-    </v-container>
+    <v-main>
+      <v-progress-linear v-show="isLoading" indeterminate color="yellow-darken-2" />
+      <v-container v-show="!isLoading">
+        <div v-for="item in booksList" :id="item.duplicate_uuid" :key="item.duplicate_uuid" class="pb-5">
+          {{ item.duplicate_uuid }}
+          <v-row>
+            <v-col
+              v-for="item_book in item.books"
+              :id="item_book.duplicate_uuid"
+              :key="item_book.duplicate_uuid"
+              xs="4"
+              sm="3"
+              md="3"
+              lg="3"
+              class="pt-5"
+            >
+              <v-card>
+                <v-row>
+                  <v-col cols="4">
+                    <v-img aspect-ratio="0.7" :src="getCoverURL(item_book.uuid)" />
+                  </v-col>
+                  <v-col cols="8">
+                    {{ parseInt(String(item_book.size / 1024 / 1024), 10) }} MB 評価：{{
+                      item_book.rate === null ? 'なし' : item_book.rate
+                    }}
+                    <div>{{ item_book.file }}</div>
+                    <v-btn icon @click="deleteBook(item_book.uuid)">
+                      <v-icon>mdi-delete-outline</v-icon>
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-card>
+            </v-col>
+          </v-row>
+        </div>
+      </v-container>
+    </v-main>
   </div>
 </template>
 

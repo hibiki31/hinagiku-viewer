@@ -18,14 +18,12 @@
         </v-alert>
       </template>
     </notifications>
-    <!-- メイン -->
-    <v-main>
-      <router-view v-slot="{ Component }">
-        <transition name="fade">
-          <component :is="Component" />
-        </transition>
-      </router-view>
-    </v-main>
+    <!-- ルーター -->
+    <router-view v-slot="{ Component }">
+      <transition name="fade">
+        <component :is="Component" />
+      </transition>
+    </router-view>
   </v-app>
 </template>
 
