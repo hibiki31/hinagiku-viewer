@@ -105,9 +105,11 @@ export function useGetCoverURL() {
 export function useFitByte() {
   const fitByte = (size: number): string => {
     if (size >= Math.pow(1024, 2)) {
-      return (Math.floor(size / Math.pow(1024, 2)) / 10).toFixed(1) + 'MB'
+      return (size / Math.pow(1024, 2)).toFixed(1) + 'MB'
+    } else if (size >= 1024) {
+      return (size / 1024).toFixed(1) + 'KB'
     } else {
-      return String(size)
+      return size + 'B'
     }
   }
   return { fitByte }

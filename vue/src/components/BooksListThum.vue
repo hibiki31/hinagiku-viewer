@@ -11,7 +11,11 @@
       lg="1"
       class="pt-5"
     >
-      <v-card style="overflow: visible" @click="$emit('toReaderPage', item)">
+      <v-card
+        style="overflow: visible"
+        @click="$emit('toReaderPage', item)"
+        @click.middle="$emit('openInNewTab', item)"
+      >
         <div class="text-center" style="position: absolute; z-index: 1; top: -15px">
           <v-icon :color="getBadge(item)" size="small">
             mdi-circle
@@ -42,6 +46,7 @@ const { getCoverURL } = useGetCoverURL()
 defineEmits<{
   toReaderPage: [item: BookBase]
   openMenu: [item: BookBase]
+  openInNewTab: [item: BookBase]
 }>()
 
 const booksList = computed(() => readerStateStore.booksList)

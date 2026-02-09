@@ -287,6 +287,7 @@
           v-else
           @to-reader-page="toReaderPage"
           @open-menu="openMenu"
+          @open-in-new-tab="openInNewTab"
         />
       </v-container>
       <v-pagination
@@ -491,6 +492,15 @@ const toReaderPage = async (item: BookBase) => {
 
   // 移動
   router.push(`/books/${item.uuid}`);
+};
+
+const openInNewTab = (item: BookBase) => {
+  // キャッシュの作成をリクエスト
+  createCache(item);
+
+  // 別タブで本を開く
+  const url = router.resolve(`/books/${item.uuid}`).href;
+  window.open(url, "_blank");
 };
 
 const createCache = (book: BookBase) => {
