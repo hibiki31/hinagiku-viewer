@@ -2,9 +2,12 @@
 FROM node:24-bullseye as build-stage
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+
+RUN corepack enable
+
+RUN pnpm install
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
 # 本番環境
 FROM nginx:stable-alpine as production-stage
