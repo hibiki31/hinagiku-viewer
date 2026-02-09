@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <!-- 通知 -->
-    <notifications position="top right" width="290px" class="pt-14">
+    <notifications position="top right" width="290px" class="pt-14" style="pointer-events: none; z-index: 999;">
       <template #body="props">
         <v-alert
           :type="props.item.type"
@@ -9,7 +9,7 @@
           density="compact"
           border="start"
           variant="text"
-          style="background-color: white"
+          style="background-color: white; pointer-events: auto;"
         >
           <v-alert-title class="text-subtitle-2">
             {{ props.item.title }}

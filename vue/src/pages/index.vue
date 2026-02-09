@@ -28,7 +28,7 @@
     />
     <RangeChangeDialog ref="rangeChangeDialogRef" @search="search" />
     <!-- トップバー -->
-    <v-app-bar color="primary" dark density="compact" flat app>
+    <v-app-bar color="primary" dark density="compact" elevation="4" style="z-index: 1000">
       <v-app-bar-nav-icon @click="showDrawer = !showDrawer" />
       <v-toolbar-title />
       <v-spacer />
@@ -47,7 +47,7 @@
       </v-btn>
     </v-app-bar>
     <!-- ドロワー -->
-    <v-navigation-drawer v-model="showDrawer" app>
+    <v-navigation-drawer v-model="showDrawer">
       <!-- ヘッダー -->
       <v-list-item
         class="px-2 py-3"
