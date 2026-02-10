@@ -1,19 +1,18 @@
-from fastapi import APIRouter, Depends, Request, HTTPException
-from sqlalchemy.orm import Session, aliased, exc, query, selectinload
-from sqlalchemy import func, select, join, table, literal_column, text
-from sqlalchemy import or_, and_
+from typing import Optional
 
-from .models import *
-from .schemas import *
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func, or_
+from sqlalchemy.orm import Session, aliased
 
 from mixins.database import get_db
 from mixins.log import setup_logger
-from mixins.purser import book_result_mapper, get_model_dict
+from mixins.purser import book_result_mapper
+from tasks.library_delete import main as library_delete
 from users.router import get_current_user
 from users.schemas import UserCurrent
-from tasks.library_delete import main as library_delete
 
-from datetime import datetime
+from .models import *
+from .schemas import *
 
 app = APIRouter()
 logger = setup_logger(__name__)
@@ -39,7 +38,7 @@ async def get_api_library(
         LibraryModel.name,
         LibraryModel.id.label("id")
     )
-    
+
     return query.all()
 
 
@@ -47,18 +46,18 @@ async def get_api_library(
 async def get_api_books(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user),
-        uuid: str = None,
-        fileNameLike: str = None,
-        chached: bool = None,
-        authorLike: str = None,
-        titleLike: str = None,
-        fullText: str = None,
-        rate: int = None,
-        seriesId: str = None,
-        genreId: str = None,
+        uuid: Optional[str] = None,
+        fileNameLike: Optional[str] = None,
+        chached: Optional[bool] = None,
+        authorLike: Optional[str] = None,
+        titleLike: Optional[str] = None,
+        fullText: Optional[str] = None,
+        rate: Optional[int] = None,
+        seriesId: Optional[str] = None,
+        genreId: Optional[str] = None,
         libraryId: int = 1,
-        tag: str = None,
-        state: str = None,
+        tag: Optional[str] = None,
+        state: Optional[str] = None,
         limit:int = 50,
         offset:int = 0,
         sortKey:str = "authors",
@@ -88,39 +87,39 @@ async def get_api_books(
     if not current_user.is_admin:
         base_query = base_query.filter(
             or_(
-                BookModel.is_shered==True,
+                BookModel.is_shered,
                 BookModel.user_id==current_user.id,
             )
         )
-    
+
     query = base_query
 
     # フィルター
-    if uuid != None:
+    if uuid is not None:
         query = query.filter(BookModel.uuid==uuid)
     else:
         query = query.filter(BookModel.library_id == libraryId)
-        if titleLike != None:
+        if titleLike is not None:
             query = query.filter(BookModel.title.like(f'%{titleLike}%'))
-        
-        if rate != None:
+
+        if rate is not None:
             if rate == 0:
-                query = query.filter(user_data.rate == None)
+                query = query.filter(user_data.rate is None)
             else:
                 query = query.filter(user_data.rate == rate)
-        
-        if genreId != None:
+
+        if genreId is not None:
             query = query.filter(BookModel.genre_id == genreId)
-        
-        if authorLike != None:
+
+        if authorLike is not None:
             query = query.outerjoin(BookModel.authors).filter(
                 AuthorModel.name.like(f'%{authorLike}%')
             )
-        
-        if chached != None:
+
+        if chached is not None:
             query = query.filter(BookModel.chached == chached)
-        
-        elif fullText != None:
+
+        elif fullText is not None:
             query = query.outerjoin(
                 BookModel.authors
             ).filter(or_(
@@ -131,42 +130,42 @@ async def get_api_books(
                 base_query.filter(BookModel.tags.any(name=tag))
             )
 
-        if fileNameLike != None:
+        if fileNameLike is not None:
             query = query.filter(BookModel.import_file_name.like(f'%{fileNameLike}%'))
-        
-        if tag != None:
+
+        if tag is not None:
             query = query.filter(BookModel.tags.any(name=tag))
-        
-        
-    if sortKey == "title" and sortDesc == False:
+
+
+    if sortKey == "title" and not sortDesc:
         query = query.order_by(BookModel.title)
-    elif sortKey == "title" and sortDesc == True:
+    elif sortKey == "title" and sortDesc:
         query = query.order_by(BookModel.title.desc())
-    
-    elif sortKey == "addDate" and sortDesc == False:
+
+    elif sortKey == "addDate" and not sortDesc:
         query = query.order_by(BookModel.add_date.desc())
-    elif sortKey == "addDate" and sortDesc == True:
+    elif sortKey == "addDate" and sortDesc:
         query = query.order_by(BookModel.add_date)
-    
-    elif sortKey == "size" and sortDesc == False:
+
+    elif sortKey == "size" and not sortDesc:
         query = query.order_by(BookModel.size.desc())
-    elif sortKey == "size" and sortDesc == True:
+    elif sortKey == "size" and sortDesc:
         query = query.order_by(BookModel.size)
 
-    elif sortKey == "userData.lastOpenDate" and sortDesc == False:
+    elif sortKey == "userData.lastOpenDate" and not sortDesc:
         query = query.order_by(user_data.last_open_date.desc())
-    elif sortKey == "userData.lastOpenDate" and sortDesc == True:
+    elif sortKey == "userData.lastOpenDate" and sortDesc:
         query = query.order_by(user_data.last_open_date)
-    
-    elif sortKey == "authors" and sortDesc == False:
+
+    elif sortKey == "authors" and not sortDesc:
         query = query.outerjoin(
             BookModel.authors
         ).order_by(AuthorModel.name, BookModel.title)
-    elif sortKey == "authors" and sortDesc == True:
+    elif sortKey == "authors" and sortDesc:
         query = query.outerjoin(
             BookModel.authors
         ).order_by(AuthorModel.name.desc(), BookModel.title)
-    
+
     count = query.count()
 
     if limit != 0:
@@ -190,16 +189,16 @@ def change_book_data(
     for book_uuid in model.uuids:
         try:
             book: BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
-        except:
+        except Exception:
             raise HTTPException(
                 status_code=404,
                 detail=f"本が存在しません,操作は全て取り消されました: {book_uuid}",
-            )
+            ) from None
 
-        if model.library_id != None:
+        if model.library_id is not None:
             book.library_id = model.library_id
 
-        if model.publisher != None:
+        if model.publisher is not None:
             if publisher_model := db.query(PublisherModel).filter(PublisherModel.name==model.publisher).one_or_none():
                 book.publisher_id = publisher_model.id
             else:
@@ -207,19 +206,19 @@ def change_book_data(
                 db.add(publisher_model)
                 db.commit()
                 book.publisher_id = publisher_model.id
-        
-        if model.series != None:
+
+        if model.series is not None:
             book.series = model.series
 
-        if model.series_no != None:
+        if model.series_no is not None:
             book.series_no = model.series_no
 
-        if model.title != None:
+        if model.title is not None:
             book.title = model.title
-        
-        if model.genre != None:
+
+        if model.genre is not None:
             book.genre = model.genre
-    
+
     db.commit()
     return book
 
@@ -231,16 +230,15 @@ def delete_book_data(
     ):
     try:
         book: BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
-    except:
+    except Exception:
         raise HTTPException(
             status_code=404,
             detail=f"本が存在しません,操作は全て取り消されました: {book_uuid}",
-        )
-    
+        ) from None
+
     library_delete(db=db, delete_uuid=book_uuid, file_name=book.import_file_name)
     db.query(BookUserMetaDataModel).filter(BookUserMetaDataModel.book_uuid==book_uuid).filter(BookUserMetaDataModel.user_id==current_user.id).delete()
     db.commit()
     db.delete(book)
     db.commit()
     return book
-    

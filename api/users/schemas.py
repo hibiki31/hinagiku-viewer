@@ -1,6 +1,8 @@
-from mixins.schema import BaseSchema
-from pydantic import BaseModel
 from typing import Optional
+
+from pydantic import BaseModel
+
+from mixins.schema import BaseSchema
 
 
 # RFCでスネークケース指定あるやんけ

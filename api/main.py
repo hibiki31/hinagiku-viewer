@@ -1,8 +1,10 @@
 import warnings
+
 # Pydantic v2のalias_generator関連の警告を抑制
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic._internal._generate_schema")
 
 import json
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,13 +12,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from authors.router import app as authors_router
 from books.router import app as books_router
 from media.router import app as media_router
-from mixins.router import app as mixins_router
 from mixins.log import setup_logger
+from mixins.router import app as mixins_router
 from settings import API_VERSION
 from tags.router import app as tags_router
 from user_datas.router import app as user_datas_router
 from users.router import app as users_router
-
 
 logger = setup_logger(__name__)
 
@@ -64,5 +65,5 @@ if __name__ == "__main__":
     with open("openapi.json", "w", encoding="utf-8") as f:
         json.dump(openapi_schema, f, ensure_ascii=False, indent=2)
     logger.info("OpenAPI JSONを openapi.json として保存しました")
-    
+
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, access_log=False)

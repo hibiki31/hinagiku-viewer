@@ -1,15 +1,10 @@
-import os, uuid, datetime, shutil, glob, json
+import json
+import os
+import shutil
 
-from sqlalchemy import or_, and_
-
-from settings import APP_ROOT, DATA_ROOT
+from books.models import BookModel
 from mixins.log import setup_logger
-from mixins.purser import PurseResult, base_purser
-from mixins.convertor import get_hash, make_thum
-
-from books.models import BookModel, LibraryModel, PublisherModel, SeriesModel, GenreModel, AuthorModel, BookUserMetaDataModel
-from users.models import UserModel
-
+from settings import DATA_ROOT
 
 logger = setup_logger(__name__)
 
@@ -28,17 +23,17 @@ def main(db, export_uuid):
         d["tags"] = []
         d["authors"] = []
         d["library"] = book_model.library.name
-        if book_model.genre == None:
+        if book_model.genre is None:
             d["genre"] = None
         else:
             d["genre"] = book_model.genre.name
-        
-        if book_model.publisher == None:
+
+        if book_model.publisher is None:
             d["publicher"] = None
         else:
             d["genre"] = book_model.publisher.name
-        
-        if book_model.series == None:
+
+        if book_model.series is None:
             d["series"] = None
         else:
             d["series"] = book_model.series.name
@@ -49,11 +44,11 @@ def main(db, export_uuid):
             d["tags"].append(i.name)
         for i in book_model.authors:
             d["authors"].append(i.name)
-        
+
         # ファイル出力
         with open(f"{DATA_ROOT}book_export/{book_model.uuid}.json", 'w') as f:
             json.dump(d, f, indent=4,sort_keys=True)
-        
+
         logger.debug(f"UUID={book_model.uuid}: JSONエクスポート完了")
         task_export(book_model=book_model, export_uuid=export_uuid)
         logger.debug(f"UUID={book_model.uuid}: ファイル移動完了")
@@ -68,7 +63,7 @@ def task_export(book_model, export_uuid):
     book_uuid = book_model.uuid
     export_file = f'{DATA_ROOT}/book_library/{book_uuid}.zip'
     export_dir = f"{DATA_ROOT}/book_export/"
-    
+
     if export_uuid:
         file_name = f"{book_uuid}.zip"
     else:
@@ -80,19 +75,16 @@ def task_export(book_model, export_uuid):
         shutil.move(export_file, export_dir+file_name)
     except FileNotFoundError:
         logger.error(f"UUID={book_model.uuid}: 存在しないためデータベースから消去")
-    
+
     try:
         os.remove(f'{DATA_ROOT}/book_cache/thum/{book_uuid}.jpg')
     except:
         logger.error(f'UUID={book_model.uuid}: サムネイルが削除出来ませんでした')
 
-    os.chmod(export_dir+file_name,777)
+    os.chmod(export_dir+file_name,0o777)
 
 
 def get_model_dict(model):
-    return dict((
-            column.name, 
-            getattr(model, column.name)
-        )
+    return {column.name: getattr(model, column.name)
         for column in model.__table__.columns
-    )
+    }

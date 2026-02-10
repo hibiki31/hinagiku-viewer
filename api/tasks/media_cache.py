@@ -3,21 +3,21 @@ import os
 import shutil
 import zipfile
 from time import time
+
 from sqlalchemy.orm import Session
 
-from mixins.log import setup_logger
-from mixins.convertor import image_convertor
-from settings import DATA_ROOT
 from books.models import BookModel
-
+from mixins.convertor import image_convertor
+from mixins.log import setup_logger
+from settings import DATA_ROOT
 
 logger = setup_logger(__name__)
 
 
-os.makedirs(f"/tmp/hinav/", exist_ok=True)
+os.makedirs("/tmp/hinav/", exist_ok=True)
 
 
-class DebugTimer():
+class DebugTimer:
     def __init__(self):
         self.time = time()
     def rap(self, message, level='debug'):
@@ -43,7 +43,7 @@ def main(db: Session, book_uuid, to_height=1080, mode=3):
     for index, original_image in enumerate(original_images):
         convert_path = f"{DATA_ROOT}/book_cache/{book_uuid}/{to_height}_{str(index+1).zfill(4)}.jpg"
         image_convertor(original_image, convert_path, to_height=to_height, quality=85)
-    
+
     # キャッシュの状態を保存
     book_model:BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
     book_model.chached = True
@@ -53,7 +53,7 @@ def main(db: Session, book_uuid, to_height=1080, mode=3):
 
 
 def unzip_original(book_uuid):
-    original_images = []  
+    original_images = []
     with zipfile.ZipFile(f'{DATA_ROOT}/book_library/{book_uuid}.zip') as existing_zip:
         existing_zip.extractall(f"{DATA_ROOT}/book_cache/{book_uuid}/tmp")
 
@@ -72,7 +72,7 @@ def unzip_original(book_uuid):
 
 
 def unzip_single_file(book_uuid):
-    original_images = []  
+    original_images = []
 
     with zipfile.ZipFile(f'{DATA_ROOT}/book_library/{book_uuid}.zip') as existing_zip:
         # zip内の画像パスをリスト化
@@ -85,7 +85,7 @@ def unzip_single_file(book_uuid):
             convert_path = f"{DATA_ROOT}/book_cache/{book_uuid}/original_{str(index+1).zfill(4)}{file_ext}"
             convert_tmep = f"{DATA_ROOT}/book_cache/{book_uuid}/original_{str(index+1).zfill(4)}.book_temp{file_ext}"
             existing_zip.extract(file_name, convert_tmep)
-            
+
             original_images.append(convert_path)
-    
+
     return original_images

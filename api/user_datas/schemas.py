@@ -1,8 +1,7 @@
-from books.models import BookUserMetaDataModel
 from datetime import datetime
-from enum import Enum, IntEnum
+from enum import Enum
+from typing import Any, List, Literal, Optional
 
-from typing import List, Optional, Literal, Any
 from mixins.schema import BaseSchema
 
 
@@ -41,7 +40,7 @@ class BookGet(BaseSchema):
     offset: int
     count: int
     rows: List[BookBase]
-    
+
 
 class BookPut(BaseSchema):
     uuids: List[str]

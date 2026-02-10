@@ -1,7 +1,7 @@
 from time import time
 
 
-class DebugTimer():
+class DebugTimer:
     def __init__(self):
         self.time = time()
     def rap(self, message, level='debug'):

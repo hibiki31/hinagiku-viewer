@@ -19,46 +19,43 @@ from books.models import BookModel, DuplicationModel
 from mixins.log import setup_logger
 from settings import CONVERT_THREAD, DATA_ROOT
 
-
 app = Flask(__name__, static_folder='/opt/product_thum/', template_folder='./templates')
 
 
 @app.route('/')
 def index():
-    with open("./verification/output_multiprocess_duplicate.json", "r") as f:
+    with open("./verification/output_multiprocess_duplicate.json") as f:
         data = [(os.path.basename(i[0]), os.path.basename(i[1]), i[2], i[3]) for i in json.load(f)["result"]]
 
         return render_template('view.j2', uuids=sorted(data, key=lambda x: x[2]))
 
 
 def main():
-    seq_time = 0
-    thread_time = 0
     process_time = 0
 
     set_count = 1000
     set_number = 1
 
-    for i in range(set_number):
+    for _i in range(set_number):
         # seq_time += task_run_sequential(set_count)
         # thread_time += task_run_multithread(set_count)
         process_time += task_run_multiprocess(set_count)
 
-    
+
     # print(f"[sequential] {round(seq_time/set_count/set_number*1000, 3)}s/khash {round(seq_time/seq_time*100,3)}%")
     # print(f"[multithread] {round(thread_time/set_count/set_number*1000, 3)}s/khash {round(thread_time/seq_time*100,3)}%")
     # print(f"[multiprocess] {round(process_time/set_count/set_number*1000, 3)}s/khash {round(process_time/seq_time*100,3)}%")
 
     # compainer_json_sequential()
     compainer_json_multiprocess()
-        
+
 
 def base_task_get_hash(send_book):
     book_image = Image.open(send_book)
     ahash32 = imagehash.average_hash(book_image, hash_size=32)
     ahash16 = imagehash.average_hash(book_image, hash_size=16)
     ahash8 = imagehash.average_hash(book_image, hash_size=8)
-    # whash = imagehash.whash(book_image, hash_size=16)   
+    # whash = imagehash.whash(book_image, hash_size=16)
     # phash = imagehash.phash(book_image, hash_size=16)
     # dhash = imagehash.dhash(book_image, hash_size=16)
     # chash = imagehash.crop_resistant_hash(book_image)
@@ -80,7 +77,7 @@ def base_task_get_hash(send_book):
 
 
 def compainer_json_sequential():
-    f = open("./verification/output_sequential.json", "r")
+    f = open("./verification/output_sequential.json")
     result_json = json.load(f)
     start_time = time.time()
 
@@ -99,7 +96,7 @@ def compainer_json_sequential():
 
 
 def compainer_json_multiprocess():
-    fi = open("./verification/output_multiprocess.json", "r")
+    fi = open("./verification/output_multiprocess.json")
     fo = open("./verification/output_multiprocess_duplicate.json", "w")
     result_json = json.load(fi)["result"]
     fi.close()
@@ -113,14 +110,14 @@ def compainer_json_multiprocess():
         for j in result_json:
             if i == j:
                 continue
-            
+
             # Ahash
             hash1 = int(i["ahash32"],16)
             hash2 = int(j["ahash32"],16)
             if bin(hash1 ^ hash2).count('1') <= 100:
                 print(i["path"], j["path"], bin(hash1 ^ hash2).count('1'), "ahash32")
                 result.append((i["path"], j["path"], bin(hash1 ^ hash2).count('1'), "ahash32"))
-            
+
             # Ahash
             hash1 = int(i["ahash16"],16)
             hash2 = int(j["ahash16"],16)
@@ -134,14 +131,14 @@ def compainer_json_multiprocess():
             if bin(hash1 ^ hash2).count('1') <= 4:
                 print(i["path"], j["path"], bin(hash1 ^ hash2).count('1'), "ahash8")
                 result.append((i["path"], j["path"], bin(hash1 ^ hash2).count('1'), "ahash8"))
-            
+
             # # whash
             # hash1 = int(i["whash"],16)
             # hash2 = int(j["whash"],16)
             # if bin(hash1 ^ hash2).count('1') < 50:
             #     print(i["path"], j["path"], bin(hash1 ^ hash2).count('1'), "whash")
             #     result.append((i["path"], j["path"], bin(hash1 ^ hash2).count('1'), "whash"))
-            
+
             # # phash
             # hash1 = int(i["phash"],16)
             # hash2 = int(j["phash"],16)
@@ -155,7 +152,7 @@ def compainer_json_multiprocess():
             # if bin(hash1 ^ hash2).count('1') < 50:
             #     print(i["path"], j["path"], bin(hash1 ^ hash2).count('1'), "dhash")
             #     result.append((i["path"], j["path"], bin(hash1 ^ hash2).count('1'), "dhash"))
-            
+
             # # chash
             # hash1 = imagehash.hex_to_multihash(i["chash"])
             # hash2 = imagehash.hex_to_multihash(i["chash"])
@@ -165,7 +162,7 @@ def compainer_json_multiprocess():
             #     result.append((i["path"], j["path"], hamming_distance[0], "chash"))
 
 
-    
+
     print(f"[multiprocess] 突合終了 {len(result_json)*len(result_json)}ペア", round(time.time()-start_time, 3))
     json.dump({"result": result}, fo, ensure_ascii=False, indent=4, sort_keys=True, separators=(',', ': '))
     fo.close()
@@ -173,20 +170,20 @@ def compainer_json_multiprocess():
 
 
 def task_run_sequential(exec_value):
-    send_books_list = glob.glob(f"/opt/product_thum/*")
+    send_books_list = glob.glob("/opt/product_thum/*")
     start_time = time.time()
 
     result=[]
 
     print("[sequential] タスク開始", round(time.time()-start_time, 3))
-    
-    for i, send_book in enumerate(send_books_list[0:exec_value]):
+
+    for _i, send_book in enumerate(send_books_list[0:exec_value]):
         result.append(base_task_get_hash(send_book=send_book))
 
     f = open("./verification/output_sequential.json", "w")
     json.dump({"result": result}, f, ensure_ascii=False, indent=4, sort_keys=True, separators=(',', ': '))
     f.close()
-    
+
     print("[sequential] タスク終了", round(time.time()-start_time, 3))
     return time.time()-start_time
 
@@ -196,7 +193,7 @@ def task_multithread(send_book, result):
 
 
 def task_run_multithread(exec_value):
-    send_books_list = glob.glob(f"/opt/product_thum/*")
+    send_books_list = glob.glob("/opt/product_thum/*")
     start_time = time.time()
 
     result=[]
@@ -205,19 +202,19 @@ def task_run_multithread(exec_value):
     print("[multithread] タスク定義", round(time.time()-start_time, 3))
     for i, send_book in enumerate(send_books_list[0:exec_value]):
         thread.append(threading.Thread(target=task_multithread, args=(send_book, result, )))
-    
+
     print("[multithread] タスク開始 ", round(time.time()-start_time, 3))
     for i in thread:
         i.start()
-    
+
     print("[multithread] タスク待ち", round(time.time()-start_time, 3))
     for i in thread:
         i.join()
-    
+
     f = open("./verification/output_multithread.json", "w")
     json.dump({"result": result}, f, ensure_ascii=False, indent=4, sort_keys=True, separators=(',', ': '))
     f.close()
-    
+
     print("[multithread] タスク終了", round(time.time()-start_time, 3))
     return time.time()-start_time
 
@@ -227,7 +224,7 @@ def task_multiprocess(result, send_books):
 
 
 def task_run_multiprocess(exec_value):
-    send_books_list = glob.glob(f"/opt/product_thum/*")
+    send_books_list = glob.glob("/opt/product_thum/*")
     start_time = time.time()
 
     with Manager() as manager:
@@ -238,8 +235,8 @@ def task_run_multiprocess(exec_value):
         print("[multiprocess] タスク定義", round(time.time()-start_time, 3))
         size = len(send_books_list[0:exec_value])
         for i in range(CONVERT_THREAD):
-            start = int((size*i/CONVERT_THREAD))
-            end = int((size*(i+1)/CONVERT_THREAD))
+            start = int(size*i/CONVERT_THREAD)
+            end = int(size*(i+1)/CONVERT_THREAD)
             print(i, start, end)
 
 
@@ -253,12 +250,12 @@ def task_run_multiprocess(exec_value):
 
         print("[multiprocess] タスク待ち", round(time.time()-start_time, 3))
         for i in process_list:
-            i.join()        
+            i.join()
 
         f = open("./verification/output_multiprocess.json", "w")
         json.dump({"result": list(result)}, f, ensure_ascii=False, indent=4, sort_keys=True, separators=(',', ': '))
         f.close()
-        
+
         print("[multithread] タスク終了", round(time.time()-start_time, 3))
         return time.time()-start_time
 

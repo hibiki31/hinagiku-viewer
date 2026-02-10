@@ -1,20 +1,30 @@
-import os, uuid, datetime, shutil, glob, json
+import datetime
+import json
+import os
+import shutil
+import uuid
 
-from sqlalchemy import or_, and_
+from sqlalchemy import and_
 
-from settings import APP_ROOT, DATA_ROOT
+from books.models import (
+    AuthorModel,
+    BookModel,
+    BookUserMetaDataModel,
+    GenreModel,
+    LibraryModel,
+    PublisherModel,
+    SeriesModel,
+)
+from mixins.convertor import get_hash, make_thum
 from mixins.log import setup_logger
 from mixins.purser import PurseResult, base_purser
-from mixins.convertor import get_hash, make_thum
-
-from books.models import BookModel, LibraryModel, PublisherModel, SeriesModel, GenreModel, AuthorModel, BookUserMetaDataModel
+from settings import DATA_ROOT
 from users.models import UserModel
-
 
 logger = setup_logger(__name__)
 
 
-class PreBookClass():
+class PreBookClass:
     def __init__(self):
         self.uuid = None
         self.sha1 = None
@@ -36,10 +46,10 @@ class PreBookClass():
         self.rate = None
 
 def main(db, user_id):
-    user_model = db.query(UserModel).filter(UserModel.id == user_id).one()
+    db.query(UserModel).filter(UserModel.id == user_id).one()
 
     book_models = db.query(BookModel).all()
-    
+
     for book_model in book_models:
         book_model:BookModel
 
@@ -47,7 +57,7 @@ def main(db, user_id):
 
         publisher_model = db.query(PublisherModel).filter(PublisherModel.name==file_name_purse.publisher).one_or_none()
 
-        if publisher_model == None:
+        if publisher_model is None:
             publisher_model = PublisherModel(name=file_name_purse.publisher)
             db.add(publisher_model)
             db.commit()
@@ -55,8 +65,7 @@ def main(db, user_id):
         book_model.publisher_id = publisher_model.id
         db.merge(book_model)
         db.commit()
-   
-    return
+
 
 def book_import(send_book, user_model, db):
     # モデル定義
@@ -91,39 +100,39 @@ def book_import(send_book, user_model, db):
         pre_model.file_date = datetime.datetime.fromtimestamp(os.path.getmtime(send_book))
         pre_model.import_file_name = os.path.basename(send_book)
         is_import = False
-    
+
     # サムネイルの作成とページ数取得
     pre_model.page = make_thum(send_book, pre_model.uuid)
-    
+
     if not (library_model := db.query(LibraryModel).filter(and_(LibraryModel.name==pre_model.library,LibraryModel.user_id==user_model.id)).one_or_none()):
         library_model = LibraryModel(name=pre_model.library, user_id=user_model.id)
         db.add(library_model)
         db.commit()
     pre_model.library_id = library_model.id
-    
-    
-    if (pre_model.genre != None) and not (genre_model := db.query(GenreModel).filter(GenreModel.name==pre_model.genre).one_or_none()):
+
+
+    if (pre_model.genre is not None) and not (genre_model := db.query(GenreModel).filter(GenreModel.name==pre_model.genre).one_or_none()):
         genre_model = GenreModel(name=pre_model.genre)
         db.add(genre_model)
         db.commit()
         pre_model.genre_id = genre_model.id
-    elif (pre_model.genre != None):
+    elif (pre_model.genre is not None):
         pre_model.genre_id = genre_model.id
-    
-    if (pre_model.publisher != None) and not (publisher_model := db.query(PublisherModel).filter(PublisherModel.name==pre_model.publisher).one_or_none()):
+
+    if (pre_model.publisher is not None) and not (publisher_model := db.query(PublisherModel).filter(PublisherModel.name==pre_model.publisher).one_or_none()):
         publisher_model = PublisherModel(name=pre_model.publisher)
         db.add(publisher_model)
         db.commit()
         pre_model.publisher_id = publisher_model.id
-    elif (pre_model.publisher != None):
+    elif (pre_model.publisher is not None):
         pre_model.publisher = publisher_model.id
 
-    if (pre_model.series != None) and not (series_model := db.query(SeriesModel).filter(SeriesModel.name==pre_model.series).one_or_none()):
+    if (pre_model.series is not None) and not (series_model := db.query(SeriesModel).filter(SeriesModel.name==pre_model.series).one_or_none()):
         series_model = SeriesModel(name=pre_model.series)
         db.add(series_model)
         db.commit()
         pre_model.series_model = series_model.id
-    elif (pre_model.series != None):
+    elif (pre_model.series is not None):
         pre_model.series_model = series_model.id
 
     model = BookModel(
@@ -149,7 +158,7 @@ def book_import(send_book, user_model, db):
     if not (author_model := db.query(AuthorModel).filter(AuthorModel.name==pre_model.author).one_or_none()):
         author_model = AuthorModel(name=pre_model.author)
     model.authors.append(author_model)
-   
+
     if is_import:
         metadata_model = BookUserMetaDataModel(
             user_id = user_model.id,
@@ -159,7 +168,7 @@ def book_import(send_book, user_model, db):
         db.add(metadata_model)
 
     db.commit()
-    
+
     shutil.move(send_book, f'{DATA_ROOT}/book_library/{pre_model.uuid}.zip')
 
     if is_import:
@@ -167,8 +176,8 @@ def book_import(send_book, user_model, db):
     else:
         logger.info(f'ライブラリに追加: {DATA_ROOT}/book_library/{pre_model.uuid}.zip')
 
-    shutil.rmtree(f"/tmp/hinav/")
-    os.mkdir(f"/tmp/hinav/")
+    shutil.rmtree("/tmp/hinav/")
+    os.mkdir("/tmp/hinav/")
 
 
 def book_model_mapper_json(model:BookModel, json):

@@ -1,17 +1,18 @@
 import os
-from PIL import Image
-import imagehash
 
 import cv2
-import numpy as np
+import imagehash
 import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
+
 
 def image_show(img_1, img_2):
     img_1 = cv2.imread(img_1)
     img_2 = cv2.imread(img_2)
     plt.figure(figsize=(20, 15))
     plt.subplots_adjust(wspace=0.0, hspace=0.0)
-        
+
     plt.imshow(img_1)
     plt.imshow(img_2)
 

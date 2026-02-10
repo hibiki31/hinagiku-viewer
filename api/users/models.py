@@ -1,8 +1,9 @@
 from sqlalchemy import Boolean, Column, String
 from sqlalchemy.orm import relationship
 
-from mixins.database import Base
 import books.models as books_models
+from mixins.database import Base
+
 
 class UserModel(Base):
     __tablename__ = "users"

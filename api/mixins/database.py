@@ -1,22 +1,22 @@
+from pprint import pprint
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+
 from settings import SQLALCHEMY_DATABASE_URL
-from pprint import pprint
 
 
 # プリントでデバッグしやすいように
-class RepresentableBase(object):
+class RepresentableBase:
     def __repr__(self):
         columns = ', '.join([
-            '{0}={1}'.format(k, repr(self.__dict__[k]))
-            for k in self.__dict__.keys() if k[0] != '_'
+            f'{k}={self.__dict__[k]!r}'
+            for k in self.__dict__ if k[0] != '_'
         ])
-        return '<{0}({1})>'.format(
-            self.__class__.__name__, columns
-        )
+        return f'<{self.__class__.__name__}({columns})>'
     def debug(self):
-        print(f'<self.__class__.__name__>')
+        print('<self.__class__.__name__>')
         pprint(self.__dict__)
 
 

@@ -1,18 +1,15 @@
-from fastapi import APIRouter, Depends, Request, HTTPException
-from sqlalchemy.orm import Session, aliased, exc, selectinload
-from sqlalchemy import func
-from sqlalchemy import or_, and_
+import contextlib
 
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session, exc
+
+from books.models import BookModel, TagsModel
 from mixins.database import get_db
 from mixins.log import setup_logger
-from mixins.purser import book_result_mapper, get_model_dict
+from mixins.purser import get_model_dict
+from tags.schemas import BookTagBase
 from users.router import get_current_user
 from users.schemas import UserCurrent
-
-from tags.schemas import BookTagBase
-from books.models import BookModel, TagsModel
-
-from datetime import datetime
 
 app = APIRouter()
 logger = setup_logger(__name__)
@@ -32,14 +29,14 @@ def append_tag(
             raise HTTPException(
                 status_code=404,
                 detail=f"本が存在しません,操作は全て取り消されました: {book_uuid}",
-            )
+            ) from None
         try:
             tags_model: TagsModel = db.query(TagsModel).filter(TagsModel.name==model.name).one()
         except exc.NoResultFound:
             tags_model = TagsModel(name=model.name)
         book.tags.append(tags_model)
 
-        
+
         result_data.append(get_model_dict(book))
         db.merge(book)
     db.commit()
@@ -59,13 +56,11 @@ def delete_tag(
             raise HTTPException(
                 status_code=404,
                 detail=f"本が存在しません,操作は全て取り消されました: {book_uuid}",
-            )
-        try:
+            ) from None
+        with contextlib.suppress(exc.NoResultFound):
             tags_model: TagsModel = db.query(TagsModel).filter(TagsModel.name==model.name).one()
-        except exc.NoResultFound:
-            pass
         book.tags.remove(tags_model)
-        
+
         result_data.append(get_model_dict(book))
         db.merge(book)
     db.commit()

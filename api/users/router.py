@@ -1,20 +1,19 @@
-import jwt
-
 from datetime import datetime, timedelta
 from typing import List, Optional
-from passlib.context import CryptContext
+
+import jwt
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
+from passlib.context import CryptContext
 from pydantic import BaseModel
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 from mixins.database import get_db
 from mixins.log import setup_logger
 from settings import SECRET_KEY
 from users.models import UserModel
-from users.schemas import AuthValidateResponse, UserCurrent, UserGet, UserPost, TokenRFC6749Response
-
+from users.schemas import AuthValidateResponse, TokenRFC6749Response, UserCurrent, UserGet, UserPost
 
 logger = setup_logger(__name__)
 app = APIRouter()
@@ -28,7 +27,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 30
 
 # パスワードハッシュ化の設定
 pwd_context = CryptContext(
-    schemes=["bcrypt"], 
+    schemes=["bcrypt"],
     deprecated="auto"
 )
 # oAuth2の設定
@@ -55,12 +54,11 @@ class CurrentUser(BaseModel):
             if not match_scoped:
                 if return_bool:
                     return False
-                else:
-                    raise HTTPException(
-                            status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Not enough permissions",
-                            headers={"WWW-Authenticate": "Bearer"},
-                        )
+                raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Not enough permissions",
+                        headers={"WWW-Authenticate": "Bearer"},
+                    )
         # すべての要求Scopeをクリア
         return True
 
@@ -79,27 +77,27 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 
 def get_current_user(
-        token: str = Depends(oauth2_scheme), 
+        token: str = Depends(oauth2_scheme),
         db: Session = Depends(get_db)
     ):
     # ペイロード確認
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
-    except:
+    except Exception:
         # トークンがデコード出来なかった場合は認証失敗
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Illegal credentials",
             headers={"WWW-Authenticate": "Bearer"}
-        )
+        ) from None
 
     try:
         # 正常なトークンだけどユーザが存在しない場合は認証失敗
         # もはやサーバー側のエラー
         user = db.query(UserModel).filter(UserModel.id==user_id).one()
-    except:
-        raise HTTPException(status_code=401, detail="Illegal credentials")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Illegal credentials") from None
 
     return UserCurrent(id=user_id, token=token, is_admin=user.is_admin)
 
@@ -108,7 +106,7 @@ def get_current_user(
 def read_api_users(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
-    ): 
+    ):
     return db.query(UserModel).all()
 
 
@@ -124,12 +122,12 @@ def read_api_users_me(
 
 @app.post("/api/users", tags=["User"])
 def post_api_users(
-        user: UserPost, 
+        user: UserPost,
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
     ):
     db.add(UserModel(
-        id=user.id, 
+        id=user.id,
         password=pwd_context.hash(user.password),
         is_admin=False
         ))
@@ -141,22 +139,22 @@ def post_api_users(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Request user already exists"
-        )
+        ) from None
 
     return user
 
 
 @app.post("/api/auth", response_model=TokenRFC6749Response, tags=["Auth"])
 def login_for_access_token(
-        form_data: OAuth2PasswordRequestForm = Depends(), 
+        form_data: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(get_db)
     ):
 
     try:
         user = db.query(UserModel).filter(UserModel.id==form_data.username).one()
-    except:
-        raise HTTPException(status_code=401, detail="Incorrect username or password")
-    
+    except Exception:
+        raise HTTPException(status_code=401, detail="Incorrect username or password") from None
+
     if not pwd_context.verify(form_data.password, user.password):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
 
@@ -174,10 +172,10 @@ def login_for_access_token(
 
 @app.post("/api/auth/setup", tags=["Auth"])
 async def api_auth_setup(
-        user: UserPost, 
+        user: UserPost,
         db: Session = Depends(get_db)
     ):
-    if user.id == None or user.id == "":
+    if user.id is None or user.id == "":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User id is brank"
@@ -192,7 +190,7 @@ async def api_auth_setup(
 
     # ユーザ追加
     db.add(UserModel(
-        id=user.id, 
+        id=user.id,
         password=pwd_context.hash(user.password),
         is_admin=True
     ))

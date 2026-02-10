@@ -1,17 +1,20 @@
-import subprocess, os, glob, re
+import glob
+import os
+import re
+import subprocess
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
+from sqlalchemy.orm import Session, aliased
+
+from books.models import BookModel, BookUserMetaDataModel, DuplicationModel
+from books.schemas import BookCacheCreate, LibraryPatch
+from mixins.convertor import create_book_page_cache, image_convertor
 from mixins.database import get_db
 from mixins.log import setup_logger
-from sqlalchemy.orm import Session, aliased, exc, query, selectinload
-from settings import DATA_ROOT, APP_ROOT, CONVERT_THREAD
-from mixins.convertor import create_book_page_cache, image_convertor
-
-from books.schemas import BookCacheCreate, LibraryPatch
+from settings import APP_ROOT, CONVERT_THREAD, DATA_ROOT
 from users.router import get_current_user
 from users.schemas import UserCurrent
-from books.models import DuplicationModel, BookModel, BookUserMetaDataModel
 
 app = APIRouter()
 logger = setup_logger(__name__)
@@ -28,14 +31,14 @@ def get_media_books_cache(
 
     original_size = 0
     convert_size = 0
-    
+
     for file in glob.glob(f"{DATA_ROOT}/book_cache/**", recursive=True):
         file_name = os.path.basename(file)
         if re.fullmatch(r"^original_.*",file_name):
             original_size += os.path.getsize(file)
         else:
             convert_size += os.path.getsize(file)
-    
+
     return {"original_mb": original_size/1024/1024, "convert_mb": convert_size/1024/1024}
 
 
@@ -90,7 +93,7 @@ def get_media_books_duplicate(
             res[duplication_id].append({"uuid": book1_uuid, "file": book1_file, "size": book1_size, "rate": book1_rate, "score": score})
             res[duplication_id].append({"uuid": book2_uuid, "file": book2_file, "size": book2_size, "rate": book2_rate, "score": score})
 
-    
+
 
     res_list = []
     for key, value in res.items():
@@ -101,7 +104,7 @@ def get_media_books_duplicate(
 
 
     return res_list[offset:offset+limit]
-    
+
 
 
 @app.get("/media/books/{uuid}", tags=["Media"], summary="サムネイル取得")
@@ -123,7 +126,7 @@ def media_books_uuid_page(
         page: int,
         height: int = 1080,
     ):
-    
+
     cache_file = f"{DATA_ROOT}/book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
     original_file = f"{DATA_ROOT}/book_cache/{uuid}/original_{str(page).zfill(4)}*"
 
@@ -142,9 +145,9 @@ def patch_media_books_(
         model: BookCacheCreate,
         current_user:UserCurrent = Depends(get_current_user)
     ):
-    
+
     for i, w in enumerate(converter_pool):
-        if w.poll() != None:
+        if w.poll() is not None:
             logger.debug(f"完了したプロセスをプールから削除 {w.args}")
             del converter_pool[i]
 
@@ -167,7 +170,7 @@ def patch_media_library(
     - state=export ライブラリのエクスポート
     """
     for i in library_pool:
-        if i.poll() == None:
+        if i.poll() is None:
             return { "status": "allredy" }
     if model.state == "load":
         library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "load", current_user.id]))

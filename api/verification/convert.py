@@ -1,10 +1,12 @@
 import zipfile
-from verification.common import DebugTimer
-from settings import DATA_ROOT
-from mixins.database import SessionLocal
-from mixins.convertor import task_convert
+
 from books.models import BookModel
+from mixins.convertor import task_convert
+from mixins.database import SessionLocal
+from settings import DATA_ROOT
 from users.models import UserModel
+from verification.common import DebugTimer
+
 
 def debug():
     db = SessionLocal()

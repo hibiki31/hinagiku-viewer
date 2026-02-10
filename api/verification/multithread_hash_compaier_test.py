@@ -1,16 +1,18 @@
 import json
 import sys
 import time
+
 import imagehash
+
 
 def main():
     compainer_json_sequential_bin()
     compainer_json_sequential_hash()
-    
+
 
 
 def compainer_json_sequential_bin():
-    f = open("./verification/output_sequential.json", "r")
+    f = open("./verification/output_sequential.json")
     result_json = json.load(f)
     start_time = time.time()
 
@@ -30,7 +32,7 @@ def compainer_json_sequential_bin():
 
 
 def compainer_json_sequential_hash():
-    f = open("./verification/output_sequential.json", "r")
+    f = open("./verification/output_sequential.json")
     result_json = json.load(f)
     start_time = time.time()
 

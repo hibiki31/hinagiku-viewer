@@ -1,7 +1,7 @@
 import re
-from books.models import BookUserMetaDataModel
 
-class PurseResult():
+
+class PurseResult:
     def __init__(self, publisher, author, title):
         self.publisher = publisher
         self.author = author
@@ -29,12 +29,9 @@ def base_purser(text):
 
 
 def get_model_dict(model):
-    return dict((
-                column.name, 
-                getattr(model, column.name)
-            )
+    return {column.name: getattr(model, column.name)
             for column in model.__table__.columns
-        )
+        }
 
 def book_result_mapper(rows):
     result = []
@@ -47,7 +44,7 @@ def book_result_mapper(rows):
             dic["user_data"] = { "rate": None }
         result.append(dic)
     return result
-    
+
 if __name__ == "__main__":
     print(base_purser("aa"))
     print(base_purser("[] aa"))

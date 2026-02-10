@@ -1,45 +1,26 @@
-import sys
-import hashlib
-
-import zipfile
-
 import glob
-from PIL import Image, ImageFilter, ImageFile
-
-from io import BytesIO 
+import hashlib
 import os
-import uuid
-
-from fastapi import HTTPException
-
-import datetime
+import shutil
+import zipfile
+from io import BytesIO
 from time import sleep, time
 
-
-import shutil
-
-from sqlalchemy.sql.functions import mode
-
-from settings import APP_ROOT, DATA_ROOT
-from mixins.log import setup_logger
-from mixins.database import SessionLocal
-from mixins.purser import PurseResult, base_purser
+from fastapi import HTTPException
+from PIL import Image, ImageFile
 
 from books.models import *
-from users.models import UserModel
-
-import json
-import hashlib
-
+from mixins.log import setup_logger
+from settings import DATA_ROOT
 
 logger = setup_logger(__name__)
 
 
-os.makedirs(f"/tmp/hinav/", exist_ok=True)
+os.makedirs("/tmp/hinav/", exist_ok=True)
 # OSError: image file is truncated (2 bytes not processed)を回避
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-class DebugTimer():
+class DebugTimer:
     def __init__(self):
         self.time = time()
     def rap(self, message, level='debug'):
@@ -86,7 +67,7 @@ def is_copping(file_path):
     '''
     ファイルサイズの変更がなくなるまで待機する
     '''
-    for i in range(1,10):
+    for _i in range(1,10):
         seize_point1 = os.path.getsize(file_path)
         sleep(1)
         seize_point2 = os.path.getsize(file_path)
@@ -109,7 +90,7 @@ def make_thum(send_book, book_uuid):
     マルチハッシュ（ahash, phash, dhash）も計算して返す
     """
     import imagehash
-    
+
     with zipfile.ZipFile(send_book) as existing_zip:
         zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
         # ページ数取得
@@ -119,9 +100,9 @@ def make_thum(send_book, book_uuid):
         if page_len == 0:
             raise NotContentZip
         cover_path = zip_content[0]
-        existing_zip.extract(cover_path, f"/tmp/hinav/")
+        existing_zip.extract(cover_path, "/tmp/hinav/")
         image_convertor(src_path=f"/tmp/hinav/{cover_path}",dst_path=f'{DATA_ROOT}/book_thum/{book_uuid}.jpg',to_height=600,quality=85)
-    
+
     # マルチハッシュを計算
     try:
         image = Image.open(f'{DATA_ROOT}/book_thum/{book_uuid}.jpg')
@@ -152,7 +133,7 @@ def task_convert(book_uuid, to_height=1080, mode=3):
 
 
 def unzip_original(book_uuid):
-    original_images = []  
+    original_images = []
     with zipfile.ZipFile(f'{DATA_ROOT}/book_library/{book_uuid}.zip') as existing_zip:
         existing_zip.extractall(f"{DATA_ROOT}/book_cache/{book_uuid}/tmp")
 
@@ -171,7 +152,7 @@ def unzip_original(book_uuid):
 
 
 def unzip_single_file(book_uuid):
-    original_images = []  
+    original_images = []
 
     with zipfile.ZipFile(f'{DATA_ROOT}/book_library/{book_uuid}.zip') as existing_zip:
         # zip内の画像パスをリスト化
@@ -184,9 +165,9 @@ def unzip_single_file(book_uuid):
             convert_path = f"{DATA_ROOT}/book_cache/{book_uuid}/original_{str(index+1).zfill(4)}{file_ext}"
             convert_tmep = f"{DATA_ROOT}/book_cache/{book_uuid}/original_{str(index+1).zfill(4)}.book_temp{file_ext}"
             existing_zip.extract(file_name, convert_tmep)
-            
+
             original_images.append(convert_path)
-    
+
     return original_images
 
 
@@ -202,7 +183,7 @@ def zip_to_image(existing_zip, file_name, to_height, convert_tmep, convert_path)
     else:
         new_height = int(to_height)
         new_width = int(to_height / height * width)
-    
+
     # 変換
     new_img = img_src.resize((new_width, new_height), Image.LANCZOS)
     new_img.save(convert_tmep, format='JPEG')
@@ -229,7 +210,7 @@ def direct_book_page(book_uuid, page, to_height, quality):
             # 指定されたページだけ読み込んでPILに
             img_src = Image.open(BytesIO(existing_zip.read(file_list_in_zip[page-1]))).convert('RGB')
             timer.rap("ZIPをREADしてPILに")
-        
+
             # 縦横計算
             width, height = img_src.size
             if height < to_height:
@@ -252,14 +233,14 @@ def direct_book_page(book_uuid, page, to_height, quality):
         raise HTTPException(
             status_code=404,
             detail="本が存在しません",
-        )
+        ) from None
 
 def create_book_page_cache(book_uuid, page, to_height, quality):
     timer = DebugTimer()
     # キャッシュ先にフォルダ作成
     os.makedirs(f"{DATA_ROOT}/book_cache/{book_uuid}/", exist_ok=True)
-    
-    
+
+
     with zipfile.ZipFile(f'{DATA_ROOT}/book_library/{book_uuid}.zip') as existing_zip:
         # 関係あるファイルパスのリストに変更
         file_list_in_zip = existing_zip.namelist()
@@ -276,7 +257,7 @@ def create_book_page_cache(book_uuid, page, to_height, quality):
         # 指定されたページだけ読み込んでPILに
         img_src = Image.open(BytesIO(existing_zip.read(file_list_in_zip[page-1]))).convert('RGB')
         timer.rap("ZIPをREADしてPILに")
-    
+
         # 縦横計算
         width, height = img_src.size
         if height < to_height:
@@ -296,7 +277,7 @@ def create_book_page_cache(book_uuid, page, to_height, quality):
         shutil.move(f'{temp_file}.page_temp{temp_ext}', dst_path)
         timer.rap("変換")
 
-    
+
 
 
 def image_convertor(src_path, dst_path, to_height, quality):

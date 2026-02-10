@@ -1,9 +1,9 @@
-import httpx
-
-from common import HEADERS, ENV, BASE_URL, DebugTimer, print_resp
 from concurrent.futures import ThreadPoolExecutor
-
 from time import sleep
+
+import httpx
+from common import BASE_URL, HEADERS, DebugTimer, print_resp
+
 
 def main():
     worker_patch()
@@ -21,7 +21,7 @@ def multi():
             e.submit(media_get, book)
     timer.rap(message="マルチスレッド終了")
 
-    
+
 
 def worker_patch():
     resp = httpx.get(f'{BASE_URL}/api/books',headers=HEADERS)
@@ -36,7 +36,7 @@ def worker_patch():
         })
         print_resp(resp=resp_patch)
         sleep(10)
-        
+
 
 
 def single(book):
@@ -58,5 +58,5 @@ def media_get(book):
     for page in range(book["page"]):
         if page > 5:
             break
-        resp = httpx.get(f'{BASE_URL}/media/books/{book["uuid"]}/{str(page)}',headers=HEADERS, params={"height": 1112 })
+        resp = httpx.get(f'{BASE_URL}/media/books/{book["uuid"]}/{page!s}',headers=HEADERS, params={"height": 1112 })
         print_resp(resp=resp)

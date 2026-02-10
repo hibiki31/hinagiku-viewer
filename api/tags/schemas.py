@@ -1,6 +1,6 @@
 from typing import List
-from mixins.schema import BaseSchema
 
+from mixins.schema import BaseSchema
 
 
 class BookTagBase(BaseSchema):

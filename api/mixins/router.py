@@ -7,7 +7,6 @@ from mixins.schema import BaseSchema
 from settings import API_VERSION
 from users.models import UserModel
 
-
 app = APIRouter(prefix="/api",tags=["Mixin"])
 logger = setup_logger(__name__)
 
@@ -24,6 +23,6 @@ def get_version(
     '''
     初期化済みか判定用
     '''
-    initialized = (not db.query(UserModel).all() == [])
+    initialized = (db.query(UserModel).all() != [])
 
     return {"initialized": initialized, "version": API_VERSION}

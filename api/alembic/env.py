@@ -1,12 +1,10 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-
-from mixins.database import Base, get_db_url
 from books.models import *
+from mixins.database import Base, get_db_url
 from users.models import *
 
 # this is the Alembic Config object, which provides
@@ -41,7 +39,7 @@ def run_migrations_offline():
     script output.
 
     """
-    
+
     context.configure(
         url=get_db_url(),
         target_metadata=target_metadata,

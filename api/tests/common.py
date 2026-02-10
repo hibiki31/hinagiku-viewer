@@ -1,16 +1,14 @@
-import httpx
 import json
-from pprint import pprint
 import time
-import datetime
-import sys
+from pprint import pprint
 
+import httpx
 
-ENV = json.load(open('./tests/env.json', 'r'))
+ENV = json.load(open('./tests/env.json'))
 BASE_URL = ENV["base_url"]
 
 
-class DebugTimer():
+class DebugTimer:
     def __init__(self):
         self.time = time.time()
     def rap(self, message, level='debug'):
@@ -48,7 +46,7 @@ def print_resp(resp: httpx.Response, allow_not_found=False, debug=False):
 
     if debug:
         print("-------------------------------------")
-        pprint(resp.json()) 
+        pprint(resp.json())
         print("-------------------------------------")
         print()
 
@@ -87,5 +85,5 @@ print_resp(resp=resp)
 ACCESS_TOKEN = resp.json()["access_token"]
 HEADERS = {
     'Authorization': f'Bearer {ACCESS_TOKEN}',
-    'Content-Type': 'application/json'    
+    'Content-Type': 'application/json'
 }

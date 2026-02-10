@@ -1,5 +1,6 @@
+from sqlalchemy import func, join, literal_column, select, table, text
+
 from mixins.database import SessionLocal
-from sqlalchemy import func, select, join, table, literal_column, text
 
 
 def select_books(user_id, title=None, limit=None, count=False):
@@ -11,7 +12,7 @@ def select_books(user_id, title=None, limit=None, count=False):
         book = select("*").select_from(table('books'))
     if title:
         book = book.where(literal_column('title').like(f'%{title}%'))
-    
+
     book = book.alias('book')
 
     meta = select(
@@ -21,7 +22,7 @@ def select_books(user_id, title=None, limit=None, count=False):
         ).where(
             literal_column('user_id') >= user_id
         ).alias('meta')
-    
+
     pub = table('publishers').alias('pub')
 
     book_to_aut = table('book_to_author').alias('book_to_aut')
@@ -41,7 +42,7 @@ def select_books(user_id, title=None, limit=None, count=False):
             literal_column('aut.name').label('author_name'),
             literal_column('aut.id').label('author_id')
         ])
-    
+
     main_query = main_query.select_from(
         book.outerjoin(
             meta, text('book.uuid = meta.book_uuid')
@@ -61,7 +62,6 @@ def select_books(user_id, title=None, limit=None, count=False):
     vle = db.execute(main_query).fetchall()
     clm = db.execute(main_query).keys()
 
-    res = []
 
     for i in vle:
         dc = dict(zip(clm , i))

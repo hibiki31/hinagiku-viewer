@@ -1,6 +1,5 @@
 import httpx
-
-from common import HEADERS, ENV, BASE_URL,print_resp
+from common import BASE_URL, HEADERS, print_resp
 
 
 def main():
