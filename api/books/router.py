@@ -46,22 +46,7 @@ async def list_libraries(
 async def search_books(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user),
-        uuid: Optional[str] = None,
-        fileNameLike: Optional[str] = None,
-        cached: Optional[bool] = None,
-        authorLike: Optional[str] = None,
-        titleLike: Optional[str] = None,
-        fullText: Optional[str] = None,
-        rate: Optional[int] = None,
-        seriesId: Optional[str] = None,
-        genreId: Optional[str] = None,
-        libraryId: int = 1,
-        tag: Optional[str] = None,
-        state: Optional[str] = None,
-        limit:int = 50,
-        offset:int = 0,
-        sortKey:str = "authors",
-        sortDesc:bool = False
+        params: BookSearchParams = Depends()
     ):
 
     # ユーザデータのサブクエリ
@@ -95,88 +80,88 @@ async def search_books(
     query = base_query
 
     # フィルター
-    if uuid is not None:
-        query = query.filter(BookModel.uuid==uuid)
+    if params.uuid is not None:
+        query = query.filter(BookModel.uuid==params.uuid)
     else:
-        query = query.filter(BookModel.library_id == libraryId)
-        if titleLike is not None:
-            query = query.filter(BookModel.title.like(f'%{titleLike}%'))
+        query = query.filter(BookModel.library_id == params.library_id)
+        if params.title_like is not None:
+            query = query.filter(BookModel.title.like(f'%{params.title_like}%'))
 
-        if rate is not None:
-            if rate == 0:
+        if params.rate is not None:
+            if params.rate == 0:
                 query = query.filter(user_data.rate is None)
             else:
-                query = query.filter(user_data.rate == rate)
+                query = query.filter(user_data.rate == params.rate)
 
-        if genreId is not None:
-            query = query.filter(BookModel.genre_id == genreId)
+        if params.genre_id is not None:
+            query = query.filter(BookModel.genre_id == params.genre_id)
 
-        if authorLike is not None:
+        if params.author_like is not None:
             query = query.outerjoin(BookModel.authors).filter(
-                AuthorModel.name.like(f'%{authorLike}%')
+                AuthorModel.name.like(f'%{params.author_like}%')
             )
 
-        if cached is not None:
-            query = query.filter(BookModel.cached == cached)
+        if params.cached is not None:
+            query = query.filter(BookModel.cached == params.cached)
 
-        elif fullText is not None:
+        elif params.full_text is not None:
             query = query.outerjoin(
                 BookModel.authors
             ).filter(or_(
-                BookModel.title.like(f'%{fullText}%'),
-                BookModel.import_file_name.like(f'%{fullText}%'),
-                AuthorModel.name.like(f'%{fullText}%')
+                BookModel.title.like(f'%{params.full_text}%'),
+                BookModel.import_file_name.like(f'%{params.full_text}%'),
+                AuthorModel.name.like(f'%{params.full_text}%')
             )).union(
-                base_query.filter(BookModel.tags.any(name=tag))
+                base_query.filter(BookModel.tags.any(name=params.tag))
             )
 
-        if fileNameLike is not None:
-            query = query.filter(BookModel.import_file_name.like(f'%{fileNameLike}%'))
+        if params.file_name_like is not None:
+            query = query.filter(BookModel.import_file_name.like(f'%{params.file_name_like}%'))
 
-        if tag is not None:
-            query = query.filter(BookModel.tags.any(name=tag))
+        if params.tag is not None:
+            query = query.filter(BookModel.tags.any(name=params.tag))
 
 
-    if sortKey == "title" and not sortDesc:
+    if params.sort_key == "title" and not params.sort_desc:
         query = query.order_by(BookModel.title)
-    elif sortKey == "title" and sortDesc:
+    elif params.sort_key == "title" and params.sort_desc:
         query = query.order_by(BookModel.title.desc())
 
-    elif sortKey == "addDate" and not sortDesc:
+    elif params.sort_key == "addDate" and not params.sort_desc:
         query = query.order_by(BookModel.add_date.desc())
-    elif sortKey == "addDate" and sortDesc:
+    elif params.sort_key == "addDate" and params.sort_desc:
         query = query.order_by(BookModel.add_date)
 
-    elif sortKey == "size" and not sortDesc:
+    elif params.sort_key == "size" and not params.sort_desc:
         query = query.order_by(BookModel.size.desc())
-    elif sortKey == "size" and sortDesc:
+    elif params.sort_key == "size" and params.sort_desc:
         query = query.order_by(BookModel.size)
 
-    elif sortKey == "userData.lastOpenDate" and not sortDesc:
+    elif params.sort_key == "userData.lastOpenDate" and not params.sort_desc:
         query = query.order_by(user_data.last_open_date.desc())
-    elif sortKey == "userData.lastOpenDate" and sortDesc:
+    elif params.sort_key == "userData.lastOpenDate" and params.sort_desc:
         query = query.order_by(user_data.last_open_date)
 
-    elif sortKey == "authors" and not sortDesc:
+    elif params.sort_key == "authors" and not params.sort_desc:
         query = query.outerjoin(
             BookModel.authors
         ).order_by(AuthorModel.name, BookModel.title)
-    elif sortKey == "authors" and sortDesc:
+    elif params.sort_key == "authors" and params.sort_desc:
         query = query.outerjoin(
             BookModel.authors
         ).order_by(AuthorModel.name.desc(), BookModel.title)
 
     count = query.count()
 
-    if limit != 0:
-        query = query.limit(limit).offset(offset)
+    if params.limit != 0:
+        query = query.limit(params.limit).offset(params.offset)
 
     rows = query.all()
     rows = book_result_mapper(rows)
 
     # print(query.statement.compile())
 
-    return {"count": count, "limit": limit, "offset": offset, "rows": rows}
+    return {"count": count, "limit": params.limit, "offset": params.offset, "rows": rows}
 
 
 

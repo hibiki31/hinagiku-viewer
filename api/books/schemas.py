@@ -104,3 +104,31 @@ class LibraryPatchEnum(str, Enum):
 
 class LibraryPatch(BaseSchema):
     state: LibraryPatchEnum = LibraryPatchEnum.load
+
+
+class BookSearchParams(BaseSchema):
+    """書籍検索用クエリパラメータ
+    
+    snake_caseで定義することでPython側の命名規則に従い、
+    BaseSchemaのalias_generator=to_camelにより自動的にCamelCaseでAPIに公開される。
+    
+    例:
+        - file_name_like (Python) -> fileNameLike (API)
+        - author_like (Python) -> authorLike (API)
+    """
+    uuid: Optional[str] = None
+    file_name_like: Optional[str] = None
+    cached: Optional[bool] = None
+    author_like: Optional[str] = None
+    title_like: Optional[str] = None
+    full_text: Optional[str] = None
+    rate: Optional[int] = None
+    series_id: Optional[str] = None
+    genre_id: Optional[str] = None
+    library_id: int = 1
+    tag: Optional[str] = None
+    state: Optional[str] = None
+    limit: int = 50
+    offset: int = 0
+    sort_key: str = "authors"
+    sort_desc: bool = False
