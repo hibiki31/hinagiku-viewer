@@ -1,16 +1,15 @@
-import httpx
 import json
-from pprint import pprint
 import time
-import datetime
-import sys
+from pathlib import Path
+from pprint import pprint
 
+import httpx
 
-ENV = json.load(open('./tests/env.json', 'r'))
+ENV = json.load(Path('./tests/env.json').open())
 BASE_URL = ENV["base_url"]
 
 
-class DebugTimer():
+class DebugTimer:
     def __init__(self):
         self.time = time.time()
     def rap(self, message, level='debug'):
@@ -48,7 +47,7 @@ def print_resp(resp: httpx.Response, allow_not_found=False, debug=False):
 
     if debug:
         print("-------------------------------------")
-        pprint(resp.json()) 
+        pprint(resp.json())
         print("-------------------------------------")
         print()
 
@@ -63,7 +62,7 @@ def dumpjson(resp: httpx.Response):
     file_path = f"./tests/dump/{resp.request.method.lower()}_{safe_url}"
     content_type = resp.headers["content-type"]
     if content_type == "application/json":
-        json.dump(resp.json(), open(f"{file_path}.json", "w"), ensure_ascii=False, indent=4, sort_keys=True, separators=(',', ': '))
+        json.dump(resp.json(), Path(f"{file_path}.json").open("w"), ensure_ascii=False, indent=4, sort_keys=True, separators=(',', ': '))
 
 # 初期化が必要であれば行う
 if not httpx.get(f'{BASE_URL}/api/version').json()["initialized"]:
@@ -87,5 +86,5 @@ print_resp(resp=resp)
 ACCESS_TOKEN = resp.json()["access_token"]
 HEADERS = {
     'Authorization': f'Bearer {ACCESS_TOKEN}',
-    'Content-Type': 'application/json'    
+    'Content-Type': 'application/json'
 }

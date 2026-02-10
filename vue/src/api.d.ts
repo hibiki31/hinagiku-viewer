@@ -11,11 +11,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read Api Users */
-        get: operations["read_api_users_api_users_get"];
+        /** List Users */
+        get: operations["list_users_api_users_get"];
         put?: never;
-        /** Post Api Users */
-        post: operations["post_api_users_api_users_post"];
+        /** Create User */
+        post: operations["create_user_api_users_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -29,8 +29,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read Api Users Me */
-        get: operations["read_api_users_me_api_users_me__get"];
+        /** Get Current User Info */
+        get: operations["get_current_user_info_api_users_me__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -80,8 +80,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read Auth Validate */
-        get: operations["read_auth_validate_api_auth_validate_get"];
+        /** Validate Token */
+        get: operations["validate_token_api_auth_validate_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -90,15 +90,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/librarys": {
+    "/api/libraries": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get Api Library */
-        get: operations["get_api_library_api_librarys_get"];
+        /** List Libraries */
+        get: operations["list_libraries_api_libraries_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -114,10 +114,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Api Books */
-        get: operations["get_api_books_api_books_get"];
-        /** Change Book Data */
-        put: operations["change_book_data_api_books_put"];
+        /** Search Books */
+        get: operations["search_books_api_books_get"];
+        /** Update Books */
+        put: operations["update_books_api_books_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -135,8 +135,28 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete Book Data */
-        delete: operations["delete_book_data_api_books__book_uuid__delete"];
+        /** Delete Book */
+        delete: operations["delete_book_api_books__book_uuid__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/books/{book_uuid}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 本のZipファイルダウンロード
+         * @description 指定された本のZipファイルをダウンロードする
+         */
+        get: operations["download_book_api_books__book_uuid__download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -248,20 +268,65 @@ export interface paths {
         patch: operations["patch_media_library_media_library_patch"];
         trace?: never;
     };
-    "/api/books/tag": {
+    "/api/books/{uuid}/tags": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Show Tag */
-        get: operations["show_tag_api_books_tag_get"];
+        /**
+         * Get Book Tags
+         * @description 指定した書籍のタグ一覧を取得する
+         */
+        get: operations["get_book_tags_api_books__uuid__tags_get"];
         put?: never;
-        /** Append Tag */
-        post: operations["append_tag_api_books_tag_post"];
-        /** Delete Tag */
-        delete: operations["delete_tag_api_books_tag_delete"];
+        /**
+         * Add Book Tag
+         * @description 指定した書籍にタグを追加する
+         */
+        post: operations["add_book_tag_api_books__uuid__tags_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/books/{uuid}/tags/{tag_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Book Tag
+         * @description 指定した書籍から指定したタグを削除する（ボディなし）
+         */
+        delete: operations["remove_book_tag_api_books__uuid__tags__tag_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Tags
+         * @description ユーザーが所有する書籍に関連付けられているタグの一覧を取得する
+         */
+        get: operations["list_tags_api_tags_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -274,15 +339,65 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Api Library */
-        get: operations["get_api_library_api_authors_get"];
+        /**
+         * List Authors
+         * @description 著者一覧を取得する
+         *
+         *     - name: 完全一致検索
+         *     - name_like: 部分一致検索
+         *     - is_favorite: お気に入りフィルタ（True/False/None）
+         */
+        get: operations["list_authors_api_authors_get"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /** Delete Api Books Uuid Authors */
-        patch: operations["delete_api_books_uuid_authors_api_authors_patch"];
+        /**
+         * Update Author
+         * @deprecated
+         * @description 著者情報を更新する（旧形式・非推奨）
+         *
+         *     このエンドポイントは後方互換性のために残されています。
+         *     新規実装では PATCH /api/authors/{author_id} を使用してください。
+         */
+        patch: operations["update_author_api_authors_patch"];
+        trace?: never;
+    };
+    "/api/authors/{author_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Author
+         * @description 著者の詳細情報を取得する
+         *
+         *     - author_id: 著者ID
+         */
+        get: operations["get_author_api_authors__author_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Author
+         * @description 著者を削除する
+         *
+         *     書籍に紐づいている著者は削除できません。
+         */
+        delete: operations["delete_author_api_authors__author_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Author By Id
+         * @description 著者情報を更新する
+         *
+         *     - name: 著者名
+         *     - is_favorite: お気に入り設定
+         *     - description: 説明
+         */
+        patch: operations["update_author_by_id_api_authors__author_id__patch"];
         trace?: never;
     };
     "/api/books/{book_uuid}/authors": {
@@ -294,10 +409,21 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post Api Books Uuid Authors */
-        post: operations["post_api_books_uuid_authors_api_books__book_uuid__authors_post"];
-        /** Delete Api Books Uuid Authors */
-        delete: operations["delete_api_books_uuid_authors_api_books__book_uuid__authors_delete"];
+        /**
+         * Add Book Author
+         * @description 書籍に著者を追加する
+         *
+         *     - author_id: 既存の著者IDを指定
+         *     - author_name: 著者名を指定（存在しない場合は新規作成）
+         */
+        post: operations["add_book_author_api_books__book_uuid__authors_post"];
+        /**
+         * Remove Book Author
+         * @description 書籍から著者を削除する
+         *
+         *     - author_id: 削除する著者ID
+         */
+        delete: operations["remove_book_author_api_books__book_uuid__authors_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -346,18 +472,248 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * タスク一覧取得
+         * @description タスク一覧を取得する
+         *
+         *     Args:
+         *         status: ステータスフィルタ (pending, running, completed, failed)
+         *         task_type: タスク種別フィルタ (load, sim_all, export等)
+         *         limit: 取得件数
+         *         offset: オフセット
+         */
+        get: operations["list_tasks_api_tasks_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tasks/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * タスク詳細取得
+         * @description タスクの詳細情報を取得する
+         *
+         *     Args:
+         *         task_id: タスクID
+         */
+        get: operations["get_task_api_tasks__task_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * タスクキャンセル（未実装）
+         * @description タスクをキャンセルする（将来実装予定）
+         *
+         *     現在はステータスをcancelledに変更するのみで、
+         *     実際のプロセス停止は未実装。
+         */
+        delete: operations["cancel_task_api_tasks__task_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Settings
+         * @description システム設定一覧を取得
+         *
+         *     - 管理者: 全設定を取得可能
+         *     - 一般ユーザー: is_public=true の設定のみ取得可能
+         *     - category パラメータでフィルタリング可能
+         */
+        get: operations["list_settings_api_system_settings_get"];
+        put?: never;
+        /**
+         * Create Setting
+         * @description 新規設定を作成（管理者のみ）
+         */
+        post: operations["create_setting_api_system_settings_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system/settings/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Setting By Key
+         * @description 個別設定を取得
+         *
+         *     - 管理者: 全設定を取得可能
+         *     - 一般ユーザー: is_public=true の設定のみ取得可能
+         */
+        get: operations["get_setting_by_key_api_system_settings__key__get"];
+        /**
+         * Update Setting
+         * @description 設定を更新（管理者のみ）
+         */
+        put: operations["update_setting_api_system_settings__key__put"];
+        post?: never;
+        /**
+         * Delete Setting
+         * @description 設定を削除（管理者のみ）
+         */
+        delete: operations["delete_setting_api_system_settings__key__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system/settings/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Bulk Update Settings
+         * @description 設定を一括更新（管理者のみ）
+         */
+        post: operations["bulk_update_settings_api_system_settings_bulk_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system/settings/category/{category}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Settings By Category Endpoint
+         * @description カテゴリ別に設定を取得（型変換済みの値）
+         *
+         *     - 管理者: 全設定を取得可能
+         *     - 一般ユーザー: is_public=true の設定のみ取得可能
+         */
+        get: operations["get_settings_by_category_endpoint_api_system_settings_category__category__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system/settings/all/values": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get All Settings Values
+         * @description 全設定を取得（型変換済みの値）
+         *
+         *     - 管理者: 全設定を取得可能
+         *     - 一般ユーザー: is_public=true の設定のみ取得可能
+         */
+        get: operations["get_all_settings_values_api_system_settings_all_values_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** AuthorGet */
-        AuthorGet: {
+        /** AuthValidateResponse */
+        AuthValidateResponse: {
+            /** Access Token */
+            access_token: string;
+            /** Token Type */
+            token_type: string;
+            /** Username */
+            username: string;
+            /** Is Admin */
+            is_admin: boolean;
+        };
+        /**
+         * AuthorDetail
+         * @description 著者詳細レスポンス
+         */
+        AuthorDetail: {
             /** Id */
-            id?: number;
+            id: number;
             /** Name */
-            name?: string;
+            name: string;
             /** Isfavorite */
             isFavorite: boolean;
+            /** Description */
+            description: string | null;
+            /** Bookcount */
+            bookCount: number;
+        };
+        /**
+         * AuthorGet
+         * @description 著者取得レスポンス
+         */
+        AuthorGet: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /**
+             * Isfavorite
+             * @default false
+             */
+            isFavorite: boolean;
+            /** Bookcount */
+            bookCount?: number | null;
+            /** Description */
+            description?: string | null;
+        };
+        /**
+         * AuthorUpdate
+         * @description 著者更新リクエスト
+         */
+        AuthorUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Isfavorite */
+            isFavorite?: boolean | null;
+            /** Description */
+            description?: string | null;
         };
         /** Body_login_for_access_token_api_auth_post */
         Body_login_for_access_token_api_auth_post: {
@@ -365,7 +721,10 @@ export interface components {
             grant_type?: string | null;
             /** Username */
             username: string;
-            /** Password */
+            /**
+             * Password
+             * Format: password
+             */
             password: string;
             /**
              * Scope
@@ -374,20 +733,29 @@ export interface components {
             scope: string;
             /** Client Id */
             client_id?: string | null;
-            /** Client Secret */
+            /**
+             * Client Secret
+             * Format: password
+             */
             client_secret?: string | null;
         };
-        /** BookAuthorDelete */
+        /**
+         * BookAuthorDelete
+         * @description 書籍から著者削除リクエスト
+         */
         BookAuthorDelete: {
             /** Authorid */
             authorId: number;
         };
-        /** BookAuthorPost */
+        /**
+         * BookAuthorPost
+         * @description 書籍への著者追加リクエスト
+         */
         BookAuthorPost: {
             /** Authorid */
-            authorId?: number;
+            authorId?: number | null;
             /** Authorname */
-            authorName?: string;
+            authorName?: string | null;
         };
         /** BookAuthors */
         BookAuthors: {
@@ -397,7 +765,10 @@ export interface components {
             name: string;
             /** Description */
             description?: string | null;
-            /** Isfavorite */
+            /**
+             * Isfavorite
+             * @default false
+             */
             isFavorite: boolean;
         };
         /** BookBase */
@@ -474,31 +845,24 @@ export interface components {
             /** Uuids */
             uuids: string[];
             /** Seriesno */
-            seriesNo?: number;
+            seriesNo?: number | null;
             /** Series */
-            series?: string;
+            series?: string | null;
             /** Author */
-            author?: string;
+            author?: string | null;
             /** Title */
-            title?: string;
+            title?: string | null;
             /** Publisher */
-            publisher?: string;
+            publisher?: string | null;
             /** Genre */
-            genre?: string;
+            genre?: string | null;
             /** Libraryid */
-            libraryId?: number;
+            libraryId?: number | null;
         };
         /** BookTag */
         BookTag: {
             /** Id */
             id: number;
-            /** Name */
-            name: string;
-        };
-        /** BookTagBase */
-        BookTagBase: {
-            /** Uuids */
-            uuids: string[];
             /** Name */
             name: string;
         };
@@ -518,7 +882,7 @@ export interface components {
             /** Uuids */
             uuids: string[];
             /** Page */
-            page?: number;
+            page?: number | null;
             /**
              * Status
              * @enum {string}
@@ -530,7 +894,7 @@ export interface components {
             /** Uuids */
             uuids: string[];
             /** Rate */
-            rate?: number;
+            rate?: number | null;
         };
         /** GetLibrary */
         GetLibrary: {
@@ -557,13 +921,153 @@ export interface components {
          * LibraryPatchEnum
          * @enum {string}
          */
-        LibraryPatchEnum: "export" | "load" | "export_uuid" | "fixmetadata" | "sim_all" | "rule";
-        /** PatchAuthor */
+        LibraryPatchEnum: "export" | "load" | "export_uuid" | "fixmetadata" | "sim_all" | "rule" | "thumbnail_recreate";
+        /**
+         * PatchAuthor
+         * @description 著者更新リクエスト（旧形式・非推奨）
+         */
         PatchAuthor: {
             /** Authorid */
             authorId: number;
             /** Isfavorite */
             isFavorite: boolean;
+        };
+        /**
+         * SystemSettingBulkUpdateSchema
+         * @description 一括更新用
+         */
+        SystemSettingBulkUpdateSchema: {
+            /** Settings */
+            settings: {
+                [key: string]: string;
+            };
+        };
+        /**
+         * SystemSettingCreateSchema
+         * @description 設定作成用
+         */
+        SystemSettingCreateSchema: {
+            /** Key */
+            key: string;
+            /** Value */
+            value: string;
+            /**
+             * Datatype
+             * @default string
+             */
+            dataType: string;
+            /** Description */
+            description?: string | null;
+            /** Category */
+            category?: string | null;
+            /**
+             * Ispublic
+             * @default false
+             */
+            isPublic: boolean;
+        };
+        /**
+         * SystemSettingSchema
+         * @description システム設定項目
+         */
+        SystemSettingSchema: {
+            /** Key */
+            key: string;
+            /** Value */
+            value: string;
+            /** Datatype */
+            dataType: string;
+            /** Description */
+            description?: string | null;
+            /** Category */
+            category?: string | null;
+            /**
+             * Ispublic
+             * @default false
+             */
+            isPublic: boolean;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+            /** Updatedby */
+            updatedBy?: string | null;
+        };
+        /**
+         * SystemSettingValueSchema
+         * @description 設定値のみ（更新用）
+         */
+        SystemSettingValueSchema: {
+            /** Value */
+            value: string;
+        };
+        /**
+         * SystemSettingsListResponse
+         * @description 設定一覧レスポンス
+         */
+        SystemSettingsListResponse: {
+            /** Settings */
+            settings: components["schemas"]["SystemSettingSchema"][];
+            /** Total */
+            total: number;
+        };
+        /**
+         * TagCreate
+         * @description タグ作成スキーマ
+         */
+        TagCreate: {
+            /** Name */
+            name: string;
+        };
+        /**
+         * TaskListResponse
+         * @description タスク一覧レスポンス
+         */
+        TaskListResponse: {
+            /** Count */
+            count: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Rows */
+            rows: components["schemas"]["TaskSchema"][];
+        };
+        /**
+         * TaskSchema
+         * @description タスク詳細スキーマ
+         */
+        TaskSchema: {
+            /** Id */
+            id: string;
+            /** Tasktype */
+            taskType: string;
+            /** Status */
+            status: string;
+            /** Progress */
+            progress: number;
+            /** Currentitem */
+            currentItem: number;
+            /** Totalitems */
+            totalItems?: number | null;
+            /** Currentstep */
+            currentStep?: string | null;
+            /** Message */
+            message?: string | null;
+            /** Errormessage */
+            errorMessage?: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Startedat */
+            startedAt?: string | null;
+            /** Completedat */
+            completedAt?: string | null;
+            /** Userid */
+            userId?: string | null;
         };
         /** TokenRFC6749Response */
         TokenRFC6749Response: {
@@ -575,14 +1079,14 @@ export interface components {
         /** UserGet */
         UserGet: {
             /** Id */
-            id?: string;
+            id?: string | null;
             /** Isadmin */
             isAdmin: boolean;
         };
         /** UserPost */
         UserPost: {
             /** Id */
-            id?: string;
+            id?: string | null;
             /** Password */
             password: string;
         };
@@ -611,7 +1115,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    read_api_users_api_users_get: {
+    list_users_api_users_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -631,7 +1135,7 @@ export interface operations {
             };
         };
     };
-    post_api_users_api_users_post: {
+    create_user_api_users_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -664,7 +1168,7 @@ export interface operations {
             };
         };
     };
-    read_api_users_me_api_users_me__get: {
+    get_current_user_info_api_users_me__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -750,7 +1254,7 @@ export interface operations {
             };
         };
     };
-    read_auth_validate_api_auth_validate_get: {
+    validate_token_api_auth_validate_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -765,12 +1269,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AuthValidateResponse"];
                 };
             };
         };
     };
-    get_api_library_api_librarys_get: {
+    list_libraries_api_libraries_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -790,21 +1294,22 @@ export interface operations {
             };
         };
     };
-    get_api_books_api_books_get: {
+    search_books_api_books_get: {
         parameters: {
             query?: {
-                uuid?: string;
-                fileNameLike?: string;
-                chached?: boolean;
-                authorLike?: string;
-                titleLike?: string;
-                fullText?: string;
-                rate?: number;
-                seriesId?: string;
-                genreId?: string;
+                uuid?: string | null;
+                fileNameLike?: string | null;
+                cached?: boolean | null;
+                authorLike?: string | null;
+                authorIsFavorite?: boolean | null;
+                titleLike?: string | null;
+                fullText?: string | null;
+                rate?: number | null;
+                seriesId?: string | null;
+                genreId?: string | null;
                 libraryId?: number;
-                tag?: string;
-                state?: string;
+                tag?: string | null;
+                state?: string | null;
                 limit?: number;
                 offset?: number;
                 sortKey?: string;
@@ -836,7 +1341,7 @@ export interface operations {
             };
         };
     };
-    change_book_data_api_books_put: {
+    update_books_api_books_put: {
         parameters: {
             query?: never;
             header?: never;
@@ -869,7 +1374,38 @@ export interface operations {
             };
         };
     };
-    delete_book_data_api_books__book_uuid__delete: {
+    delete_book_api_books__book_uuid__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                book_uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_book_api_books__book_uuid__download_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1083,7 +1619,109 @@ export interface operations {
             };
         };
     };
-    show_tag_api_books_tag_get: {
+    get_book_tags_api_books__uuid__tags_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 書籍UUID */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_book_tag_api_books__uuid__tags_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 書籍UUID */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TagCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_book_tag_api_books__uuid__tags__tag_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 書籍UUID */
+                uuid: string;
+                /** @description タグID */
+                tag_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_tags_api_tags_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1103,78 +1741,12 @@ export interface operations {
             };
         };
     };
-    append_tag_api_books_tag_post: {
+    list_authors_api_authors_get: {
         parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BookTagBase"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_tag_api_books_tag_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BookTagBase"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_api_library_api_authors_get: {
-        parameters: {
-            query: {
-                isFavorite: boolean;
-                name?: string;
-                nameLike?: string;
+            query?: {
+                name?: string | null;
+                nameLike?: string | null;
+                isFavorite?: boolean | null;
             };
             header?: never;
             path?: never;
@@ -1202,7 +1774,7 @@ export interface operations {
             };
         };
     };
-    delete_api_books_uuid_authors_api_authors_patch: {
+    update_author_api_authors_patch: {
         parameters: {
             query?: never;
             header?: never;
@@ -1235,7 +1807,104 @@ export interface operations {
             };
         };
     };
-    post_api_books_uuid_authors_api_books__book_uuid__authors_post: {
+    get_author_api_authors__author_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                author_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_author_api_authors__author_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                author_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_author_by_id_api_authors__author_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                author_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthorUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_book_author_api_books__book_uuid__authors_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1270,7 +1939,7 @@ export interface operations {
             };
         };
     };
-    delete_api_books_uuid_authors_api_books__book_uuid__authors_delete: {
+    remove_book_author_api_books__book_uuid__authors_delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -1387,6 +2056,347 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Version"];
+                };
+            };
+        };
+    };
+    list_tasks_api_tasks_get: {
+        parameters: {
+            query?: {
+                status?: string | null;
+                task_type?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_task_api_tasks__task_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskSchema"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_task_api_tasks__task_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_settings_api_system_settings_get: {
+        parameters: {
+            query?: {
+                category?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemSettingsListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_setting_api_system_settings_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SystemSettingCreateSchema"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemSettingSchema"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_setting_by_key_api_system_settings__key__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemSettingSchema"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_setting_api_system_settings__key__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SystemSettingValueSchema"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemSettingSchema"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_setting_api_system_settings__key__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bulk_update_settings_api_system_settings_bulk_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SystemSettingBulkUpdateSchema"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_settings_by_category_endpoint_api_system_settings_category__category__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_all_settings_values_api_system_settings_all_values_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };

@@ -15,7 +15,8 @@
 		  "extensions": [
 			"ms-python.python",
 			"charliermarsh.ruff",
-			"mhutchie.git-graph"
+			"mhutchie.git-graph",
+			"saoudrizwan.claude-dev"
 		  ]
 		}
 	  }

@@ -1,17 +1,21 @@
-import subprocess, os, glob, re
+import re
+import subprocess
+from pathlib import Path
+from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
+from sqlalchemy.orm import Session, aliased
+
+from books.models import BookModel, BookUserMetaDataModel, DuplicationModel
+from books.schemas import BookCacheCreate, LibraryPatch
+from mixins.convertor import create_book_page_cache, image_convertor
 from mixins.database import get_db
 from mixins.log import setup_logger
-from sqlalchemy.orm import Session, aliased, exc, query, selectinload
-from settings import DATA_ROOT, APP_ROOT, CONVERT_THREAD
-from mixins.convertor import create_book_page_cache, image_convertor
-
-from books.schemas import BookCacheCreate, LibraryPatch
+from settings import APP_ROOT, CONVERT_THREAD, DATA_ROOT
+from tasks.utility import create_task
 from users.router import get_current_user
 from users.schemas import UserCurrent
-from books.models import DuplicationModel, BookModel, BookUserMetaDataModel
 
 app = APIRouter()
 logger = setup_logger(__name__)
@@ -28,14 +32,14 @@ def get_media_books_cache(
 
     original_size = 0
     convert_size = 0
-    
-    for file in glob.glob(f"{DATA_ROOT}/book_cache/**", recursive=True):
-        file_name = os.path.basename(file)
-        if re.fullmatch(r"^original_.*",file_name):
-            original_size += os.path.getsize(file)
-        else:
-            convert_size += os.path.getsize(file)
-    
+
+    for file_path in Path(f"{DATA_ROOT}/book_cache").rglob("*"):
+        if file_path.is_file():
+            if re.fullmatch(r"^original_.*", file_path.name):
+                original_size += file_path.stat().st_size
+            else:
+                convert_size += file_path.stat().st_size
+
     return {"original_mb": original_size/1024/1024, "convert_mb": convert_size/1024/1024}
 
 
@@ -90,7 +94,7 @@ def get_media_books_duplicate(
             res[duplication_id].append({"uuid": book1_uuid, "file": book1_file, "size": book1_size, "rate": book1_rate, "score": score})
             res[duplication_id].append({"uuid": book2_uuid, "file": book2_file, "size": book2_size, "rate": book2_rate, "score": score})
 
-    
+
 
     res_list = []
     for key, value in res.items():
@@ -101,7 +105,7 @@ def get_media_books_duplicate(
 
 
     return res_list[offset:offset+limit]
-    
+
 
 
 @app.get("/media/books/{uuid}", tags=["Media"], summary="サムネイル取得")
@@ -109,7 +113,7 @@ def get_media_books_uuid(
         uuid: str
     ):
     file_path = f"{DATA_ROOT}/book_thum/{uuid}.jpg"
-    if not os.path.exists(file_path):
+    if not Path(file_path).exists():
         raise HTTPException(
             status_code=404,
             detail="ファイルが存在しません",
@@ -123,17 +127,20 @@ def media_books_uuid_page(
         page: int,
         height: int = 1080,
     ):
-    
-    cache_file = f"{DATA_ROOT}/book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
-    original_file = f"{DATA_ROOT}/book_cache/{uuid}/original_{str(page).zfill(4)}*"
 
-    if os.path.exists(cache_file):
+    cache_file = f"{DATA_ROOT}/book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
+    original_pattern = f"original_{str(page).zfill(4)}*"
+
+    if Path(cache_file).exists():
         logger.debug(f"完全キャッシュから読み込み{uuid} {page}")
-    elif glob.glob(original_file):
-        logger.debug(f"部分キャッシュから読み込み{uuid} {page}")
-        image_convertor(glob.glob(original_file)[0], cache_file, to_height=height, quality=85)
     else:
-        create_book_page_cache(uuid, page, height, 85)
+        # Path.globでマッチするファイルを検索
+        matched_files = list(Path(f"{DATA_ROOT}/book_cache/{uuid}").glob(original_pattern))
+        if matched_files:
+            logger.debug(f"部分キャッシュから読み込み{uuid} {page}")
+            image_convertor(str(matched_files[0]), cache_file, to_height=height, quality=85)
+        else:
+            create_book_page_cache(uuid, page, height, 85)
     return FileResponse(path=cache_file)
 
 
@@ -142,9 +149,9 @@ def patch_media_books_(
         model: BookCacheCreate,
         current_user:UserCurrent = Depends(get_current_user)
     ):
-    
+
     for i, w in enumerate(converter_pool):
-        if w.poll() != None:
+        if w.poll() is not None:
             logger.debug(f"完了したプロセスをプールから削除 {w.args}")
             del converter_pool[i]
 
@@ -160,6 +167,7 @@ def patch_media_books_(
 @app.patch("/media/library", tags=["Media"], summary="ライブラリのロードやエクスポート")
 def patch_media_library(
         model: LibraryPatch,
+        db: Session = Depends(get_db),
         current_user:UserCurrent = Depends(get_current_user)
     ):
     """
@@ -167,20 +175,28 @@ def patch_media_library(
     - state=export ライブラリのエクスポート
     """
     for i in library_pool:
-        if i.poll() == None:
+        if i.poll() is None:
             return { "status": "allredy" }
+
+    # タスクレコード作成
+    task_id = str(uuid4())
+    create_task(db=db, task_id=task_id, task_type=model.state, user_id=current_user.id)
+
     if model.state == "load":
-        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "load", current_user.id]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "load", current_user.id, task_id]))
     elif model.state == "fixmetadata":
-        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "fixmetadata", current_user.id]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "fixmetadata", current_user.id, task_id]))
     elif model.state == "export":
-        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "export"]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "export", task_id]))
     elif model.state == "export_uuid":
-        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "export_uuid"]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "export_uuid", task_id]))
     elif model.state == "sim_all":
-        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "sim", "all"]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "sim", "all", task_id]))
 
     elif model.state == "rule":
-        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "rule"]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "rule", task_id]))
 
-    return { "status": "ok" }
+    elif model.state == "thumbnail_recreate":
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "thumbnail_recreate", task_id]))
+
+    return { "status": "ok", "taskId": task_id }

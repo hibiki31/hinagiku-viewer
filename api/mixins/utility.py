@@ -2,11 +2,10 @@ import time
 
 from mixins.log import setup_logger
 
-
 logger = setup_logger(__name__)
 
 
-class DebugTimer():
+class DebugTimer:
     def __init__(self):
         self.time = time()
     def rap(self, message, level='debug'):

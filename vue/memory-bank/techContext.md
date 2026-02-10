@@ -17,41 +17,43 @@
 ## Vue 3フロントエンド技術スタック
 
 ### コアフレームワーク
-- **Vue 3.4+**: Composition API, `<script setup lang="ts">`
-- **Vite 5**: 高速開発サーバー、HMR、高速ビルド
-- **TypeScript 5.6**: 型安全、IDE補完
+- **Vue 3.4.31**: Composition API, `<script setup lang="ts">`
+- **Vite 7.3.1**: 高速開発サーバー、HMR、高速ビルド（★2026-02-10更新）
+- **TypeScript 5.6.3**: 型安全、IDE補完
 
 ### UIフレームワーク
-- **Vuetify 3.6+**: Material Design コンポーネント
-- **@mdi/font 7.4**: Material Design Icons
-- **Sass 1.77**: スタイリング（modern-compiler API使用）
+- **Vuetify 3.6.14**: Material Design コンポーネント
+- **@mdi/font 7.4.47**: Material Design Icons
+- **Sass 1.77.8**: スタイリング（Vite 7でmodern-compiler自動適用）
 
 ### 状態管理・ルーティング
-- **Pinia 2.1+**: Vue 3公式推奨の状態管理
-- **Vue Router 4.4+**: 公式ルーター
+- **Pinia 3.0.4**: Vue 3公式推奨の状態管理（★2026-02-10更新）
+- **Vue Router 5.0.2**: 公式ルーター（★2026-02-10更新）
 
 ### ビルドツール・プラグイン
-- **unplugin-vue-router 0.10**: ファイルベースルーティング自動生成
-- **unplugin-auto-import 0.17**: Vue API自動インポート
-- **unplugin-vue-components 0.27**: コンポーネント自動インポート
+- **unplugin-vue-router 0.19.2**: ファイルベースルーティング自動生成（★2026-02-10更新）
+- **unplugin-auto-import 21.0.0**: Vue API自動インポート（★2026-02-10更新）
+- **unplugin-vue-components 31.0.0**: コンポーネント自動インポート（★2026-02-10更新）
 - **vite-plugin-vue-layouts 0.11**: レイアウトシステム
-- **vite-plugin-vuetify 2**: Vuetify設定自動化
-- **vite-plugin-fonts 0.7**: Webフォント最適化
-- **vite-plugin-pwa 0.20**: PWA対応、Service Worker自動生成
+- **vite-plugin-vuetify 2.0.3**: Vuetify設定自動化
+- **vite-plugin-fonts 1.1.1**: Webフォント最適化
+- **vite-plugin-pwa 1.2.0**: PWA対応、Service Worker自動生成（★2026-02-09追加）
+- **@vitejs/plugin-vue 6.0.4**: Vite向けVueプラグイン（★2026-02-10更新）
 
 ### HTTP通信
-- **Axios 1.8+**: HTTP クライアント（現在のメイン）
-- **openapi-fetch 0.13+**: 型安全なOpenAPIクライアント（移行先）
-- **openapi-typescript 7+**: OpenAPIスキーマから型定義生成
+- **openapi-fetch 0.13.8**: 型安全なOpenAPIクライアント（メイン）
+- **openapi-typescript 7.12.0**: OpenAPIスキーマから型定義生成（★2026-02-09更新）
+- ~~Axios~~ → **完全排除済み**（2026-02-08）
 
 ### ユーティリティ
-- **@kyvg/vue3-notification 3.4**: トースト通知
-- **js-cookie 3.0**: Cookie管理
+- **@kyvg/vue3-notification 3.4.1**: トースト通知
+- **js-cookie 3.0.5**: Cookie管理
 
 ### 開発ツール
 - **pnpm**: 高速パッケージマネージャー
-- **ESLint 9**: コード品質チェック
-- **@vue/tsconfig 0.6**: TypeScript設定ベース
+- **ESLint 9.39.2**: コード品質チェック
+- **vue-tsc 3.2.4**: Vue TypeScript型チェック（★2026-02-10更新）
+- **@vue/tsconfig 0.5.1**: TypeScript設定ベース
 
 ## プロジェクト構造詳細
 
@@ -95,12 +97,12 @@ vue/
 │   │   ├── BooksListTable.vue
 │   │   ├── BooksListThum.vue
 │   │   ├── BaseAuthorChip.vue
-│   │   ├── AppFooter.vue
 │   │   └── dialog/
 │   │       ├── SearchDialog.vue
 │   │       ├── BookDetailDialog.vue
 │   │       ├── RangeChangeDialog.vue
-│   │       └── SetupDialog.vue
+│   │       ├── SetupDialog.vue
+│   │       └── UnifiedBookInfoDialog.vue
 │   │
 │   ├── composables/        # Composition APIユーティリティ
 │   │   ├── utility.ts      # 通知、URL生成、フォーマット等
@@ -109,8 +111,7 @@ vue/
 │   │   └── gesture.ts      # マウス・タッチジェスチャー認識
 │   │
 │   ├── func/               # 関数・クライアント
-│   │   ├── axios.ts        # Axiosインスタンス
-│   │   ├── client.ts       # openapi-fetchクライアント
+│   │   ├── client.ts       # openapi-fetchクライアント（メイン）
 │   │   ├── auth.ts         # 認証ユーティリティ
 │   │   └── sleep.ts        # スリープ関数
 │   │
@@ -144,7 +145,7 @@ vue/
 ├── tsconfig.app.json       # アプリ用TypeScript設定
 ├── tsconfig.node.json      # Node用TypeScript設定
 ├── eslint.config.js        # ESLint設定
-├── package.json            # 依存関係
+├── package.json            # 依存関係（version: 3.0.0）
 ├── pnpm-lock.yaml          # ロックファイル
 ├── .browserslistrc         # ブラウザターゲット
 ├── .editorconfig           # エディタ設定
@@ -152,6 +153,8 @@ vue/
 ├── README.md               # プロジェクト説明
 │
 └── scripts/                # ユーティリティスクリプト
+    ├── cline-history.json
+    ├── cline-history.md
     └── export-cline-history.py  # Clineタスク履歴エクスポート
 ```
 
@@ -167,6 +170,7 @@ import VueRouter from 'unplugin-vue-router/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import Layouts from 'vite-plugin-vue-layouts'
+import { VitePWA } from 'vite-plugin-pwa'
 import { VueRouterAutoImports } from 'unplugin-vue-router'
 
 export default defineConfig({
@@ -174,7 +178,7 @@ export default defineConfig({
     VueRouter(),       // ファイルベースルーティング
     Layouts(),         // レイアウトシステム
     AutoImport({       // 自動インポート
-      imports: ['vue', VueRouterAutoImports],
+      imports: ['vue', { 'vue-router/auto': ['useRoute', 'useRouter'] }],
       dts: 'src/auto-imports.d.ts',
     }),
     Components({       // コンポーネント自動インポート
@@ -184,15 +188,23 @@ export default defineConfig({
     vuetify({ autoImport: true }),
     VitePWA({          // PWA対応
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'icon-*.png'],
+      includeAssets: ['favicon.ico', 'icon-apple.png', 'robots.txt'],
       manifest: {
-        name: 'Hinagiku Viewer',
-        short_name: 'Hinagiku',
-        description: '電子書籍ビューアー',
-        theme_color: '#082240',
+        name: 'HinaV - Hinagiku Viewer',
+        short_name: 'HinaV',
+        theme_color: '#1867c0',
         icons: [
-          { src: 'icon-192x192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'icon-512x512.png', sizes: '512x512', type: 'image/png' }
+          { src: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icon-512x512.png', sizes: '512x512', type: 'image/png' }
+        ]
+      },
+      workbox: {
+        runtimeCaching: [
+          {
+            urlPattern: /\/api\/.*/i,
+            handler: 'NetworkFirst',
+            options: { cacheName: 'api-cache' }
+          }
         ]
       }
     })
@@ -207,7 +219,12 @@ export default defineConfig({
   },
   css: {
     preprocessorOptions: {
-      scss: { api: 'modern-compiler' }
+      sass: {
+        // Vite 7では modern-compiler が自動的に使用されます
+      },
+      scss: {
+        // Vite 7では modern-compiler が自動的に使用されます
+      }
     }
   },
   define: {
@@ -221,8 +238,13 @@ export default defineConfig({
 
 ### 開発サーバー
 - ポート: 3000
+- ホスト: 0.0.0.0（DevContainer対応）
 - HMR有効
-- ホスト: localhost
+
+### Vite 7の変更点
+- **modern-compiler**: Sassで自動的に適用（手動設定不要）
+- **パフォーマンス向上**: ビルド速度とHMRの改善
+- **型推論強化**: TypeScript統合の改善
 
 ## TypeScript設定
 
@@ -250,17 +272,17 @@ __APP_VERSION__                         # バージョン番号（ビルド時�
 ```
 
 ### バージョン番号の動的注入
-vite.config.mtsで`__APP_VERSION__`を定義し、package.jsonのバージョンを自動注入：
+vite.config.mtsで`__APP_VERSION__`を定義し、package.jsonのバージョン（3.0.0）を自動注入：
 ```typescript
-// 使用例
-const version = __APP_VERSION__  // "1.0.0" など
+// 使用例（App.vue）
+const version = __APP_VERSION__  // "3.0.0"
 ```
 
 ## API型生成
 
 ### OpenAPIスキーマから型定義生成
 ```bash
-npx openapi-typescript https://hinav.hinagiku.me/api/openapi.json -o ./src/api.d.ts
+npx openapi-typescript /workspaces/hinagiku-viewer/api/openapi.json -o ./src/api.d.ts
 ```
 
 ### 生成された型の使用
@@ -379,6 +401,26 @@ Vuetify変数のカスタマイズ
 - **軽量イメージ**: Alpine Linux使用
 - **SPA対応**: Nginxでフォールバック設定（nginx.conf）
 
+### Axios完全排除
+- ソースコード内にaxiosの記述は一切なし（2026-02-08完了）
+- package.jsonからも削除済み
+- 全API通信はopenapi-fetch（`func/client.ts`）に統一
+
+## パッケージ更新履歴
+
+### 2026-02-10: メジャーバージョンアップデート完了
+主要パッケージのメジャー更新を実施し、全機能の動作確認完了：
+
+- **Vite**: 5.4.21 → 7.3.1（2段階メジャーアップ）
+- **Vue Router**: 4.6.4 → 5.0.2
+- **Pinia**: 2.3.1 → 3.0.4
+- **@vitejs/plugin-vue**: 5.2.4 → 6.0.4
+- **vue-tsc**: 2.2.12 → 3.2.4
+- **unplugin-auto-import**: 0.17.8 → 21.0.0
+- **unplugin-vue-components**: 0.27.5 → 31.0.0
+- **unplugin-vue-router**: 0.10.9 → 0.19.2
+- その他マイナー更新: TypeScript, Sass, ESLint, openapi-fetch等
+
 ## トラブルシューティング
 
 ### よくあるエラー
@@ -397,4 +439,4 @@ Vuetify変数のカスタマイズ
 - **Console**: エラーログ確認
 
 ## 最終更新日
-2026-02-09: PWA対応、Docker本番環境、バージョン番号自動注入、ジェスチャー機能追加
+2026-02-10: メジャーパッケージ更新完了（Vite 7, Vue Router 5, Pinia 3等）、Axios完全排除の再確認

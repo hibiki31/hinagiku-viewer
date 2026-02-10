@@ -1,17 +1,17 @@
-from fastapi import APIRouter, Depends, Request, HTTPException
-from sqlalchemy.orm import Session, aliased, exc, query, selectinload
-from sqlalchemy import func, select, join, table, literal_column, text
-from sqlalchemy import or_, and_
+from datetime import datetime
 
-from .schemas import *
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import and_
+from sqlalchemy.orm import Session, exc
 
+from books.models import BookUserMetaDataModel
 from mixins.database import get_db
 from mixins.log import setup_logger
-from mixins.purser import book_result_mapper, get_model_dict
+from mixins.parser import get_model_dict
 from users.router import get_current_user
 from users.schemas import UserCurrent
 
-from datetime import datetime
+from .schemas import *
 
 app = APIRouter()
 logger = setup_logger(__name__)
@@ -47,8 +47,8 @@ def change_user_data(
     db.commit()
     return metadata_model
 
-@app.patch("/api/books/user-data", 
-    tags=["User data"], 
+@app.patch("/api/books/user-data",
+    tags=["User data"],
     summary="開いているページ、読んだ回数の管理",
     description="""
 - 本を開いたとき status=open, page=0
@@ -70,7 +70,7 @@ def signal_book_status(
                     BookUserMetaDataModel.user_id==current_user.id
                 )
             ).one()
-        
+
         except exc.NoResultFound:
             metadata_model = BookUserMetaDataModel(
                 user_id = current_user.id,
@@ -83,7 +83,7 @@ def signal_book_status(
         # 本を開いたとき
         if model.status == "open":
             metadata_model.open_page = 0
-            
+
         # 本を途中で閉じるとき
         elif model.status == "pause":
             metadata_model.open_page = model.page
@@ -91,7 +91,7 @@ def signal_book_status(
         # 読み終わったとき、開いているページをNone、読んだ回数をインクリメント
         elif model.status == "close" :
             metadata_model.open_page = None
-            if metadata_model.read_times == None:
+            if metadata_model.read_times is None:
                 metadata_model.read_times = 0
             metadata_model.read_times += 1
         else:

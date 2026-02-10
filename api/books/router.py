@@ -1,19 +1,22 @@
-from fastapi import APIRouter, Depends, Request, HTTPException
-from sqlalchemy.orm import Session, aliased, exc, query, selectinload
-from sqlalchemy import func, select, join, table, literal_column, text
-from sqlalchemy import or_, and_
 
-from .models import *
-from .schemas import *
+from pathlib import Path
+from urllib.parse import quote
+
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
+from sqlalchemy import func, or_
+from sqlalchemy.orm import Session, aliased
 
 from mixins.database import get_db
 from mixins.log import setup_logger
-from mixins.purser import book_result_mapper, get_model_dict
+from mixins.parser import book_result_mapper
+from settings import DATA_ROOT
+from tasks.library_delete import main as library_delete
 from users.router import get_current_user
 from users.schemas import UserCurrent
-from tasks.library_delete import main as library_delete
 
-from datetime import datetime
+from .models import *
+from .schemas import *
 
 app = APIRouter()
 logger = setup_logger(__name__)
@@ -26,7 +29,7 @@ exception_notfund = HTTPException(
 
 
 @app.get("/api/libraries", tags=["Library"], response_model=List[GetLibrary])
-async def get_api_library(
+async def list_libraries(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
     ):
@@ -39,30 +42,15 @@ async def get_api_library(
         LibraryModel.name,
         LibraryModel.id.label("id")
     )
-    
+
     return query.all()
 
 
 @app.get("/api/books", tags=["Book"], response_model=BookGet)
-async def get_api_books(
+async def search_books(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user),
-        uuid: str = None,
-        fileNameLike: str = None,
-        chached: bool = None,
-        authorLike: str = None,
-        titleLike: str = None,
-        fullText: str = None,
-        rate: int = None,
-        seriesId: str = None,
-        genreId: str = None,
-        libraryId: int = 1,
-        tag: str = None,
-        state: str = None,
-        limit:int = 50,
-        offset:int = 0,
-        sortKey:str = "authors",
-        sortDesc:bool = False
+        params: BookSearchParams = Depends()
     ):
 
     # ユーザデータのサブクエリ
@@ -88,101 +76,107 @@ async def get_api_books(
     if not current_user.is_admin:
         base_query = base_query.filter(
             or_(
-                BookModel.is_shered==True,
+                BookModel.is_shared,
                 BookModel.user_id==current_user.id,
             )
         )
-    
+
     query = base_query
 
     # フィルター
-    if uuid != None:
-        query = query.filter(BookModel.uuid==uuid)
+    if params.uuid is not None:
+        query = query.filter(BookModel.uuid==params.uuid)
     else:
-        query = query.filter(BookModel.library_id == libraryId)
-        if titleLike != None:
-            query = query.filter(BookModel.title.like(f'%{titleLike}%'))
-        
-        if rate != None:
-            if rate == 0:
-                query = query.filter(user_data.rate == None)
+        query = query.filter(BookModel.library_id == params.library_id)
+        if params.title_like is not None:
+            query = query.filter(BookModel.title.like(f'%{params.title_like}%'))
+
+        if params.rate is not None:
+            if params.rate == 0:
+                query = query.filter(user_data.rate is None)
             else:
-                query = query.filter(user_data.rate == rate)
-        
-        if genreId != None:
-            query = query.filter(BookModel.genre_id == genreId)
-        
-        if authorLike != None:
+                query = query.filter(user_data.rate == params.rate)
+
+        if params.genre_id is not None:
+            query = query.filter(BookModel.genre_id == params.genre_id)
+
+        if params.author_like is not None:
             query = query.outerjoin(BookModel.authors).filter(
-                AuthorModel.name.like(f'%{authorLike}%')
+                AuthorModel.name.like(f'%{params.author_like}%')
             )
-        
-        if chached != None:
-            query = query.filter(BookModel.chached == chached)
-        
-        elif fullText != None:
+
+        if params.author_is_favorite is not None:
+            query = query.outerjoin(BookModel.authors).filter(
+                AuthorModel.is_favorite == params.author_is_favorite
+            )
+
+        if params.cached is not None:
+            query = query.filter(BookModel.cached == params.cached)
+
+        elif params.full_text is not None:
             query = query.outerjoin(
                 BookModel.authors
+            ).outerjoin(
+                BookModel.tags
             ).filter(or_(
-                BookModel.title.like(f'%{fullText}%'),
-                BookModel.import_file_name.like(f'%{fullText}%'),
-                AuthorModel.name.like(f'%{fullText}%')
-            )).union(
-                base_query.filter(BookModel.tags.any(name=tag))
-            )
+                BookModel.title.ilike(f'%{params.full_text}%'),
+                BookModel.import_file_name.ilike(f'%{params.full_text}%'),
+                AuthorModel.name.ilike(f'%{params.full_text}%'),
+                TagsModel.name.ilike(f'%{params.full_text}%')
+            )).distinct()
 
-        if fileNameLike != None:
-            query = query.filter(BookModel.import_file_name.like(f'%{fileNameLike}%'))
-        
-        if tag != None:
-            query = query.filter(BookModel.tags.any(name=tag))
-        
-        
-    if sortKey == "title" and sortDesc == False:
+        if params.file_name_like is not None:
+            query = query.filter(BookModel.import_file_name.like(f'%{params.file_name_like}%'))
+
+        if params.tag is not None:
+            query = query.filter(BookModel.tags.any(name=params.tag))
+
+
+    if params.sort_key == "title" and not params.sort_desc:
         query = query.order_by(BookModel.title)
-    elif sortKey == "title" and sortDesc == True:
+    elif params.sort_key == "title" and params.sort_desc:
         query = query.order_by(BookModel.title.desc())
-    
-    elif sortKey == "addDate" and sortDesc == False:
+
+    elif params.sort_key == "addDate" and not params.sort_desc:
         query = query.order_by(BookModel.add_date.desc())
-    elif sortKey == "addDate" and sortDesc == True:
+    elif params.sort_key == "addDate" and params.sort_desc:
         query = query.order_by(BookModel.add_date)
-    
-    elif sortKey == "size" and sortDesc == False:
+
+    elif params.sort_key == "size" and not params.sort_desc:
         query = query.order_by(BookModel.size.desc())
-    elif sortKey == "size" and sortDesc == True:
+    elif params.sort_key == "size" and params.sort_desc:
         query = query.order_by(BookModel.size)
 
-    elif sortKey == "userData.lastOpenDate" and sortDesc == False:
+    elif params.sort_key == "userData.lastOpenDate" and not params.sort_desc:
         query = query.order_by(user_data.last_open_date.desc())
-    elif sortKey == "userData.lastOpenDate" and sortDesc == True:
+    elif params.sort_key == "userData.lastOpenDate" and params.sort_desc:
         query = query.order_by(user_data.last_open_date)
-    
-    elif sortKey == "authors" and sortDesc == False:
+
+    elif params.sort_key == "authors" and not params.sort_desc:
         query = query.outerjoin(
             BookModel.authors
         ).order_by(AuthorModel.name, BookModel.title)
-    elif sortKey == "authors" and sortDesc == True:
+    elif params.sort_key == "authors" and params.sort_desc:
         query = query.outerjoin(
             BookModel.authors
         ).order_by(AuthorModel.name.desc(), BookModel.title)
-    
+
     count = query.count()
 
-    if limit != 0:
-        query = query.limit(limit).offset(offset)
+    if params.limit != 0:
+        query = query.limit(params.limit).offset(params.offset)
 
     rows = query.all()
     rows = book_result_mapper(rows)
 
     # print(query.statement.compile())
 
-    return {"count": count, "limit": limit, "offset": offset, "rows": rows}
+    return {"count": count, "limit": params.limit, "offset": params.offset, "rows": rows}
 
 
 
 @app.put("/api/books", tags=["Book"])
-def change_book_data(
+def update_books(
         db: Session = Depends(get_db),
         model: BookPut = None,
         current_user: UserCurrent = Depends(get_current_user)
@@ -190,16 +184,16 @@ def change_book_data(
     for book_uuid in model.uuids:
         try:
             book: BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
-        except:
+        except Exception:
             raise HTTPException(
                 status_code=404,
                 detail=f"本が存在しません,操作は全て取り消されました: {book_uuid}",
-            )
+            ) from None
 
-        if model.library_id != None:
+        if model.library_id is not None:
             book.library_id = model.library_id
 
-        if model.publisher != None:
+        if model.publisher is not None:
             if publisher_model := db.query(PublisherModel).filter(PublisherModel.name==model.publisher).one_or_none():
                 book.publisher_id = publisher_model.id
             else:
@@ -207,40 +201,90 @@ def change_book_data(
                 db.add(publisher_model)
                 db.commit()
                 book.publisher_id = publisher_model.id
-        
-        if model.series != None:
+
+        if model.series is not None:
             book.series = model.series
 
-        if model.series_no != None:
-            book.series_no = model.series_no
+        if model.series_number is not None:
+            book.series_no = model.series_number
 
-        if model.title != None:
+        if model.title is not None:
             book.title = model.title
-        
-        if model.genre != None:
+
+        if model.genre is not None:
             book.genre = model.genre
-    
+
     db.commit()
     return book
 
 @app.delete("/api/books/{book_uuid}", tags=["Book"])
-def delete_book_data(
+def delete_book(
         book_uuid: str,
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user),
     ):
     try:
         book: BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
-    except:
+    except Exception:
         raise HTTPException(
             status_code=404,
             detail=f"本が存在しません,操作は全て取り消されました: {book_uuid}",
-        )
-    
+        ) from None
+
     library_delete(db=db, delete_uuid=book_uuid, file_name=book.import_file_name)
     db.query(BookUserMetaDataModel).filter(BookUserMetaDataModel.book_uuid==book_uuid).filter(BookUserMetaDataModel.user_id==current_user.id).delete()
     db.commit()
     db.delete(book)
     db.commit()
     return book
-    
+
+
+@app.get("/api/books/{book_uuid}/download", tags=["Book"], summary="本のZipファイルダウンロード")
+def download_book(
+        book_uuid: str,
+        db: Session = Depends(get_db),
+        current_user: UserCurrent = Depends(get_current_user),
+    ):
+    """指定された本のZipファイルをダウンロードする"""
+    try:
+        book: BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
+    except Exception:
+        raise HTTPException(
+            status_code=404,
+            detail=f"本が存在しません: {book_uuid}",
+        ) from None
+
+    # 権限チェック: 管理者、自分の本、または共有されている本のみアクセス可能
+    if not current_user.is_admin and book.user_id != current_user.id and not book.is_shared:
+        raise HTTPException(
+            status_code=403,
+            detail="この本にアクセスする権限がありません",
+        )
+
+    # Zipファイルのパスを構築
+    file_path = Path(f"{DATA_ROOT}/book_library/{book_uuid}.zip")
+
+    # ファイルの存在確認
+    if not file_path.exists():
+        logger.error(f"Zipファイルが見つかりません: {file_path}")
+        raise HTTPException(
+            status_code=404,
+            detail="ファイルが見つかりません",
+        )
+
+    # ダウンロード時のファイル名を設定（元のファイル名を使用）
+    download_filename = book.import_file_name if book.import_file_name.endswith('.zip') else f"{book.import_file_name}.zip"
+
+    logger.info(f"書籍ダウンロード: {book_uuid} ({download_filename}) by {current_user.id}")
+
+    # RFC 5987に準拠したUTF-8エンコードファイル名（日本語対応）
+    encoded_filename = quote(download_filename, safe='')
+
+    return FileResponse(
+        path=str(file_path),
+        media_type="application/zip",
+        filename=download_filename,
+        headers={
+            "Content-Disposition": f"attachment; filename=\"{download_filename.encode('ascii', 'ignore').decode('ascii') or 'download.zip'}\"; filename*=UTF-8''{encoded_filename}"
+        }
+    )

@@ -79,7 +79,7 @@ const openDialog = async (book: BookBase) => {
   readerStateStore.setOpenBook(book)
   dialogState.value = true
   try {
-    const { data, error } = await apiClient.GET('/api/librarys')
+    const { data, error } = await apiClient.GET('/api/libraries', {})
     if (error) throw error
     if (data) {
       libraryList.value = data

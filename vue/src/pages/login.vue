@@ -131,6 +131,8 @@ const doLogin = async () => {
       pushNotice('ログイン成功', 'success')
       const accessToken = data.access_token
       userDataStore.authenticaitonSuccessful(accessToken)
+      // 管理者フラグを取得
+      await userDataStore.authVerification()
       router.push('/')
     }
   } catch (error: unknown) {

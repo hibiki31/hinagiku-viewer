@@ -117,7 +117,9 @@
           >
             <v-expansion-panel-title>
               <div class="d-flex align-center ga-3">
-                <v-icon color="warning">mdi-alert-circle</v-icon>
+                <v-icon color="warning">
+                  mdi-alert-circle
+                </v-icon>
                 <span class="text-subtitle-1 font-weight-bold">
                   重複グループ #{{ groupIndex + 1 }}
                 </span>
@@ -201,13 +203,17 @@
 
                           <!-- 出版社 -->
                           <div v-if="book.publisher?.name" class="text-caption text-grey mb-1">
-                            <v-icon size="x-small">mdi-domain</v-icon>
+                            <v-icon size="x-small">
+                              mdi-domain
+                            </v-icon>
                             {{ book.publisher.name }}
                           </div>
 
                           <!-- ライブラリ -->
                           <div v-if="book.library?.name || book.libraryId" class="text-caption text-grey mb-1">
-                            <v-icon size="x-small">mdi-bookshelf</v-icon>
+                            <v-icon size="x-small">
+                              mdi-bookshelf
+                            </v-icon>
                             {{ book.library?.name || `ライブラリ ${book.libraryId}` }}
                           </div>
 
@@ -231,23 +237,33 @@
 
                           <div class="metadata-section">
                             <div class="metadata-item">
-                              <v-icon size="small" color="grey">mdi-file-document</v-icon>
+                              <v-icon size="small" color="grey">
+                                mdi-file-document
+                              </v-icon>
                               <span class="text-caption">{{ fitByte(book.size) }}</span>
                             </div>
                             <div class="metadata-item">
-                              <v-icon size="small" color="grey">mdi-book-open-page-variant</v-icon>
+                              <v-icon size="small" color="grey">
+                                mdi-book-open-page-variant
+                              </v-icon>
                               <span class="text-caption">{{ book.page }}p</span>
                             </div>
                             <div v-if="book.addDate" class="metadata-item">
-                              <v-icon size="small" color="grey">mdi-calendar-plus</v-icon>
+                              <v-icon size="small" color="grey">
+                                mdi-calendar-plus
+                              </v-icon>
                               <span class="text-caption">{{ convertDateFormat(book.addDate) }}</span>
                             </div>
                             <div v-if="book.lastOpenDate" class="metadata-item">
-                              <v-icon size="small" color="grey">mdi-clock-outline</v-icon>
+                              <v-icon size="small" color="grey">
+                                mdi-clock-outline
+                              </v-icon>
                               <span class="text-caption">{{ convertDateFormat(book.lastOpenDate) }}</span>
                             </div>
                             <div v-if="book.readTimes" class="metadata-item">
-                              <v-icon size="small" color="grey">mdi-eye</v-icon>
+                              <v-icon size="small" color="grey">
+                                mdi-eye
+                              </v-icon>
                               <span class="text-caption">{{ book.readTimes }}回</span>
                             </div>
                           </div>
@@ -259,7 +275,9 @@
                                 v-bind="tooltipProps"
                                 class="text-caption text-grey mt-2 text-truncate"
                               >
-                                <v-icon size="x-small">mdi-file</v-icon>
+                                <v-icon size="x-small">
+                                  mdi-file
+                                </v-icon>
                                 {{ book.file }}
                               </div>
                             </template>
@@ -277,7 +295,9 @@
                         color="primary"
                         @click="openBook(book.uuid)"
                       >
-                        <v-icon size="small">mdi-book-open</v-icon>
+                        <v-icon size="small">
+                          mdi-book-open
+                        </v-icon>
                         開く
                       </v-btn>
                       <v-spacer />
@@ -287,7 +307,9 @@
                         color="error"
                         @click="confirmDelete(book)"
                       >
-                        <v-icon size="small">mdi-delete</v-icon>
+                        <v-icon size="small">
+                          mdi-delete
+                        </v-icon>
                         削除
                       </v-btn>
                     </v-card-actions>
@@ -304,7 +326,9 @@
     <v-dialog v-model="deleteDialog.show" max-width="500">
       <v-card>
         <v-card-title class="d-flex align-center bg-error text-white">
-          <v-icon class="mr-2">mdi-alert</v-icon>
+          <v-icon class="mr-2">
+            mdi-alert
+          </v-icon>
           削除確認
         </v-card-title>
         <v-card-text class="pt-4">
@@ -316,13 +340,19 @@
               {{ deleteDialog.book?.title || '（タイトルなし）' }}
             </div>
             <div class="text-caption text-grey mb-1">
-              <v-icon size="small">mdi-file</v-icon>
+              <v-icon size="small">
+                mdi-file
+              </v-icon>
               {{ deleteDialog.book?.file }}
             </div>
             <div class="text-caption text-grey">
-              <v-icon size="small">mdi-file-document</v-icon>
+              <v-icon size="small">
+                mdi-file-document
+              </v-icon>
               {{ deleteDialog.book ? fitByte(deleteDialog.book.size) : '' }}
-              <v-icon size="small" class="ml-2">mdi-book-open-page-variant</v-icon>
+              <v-icon size="small" class="ml-2">
+                mdi-book-open-page-variant
+              </v-icon>
               {{ deleteDialog.book?.page }}ページ
             </div>
           </v-sheet>

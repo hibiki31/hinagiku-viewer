@@ -407,7 +407,7 @@
       <v-container>
         <v-switch v-model="settings.showTowPage" label="見開き表示" hide-details />
         <v-switch v-model="settings.showBaseWidth" label="横幅に合わせる" hide-details />
-        <v-slider v-model="nowPage" :min="1" :max="bookInfo.page" thumb-label />
+        <v-slider v-model="nowPage" :min="1" :max="bookInfo.page" thumb-label :step="1" />
       </v-container>
     </div>
     <!-- 上部メニュー -->

@@ -1,3 +1,11 @@
+import warnings
+
+# Pydantic v2のalias_generator関連の警告を抑制
+warnings.filterwarnings("ignore", category=UserWarning, module="pydantic._internal._generate_schema")
+
+import json
+from pathlib import Path
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -5,13 +13,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from authors.router import app as authors_router
 from books.router import app as books_router
 from media.router import app as media_router
-from mixins.router import app as mixins_router
 from mixins.log import setup_logger
+from mixins.router import app as mixins_router
 from settings import API_VERSION
+from system.router import app as system_router
 from tags.router import app as tags_router
+from tasks.router import app as tasks_router
 from user_datas.router import app as user_datas_router
 from users.router import app as users_router
-
 
 logger = setup_logger(__name__)
 
@@ -23,6 +32,8 @@ tags_metadata = [
     { "name": "Library", "description": "本は必ずライブラリに所属する"},
     { "name": "Book", "description": "本は必ず１人のユーザが所有する"},
     { "name": "Author", "description": "本は著者を0以上持ちnullの場合もある"},
+    { "name": "Task", "description": "バックグラウンドタスクの管理"},
+    { "name": "System", "description": "システム設定の管理"},
 ]
 
 app = FastAPI(
@@ -51,7 +62,15 @@ app.include_router(router=tags_router)
 app.include_router(router=authors_router)
 app.include_router(router=user_datas_router)
 app.include_router(router=mixins_router)
+app.include_router(router=tasks_router)
+app.include_router(router=system_router)
 
 
 if __name__ == "__main__":
+    # OpenAPI JSONをファイルとして保存
+    openapi_schema = app.openapi()
+    with Path("openapi.json").open("w", encoding="utf-8") as f:
+        json.dump(openapi_schema, f, ensure_ascii=False, indent=2)
+    logger.info("OpenAPI JSONを openapi.json として保存しました")
+
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, access_log=False)

@@ -1,0 +1,84 @@
+[tool.ruff]
+# Python 3.8以降を想定
+target-version = "py38"
+
+# 除外するディレクトリ
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "alembic/versions",  # Alembicマイグレーションファイルは除外
+    "tests/dump",
+    ".pytest_cache",
+    "*.egg-info",
+]
+
+# 1行の最大文字数
+line-length = 120
+
+# インデント幅
+indent-width = 4
+
+[tool.ruff.lint]
+# 有効化するルールセット
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort (import順序)
+    "N",      # pep8-naming
+    "UP",     # pyupgrade (Python構文の最新化)
+    "B",      # flake8-bugbear (バグやデザインの問題)
+    "C4",     # flake8-comprehensions
+    "SIM",    # flake8-simplify
+    "RET",    # flake8-return
+    "ARG",    # flake8-unused-arguments
+    "PTH",    # flake8-use-pathlib
+    "ERA",    # eradicate (コメントアウトされたコード)
+    "PL",     # Pylint
+    "RUF",    # Ruff固有のルール
+]
+
+# 無視するルール
+ignore = [
+    "E501",    # 行の長さ (line-lengthで管理)
+    "B008",    # FastAPIの依存性注入で必要
+    "ARG001",  # 未使用の関数引数 (FastAPIのエンドポイントで必要な場合がある)
+    "ARG002",  # 未使用のメソッド引数
+    "PLR0913", # 引数が多すぎる (FastAPIエンドポイントで必要な場合がある)
+    "PLR2004", # マジックナンバー
+    "PLR0912", # 分岐が多すぎる (FastAPIエンドポイントで必要な場合がある)
+    "PLR0915", # ステートメントが多すぎる
+    "RET504",  # 不要な代入 (可読性のため許容)
+    "SIM108",  # if-elseを三項演算子に (可読性のため許容)
+    "RUF001",  # 日本語の全角括弧を許容
+    "RUF002",  # 日本語ドキュメント文字列の全角括弧を許容
+    "RUF003",  # 日本語コメントの全角括弧を許容
+    "ERA001",  # コメントアウトされたコード（Alembic等で必要）
+    "F403",    # star imports (既存のコード構造のため)
+    "F405",    # star importsによる未定義 (既存のコード構造のため)
+    "N803",    # camelCase引数名 (API仕様との互換性のため)
+    "N806",    # 関数内の非lowercase変数名
+]
+
+# ファイルごとの無視設定
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # 未使用のインポートを許可
+"tests/*.py" = ["PLR2004", "ARG001", "SIM115", "PLR1704"]  # テストファイルでは一部ルールを緩和
+"alembic/*.py" = ["F401", "E402"]  # Alembicファイルは除外
+"verification/*.py" = ["E402", "F401", "SIM115", "PLC0415", "B007"]  # 検証スクリプトは除外
+"main.py" = ["E402"]  # Pydantic警告フィルター用
+"mixins/convertor.py" = ["PLC0415"]  # imagehashの遅延インポート
+
+[tool.ruff.lint.isort]
+# import順序の設定
+known-first-party = ["books", "authors", "tags", "users", "user_datas", "media", "mixins", "tasks"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+[tool.ruff.format]
+# フォーマット設定
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

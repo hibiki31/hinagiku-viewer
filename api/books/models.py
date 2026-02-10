@@ -1,7 +1,7 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Table, Numeric
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Table
 from sqlalchemy.orm import relationship
-from mixins.database import Base, Engine
 
+from mixins.database import Base
 
 books_to_tags = Table('tag_to_book', Base.metadata,
     Column('book_uuid', String, ForeignKey('books.uuid', onupdate='CASCADE', ondelete='CASCADE')),
@@ -75,21 +75,23 @@ class BookModel(Base):
     # ID
     uuid = Column(String, primary_key=True, index=True)
     user_id = Column(String, ForeignKey('users.id', onupdate='CASCADE', ondelete='CASCADE'), nullable=False)
-    
+
     # ハードメタデータ
     size = Column(Numeric, nullable=False)
     sha1 = Column(String, nullable=False)
     ahash = Column(String, nullable=True)
+    phash = Column(String, nullable=True)
+    dhash = Column(String, nullable=True)
     page = Column(Integer, nullable=False)
     add_date = Column(DateTime, nullable=False)
     file_date = Column(DateTime, nullable=False)
     import_file_name = Column(String, nullable=False)
-    chached = Column(Boolean, nullable=False, server_default='f', default=False)
-    
+    cached = Column(Boolean, nullable=False, server_default='f', default=False)
+
     # ソフトメタデータ
     title = Column(String)
     series_no = Column(Integer)
-    
+
     # ソフトメタデータ 多対一
     library_id = Column(Integer, ForeignKey('libraries.id'), nullable=False)
     library = relationship('LibraryModel',lazy=False, back_populates='books')
@@ -99,7 +101,7 @@ class BookModel(Base):
     publisher = relationship('PublisherModel',lazy=False, back_populates='books')
     series = relationship('SeriesModel',lazy=False, back_populates='books')
     series_id = Column(Integer, ForeignKey('series.id'))
-    
+
     # ソフトメタデータ 多対多
     authors = relationship(
         'AuthorModel',
@@ -113,13 +115,13 @@ class BookModel(Base):
         back_populates='books',
         lazy=False,
     )
-    
+
     # 設定
-    is_shered = Column(Boolean)
-    
+    is_shared = Column(Boolean)
+
     # ユーザ固有データ
     user_data = relationship('BookUserMetaDataModel',lazy=False)
-    
+
     # 処理用
     state = Column(String)
 
@@ -152,3 +154,14 @@ class DuplicationModel(Base):
     book_uuid_1 = Column(String, ForeignKey('books.uuid', onupdate='CASCADE', ondelete='CASCADE'), primary_key=True)
     book_uuid_2 = Column(String, ForeignKey('books.uuid', onupdate='CASCADE', ondelete='CASCADE'), primary_key=True)
     score = Column(Integer)
+
+
+class DuplicateSettingsModel(Base):
+    __tablename__ = 'duplicate_settings'
+    id = Column(Integer, primary_key=True)
+    ahash_threshold = Column(Integer, nullable=False, default=10)
+    phash_threshold = Column(Integer, nullable=False, default=12)
+    dhash_threshold = Column(Integer, nullable=False, default=15)
+    lsh_bands = Column(Integer, nullable=False, default=16)
+    lsh_band_size = Column(Integer, nullable=False, default=16)
+    updated_at = Column(DateTime, nullable=False)

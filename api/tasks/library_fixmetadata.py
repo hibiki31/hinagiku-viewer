@@ -1,20 +1,31 @@
-import os, uuid, datetime, shutil, glob, json
+import datetime
+import json
+import shutil
+import uuid
+from pathlib import Path
+from typing import Optional
 
-from sqlalchemy import or_, and_
+from sqlalchemy import and_
 
-from settings import APP_ROOT, DATA_ROOT
+from books.models import (
+    AuthorModel,
+    BookModel,
+    BookUserMetaDataModel,
+    GenreModel,
+    LibraryModel,
+    PublisherModel,
+    SeriesModel,
+)
+from mixins.convertor import get_hash, make_thumbnail
 from mixins.log import setup_logger
-from mixins.purser import PurseResult, base_purser
-from mixins.convertor import get_hash, make_thum
-
-from books.models import BookModel, LibraryModel, PublisherModel, SeriesModel, GenreModel, AuthorModel, BookUserMetaDataModel
+from mixins.parser import ParseResult, parse_filename
+from settings import DATA_ROOT
 from users.models import UserModel
-
 
 logger = setup_logger(__name__)
 
 
-class PreBookClass():
+class PreBookClass:
     def __init__(self):
         self.uuid = None
         self.sha1 = None
@@ -35,48 +46,50 @@ class PreBookClass():
         self.series_no = None
         self.rate = None
 
-def main(db, user_id):
-    user_model = db.query(UserModel).filter(UserModel.id == user_id).one()
+def main(db, user_id, task_id: Optional[str] = None):
+    db.query(UserModel).filter(UserModel.id == user_id).one()
 
     book_models = db.query(BookModel).all()
-    
+
     for book_model in book_models:
         book_model:BookModel
 
-        file_name_purse:PurseResult = base_purser(book_model.import_file_name)
+        parsed_filename: ParseResult = parse_filename(book_model.import_file_name)
 
-        publisher_model = db.query(PublisherModel).filter(PublisherModel.name==file_name_purse.publisher).one_or_none()
+        publisher_model = db.query(PublisherModel).filter(PublisherModel.name==parsed_filename.publisher).one_or_none()
 
-        if publisher_model == None:
-            publisher_model = PublisherModel(name=file_name_purse.publisher)
+        if publisher_model is None:
+            publisher_model = PublisherModel(name=parsed_filename.publisher)
             db.add(publisher_model)
             db.commit()
 
         book_model.publisher_id = publisher_model.id
         db.merge(book_model)
         db.commit()
-   
-    return
+
 
 def book_import(send_book, user_model, db):
     # モデル定義
     pre_model = PreBookClass()
+    send_book_path = Path(send_book)
+
     # チェックサム
     pre_model.sha1 = get_hash(send_book)
     # ライブラリ名定義
-    if os.path.basename(os.path.dirname(send_book)) == "book_send":
+    if send_book_path.parent.name == "book_send":
         pre_model.library = "default"
     else:
-        pre_model.library = os.path.basename(os.path.dirname(send_book))
+        pre_model.library = send_book_path.parent.name
 
-    if os.path.exists(f'{os.path.splitext(send_book)[0]}.json'):
+    json_path = send_book_path.with_suffix('.json')
+    if json_path.exists():
         # Jsonインポート
-        with open(f'{os.path.splitext(send_book)[0]}.json') as f:
+        with json_path.open() as f:
             json_metadata = json.load(f)
         # 破損チェック
         if pre_model.sha1 != json_metadata["sha1"]:
             logger.error(f'{send_book} メタデータとハッシュ値が異なるため破損している可能性がありエラーへ移動')
-            shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
+            shutil.move(send_book, f'{DATA_ROOT}book_fail/{send_book_path.name}')
             return
         # モデルに代入
         pre_model = book_model_mapper_json(pre_model, json_metadata)
@@ -85,45 +98,46 @@ def book_import(send_book, user_model, db):
         # 新規追加モード
         pre_model.uuid = str(uuid.uuid4())
         # ファイル名からパース
-        file_name_purse:PurseResult = base_purser(os.path.basename(send_book))
-        pre_model = book_model_mapper_file(pre_model, file_name_purse)
-        pre_model.size = os.path.getsize(send_book)
-        pre_model.file_date = datetime.datetime.fromtimestamp(os.path.getmtime(send_book))
-        pre_model.import_file_name = os.path.basename(send_book)
+        parsed_filename: ParseResult = parse_filename(send_book_path.name)
+        pre_model = book_model_mapper_file(pre_model, parsed_filename)
+        pre_model.size = send_book_path.stat().st_size
+        pre_model.file_date = datetime.datetime.fromtimestamp(send_book_path.stat().st_mtime)
+        pre_model.import_file_name = send_book_path.name
         is_import = False
-    
+
     # サムネイルの作成とページ数取得
-    pre_model.page = make_thum(send_book, pre_model.uuid)
-    
+    page_len, _ahash, _phash, _dhash = make_thumbnail(send_book, pre_model.uuid, db)
+    pre_model.page = page_len
+
     if not (library_model := db.query(LibraryModel).filter(and_(LibraryModel.name==pre_model.library,LibraryModel.user_id==user_model.id)).one_or_none()):
         library_model = LibraryModel(name=pre_model.library, user_id=user_model.id)
         db.add(library_model)
         db.commit()
     pre_model.library_id = library_model.id
-    
-    
-    if (pre_model.genre != None) and not (genre_model := db.query(GenreModel).filter(GenreModel.name==pre_model.genre).one_or_none()):
+
+
+    if (pre_model.genre is not None) and not (genre_model := db.query(GenreModel).filter(GenreModel.name==pre_model.genre).one_or_none()):
         genre_model = GenreModel(name=pre_model.genre)
         db.add(genre_model)
         db.commit()
         pre_model.genre_id = genre_model.id
-    elif (pre_model.genre != None):
+    elif (pre_model.genre is not None):
         pre_model.genre_id = genre_model.id
-    
-    if (pre_model.publisher != None) and not (publisher_model := db.query(PublisherModel).filter(PublisherModel.name==pre_model.publisher).one_or_none()):
+
+    if (pre_model.publisher is not None) and not (publisher_model := db.query(PublisherModel).filter(PublisherModel.name==pre_model.publisher).one_or_none()):
         publisher_model = PublisherModel(name=pre_model.publisher)
         db.add(publisher_model)
         db.commit()
         pre_model.publisher_id = publisher_model.id
-    elif (pre_model.publisher != None):
+    elif (pre_model.publisher is not None):
         pre_model.publisher = publisher_model.id
 
-    if (pre_model.series != None) and not (series_model := db.query(SeriesModel).filter(SeriesModel.name==pre_model.series).one_or_none()):
+    if (pre_model.series is not None) and not (series_model := db.query(SeriesModel).filter(SeriesModel.name==pre_model.series).one_or_none()):
         series_model = SeriesModel(name=pre_model.series)
         db.add(series_model)
         db.commit()
         pre_model.series_model = series_model.id
-    elif (pre_model.series != None):
+    elif (pre_model.series is not None):
         pre_model.series_model = series_model.id
 
     model = BookModel(
@@ -141,7 +155,7 @@ def book_import(send_book, user_model, db):
         add_date = pre_model.add_date,
         file_date = pre_model.file_date,
         import_file_name = pre_model.import_file_name,
-        is_shered = False
+        is_shared = False
     )
 
     db.add(model)
@@ -149,7 +163,7 @@ def book_import(send_book, user_model, db):
     if not (author_model := db.query(AuthorModel).filter(AuthorModel.name==pre_model.author).one_or_none()):
         author_model = AuthorModel(name=pre_model.author)
     model.authors.append(author_model)
-   
+
     if is_import:
         metadata_model = BookUserMetaDataModel(
             user_id = user_model.id,
@@ -159,7 +173,7 @@ def book_import(send_book, user_model, db):
         db.add(metadata_model)
 
     db.commit()
-    
+
     shutil.move(send_book, f'{DATA_ROOT}/book_library/{pre_model.uuid}.zip')
 
     if is_import:
@@ -167,8 +181,8 @@ def book_import(send_book, user_model, db):
     else:
         logger.info(f'ライブラリに追加: {DATA_ROOT}/book_library/{pre_model.uuid}.zip')
 
-    shutil.rmtree(f"/tmp/hinav/")
-    os.mkdir(f"/tmp/hinav/")
+    shutil.rmtree("/tmp/hinav/")
+    Path("/tmp/hinav/").mkdir()
 
 
 def book_model_mapper_json(model:BookModel, json):
@@ -190,11 +204,11 @@ def book_model_mapper_json(model:BookModel, json):
 
     return model
 
-def book_model_mapper_file(model, file_name_purse):
-
-    model.title = file_name_purse.title
-    model.author = file_name_purse.author
-    model.publisher = file_name_purse.publisher
+def book_model_mapper_file(model, parsed_filename):
+    """ファイル名パース結果からモデルにマッピングする"""
+    model.title = parsed_filename.title
+    model.author = parsed_filename.author
+    model.publisher = parsed_filename.publisher
     model.add_date = datetime.datetime.now()
 
     return model

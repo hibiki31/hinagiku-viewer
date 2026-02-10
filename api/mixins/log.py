@@ -1,10 +1,11 @@
 import logging
-import os
+from pathlib import Path
+
 from settings import DATA_ROOT, DEBUG_LOG
 
 
 def setup_logger(name, logfile=f'{DATA_ROOT}/app_data/api.log'):
-    os.makedirs(os.path.dirname(logfile), exist_ok=True)
+    Path(logfile).parent.mkdir(parents=True, exist_ok=True)
     logger = logging.getLogger(name)
 
     # ファイル出力設定
