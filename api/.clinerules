@@ -16,6 +16,11 @@ FastAPI + PostgreSQL のエキスパートエンジニアとして対応する�
 - スキーマ: Pydantic V2 + `BaseSchema`（`mixins/schema.py`）でsnake_case↔camelCase自動変換
 - DB変更時: 必ずAlembicマイグレーションファイルを作成
 
+## タスク遂行時の注意事項
+
+- ruffによるコードチェックを行うこと
+- 作業が完了したら適切にコミットメッセージを作成し確認を取り、コミットすること
+
 ## 技術スタック
 
 - Python 3.11+ / FastAPI / SQLAlchemy 2.0 / Alembic / PostgreSQL 16

@@ -100,6 +100,11 @@ async def search_books(
                 AuthorModel.name.like(f'%{params.author_like}%')
             )
 
+        if params.author_is_favorite is not None:
+            query = query.outerjoin(BookModel.authors).filter(
+                AuthorModel.is_favorite == params.author_is_favorite
+            )
+
         if params.cached is not None:
             query = query.filter(BookModel.cached == params.cached)
 

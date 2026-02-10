@@ -116,11 +116,13 @@ class BookSearchParams(BaseSchema):
     例:
         - file_name_like (Python) -> fileNameLike (API)
         - author_like (Python) -> authorLike (API)
+        - author_is_favorite (Python) -> authorIsFavorite (API)
     """
     uuid: Optional[str] = None
     file_name_like: Optional[str] = None
     cached: Optional[bool] = None
     author_like: Optional[str] = None
+    author_is_favorite: Optional[bool] = None
     title_like: Optional[str] = None
     full_text: Optional[str] = None
     rate: Optional[int] = None
