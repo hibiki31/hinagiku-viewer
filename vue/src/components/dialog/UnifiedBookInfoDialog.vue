@@ -9,22 +9,30 @@
         <span class="text-white text-h6">本の情報</span>
         <v-spacer />
         <v-btn icon variant="text" @click="dialogState = false">
-          <v-icon color="white">mdi-close</v-icon>
+          <v-icon color="white">
+            mdi-close
+          </v-icon>
         </v-btn>
       </v-card-title>
 
       <!-- タブナビゲーション -->
       <v-tabs v-model="currentTab" color="primary" align-tabs="center">
         <v-tab value="info">
-          <v-icon start>mdi-information</v-icon>
+          <v-icon start>
+            mdi-information
+          </v-icon>
           基本情報
         </v-tab>
         <v-tab v-if="showReaderSettings" value="reader">
-          <v-icon start>mdi-book-open-page-variant</v-icon>
+          <v-icon start>
+            mdi-book-open-page-variant
+          </v-icon>
           リーダー設定
         </v-tab>
         <v-tab value="details">
-          <v-icon start>mdi-file-document-outline</v-icon>
+          <v-icon start>
+            mdi-file-document-outline
+          </v-icon>
           詳細情報
         </v-tab>
       </v-tabs>
@@ -41,7 +49,9 @@
               <v-list-item class="px-2 py-1">
                 <template #prepend>
                   <v-avatar color="primary" size="32">
-                    <v-icon color="white" size="small">mdi-book</v-icon>
+                    <v-icon color="white" size="small">
+                      mdi-book
+                    </v-icon>
                   </v-avatar>
                 </template>
                 <v-list-item-title>
@@ -54,7 +64,9 @@
                     @blur="handleTitleChange"
                   />
                 </v-list-item-title>
-                <v-list-item-subtitle class="text-caption">タイトル</v-list-item-subtitle>
+                <v-list-item-subtitle class="text-caption">
+                  タイトル
+                </v-list-item-subtitle>
               </v-list-item>
 
               <v-divider class="my-1" />
@@ -63,7 +75,9 @@
               <v-list-item class="px-2 py-1">
                 <template #prepend>
                   <v-avatar color="blue-grey" size="32">
-                    <v-icon color="white" size="small">mdi-account</v-icon>
+                    <v-icon color="white" size="small">
+                      mdi-account
+                    </v-icon>
                   </v-avatar>
                 </template>
                 <v-list-item-title>
@@ -93,7 +107,9 @@
                         <v-list density="compact">
                           <v-list-item @click="handleSearchAuthor(author)">
                             <template #prepend>
-                              <v-icon color="primary">mdi-magnify</v-icon>
+                              <v-icon color="primary">
+                                mdi-magnify
+                              </v-icon>
                             </template>
                             <v-list-item-title>この著者で検索する</v-list-item-title>
                           </v-list-item>
@@ -102,7 +118,9 @@
                             @click="handleFavoriteAuthor(author, true)"
                           >
                             <template #prepend>
-                              <v-icon color="orange">mdi-star</v-icon>
+                              <v-icon color="orange">
+                                mdi-star
+                              </v-icon>
                             </template>
                             <v-list-item-title>お気に入りに追加</v-list-item-title>
                           </v-list-item>
@@ -135,7 +153,9 @@
                     著者が登録されていません
                   </div>
                 </v-list-item-title>
-                <v-list-item-subtitle class="text-caption">著者</v-list-item-subtitle>
+                <v-list-item-subtitle class="text-caption">
+                  著者
+                </v-list-item-subtitle>
               </v-list-item>
 
               <!-- 著者追加ダイアログ -->
@@ -176,7 +196,9 @@
               <v-list-item class="px-2 py-1">
                 <template #prepend>
                   <v-avatar color="teal" size="32">
-                    <v-icon color="white" size="small">mdi-domain</v-icon>
+                    <v-icon color="white" size="small">
+                      mdi-domain
+                    </v-icon>
                   </v-avatar>
                 </template>
                 <v-list-item-title>
@@ -189,7 +211,9 @@
                     @blur="handlePublisherChange"
                   />
                 </v-list-item-title>
-                <v-list-item-subtitle class="text-caption">出版社</v-list-item-subtitle>
+                <v-list-item-subtitle class="text-caption">
+                  出版社
+                </v-list-item-subtitle>
               </v-list-item>
 
               <v-divider class="my-1" />
@@ -199,20 +223,32 @@
                 <v-row dense class="align-center">
                   <v-col cols="6" class="d-flex align-center">
                     <v-avatar color="orange" size="32" class="mr-2">
-                      <v-icon color="white" size="small">mdi-file-document</v-icon>
+                      <v-icon color="white" size="small">
+                        mdi-file-document
+                      </v-icon>
                     </v-avatar>
                     <div>
-                      <div class="text-subtitle-2">{{ bookData.page }}</div>
-                      <div class="text-caption text-medium-emphasis">ページ数</div>
+                      <div class="text-subtitle-2">
+                        {{ bookData.page }}
+                      </div>
+                      <div class="text-caption text-medium-emphasis">
+                        ページ数
+                      </div>
                     </div>
                   </v-col>
                   <v-col cols="6" class="d-flex align-center">
                     <v-avatar color="deep-purple" size="32" class="mr-2">
-                      <v-icon color="white" size="small">mdi-harddisk</v-icon>
+                      <v-icon color="white" size="small">
+                        mdi-harddisk
+                      </v-icon>
                     </v-avatar>
                     <div>
-                      <div class="text-subtitle-2">{{ formatFileSize(bookData.size || 0) }}</div>
-                      <div class="text-caption text-medium-emphasis">ファイルサイズ</div>
+                      <div class="text-subtitle-2">
+                        {{ formatFileSize(bookData.size || 0) }}
+                      </div>
+                      <div class="text-caption text-medium-emphasis">
+                        ファイルサイズ
+                      </div>
                     </div>
                   </v-col>
                 </v-row>
@@ -224,7 +260,9 @@
               <v-list-item class="px-2 py-1">
                 <template #prepend>
                   <v-avatar color="pink" size="32">
-                    <v-icon color="white" size="small">mdi-tag-multiple</v-icon>
+                    <v-icon color="white" size="small">
+                      mdi-tag-multiple
+                    </v-icon>
                   </v-avatar>
                 </template>
                 <v-list-item-title>
@@ -251,7 +289,9 @@
                     </template>
                   </v-combobox>
                 </v-list-item-title>
-                <v-list-item-subtitle class="text-caption">タグ</v-list-item-subtitle>
+                <v-list-item-subtitle class="text-caption">
+                  タグ
+                </v-list-item-subtitle>
               </v-list-item>
 
               <v-divider class="my-1" />
@@ -260,7 +300,9 @@
               <v-list-item class="px-2 py-1">
                 <template #prepend>
                   <v-avatar color="amber" size="32">
-                    <v-icon color="white" size="small">mdi-star</v-icon>
+                    <v-icon color="white" size="small">
+                      mdi-star
+                    </v-icon>
                   </v-avatar>
                 </template>
                 <v-list-item-title>
@@ -279,7 +321,9 @@
                     </span>
                   </div>
                 </v-list-item-title>
-                <v-list-item-subtitle class="text-caption">評価</v-list-item-subtitle>
+                <v-list-item-subtitle class="text-caption">
+                  評価
+                </v-list-item-subtitle>
               </v-list-item>
 
               <v-divider class="my-1" />
@@ -288,7 +332,9 @@
               <v-list-item class="px-2 py-1">
                 <template #prepend>
                   <v-avatar color="primary" size="32">
-                    <v-icon color="white" size="small">mdi-bookshelf</v-icon>
+                    <v-icon color="white" size="small">
+                      mdi-bookshelf
+                    </v-icon>
                   </v-avatar>
                 </template>
                 <v-list-item-title>
@@ -303,7 +349,9 @@
                     @update:model-value="handleLibraryChange"
                   />
                 </v-list-item-title>
-                <v-list-item-subtitle class="text-caption">ライブラリ</v-list-item-subtitle>
+                <v-list-item-subtitle class="text-caption">
+                  ライブラリ
+                </v-list-item-subtitle>
               </v-list-item>
             </v-list>
           </v-window-item>
@@ -313,7 +361,9 @@
           <v-window-item v-if="showReaderSettings" value="reader" class="pa-3">
             <v-card variant="outlined" class="mb-3">
               <v-card-subtitle class="d-flex align-center py-2 px-3">
-                <v-icon size="small" class="mr-2" color="primary">mdi-book-open-page-variant</v-icon>
+                <v-icon size="small" class="mr-2" color="primary">
+                  mdi-book-open-page-variant
+                </v-icon>
                 ページ設定
               </v-card-subtitle>
               <v-card-text class="pt-0">
@@ -354,7 +404,9 @@
 
             <v-card variant="outlined">
               <v-card-subtitle class="d-flex align-center py-2 px-3">
-                <v-icon size="small" class="mr-2" color="deep-purple">mdi-image-size-select-large</v-icon>
+                <v-icon size="small" class="mr-2" color="deep-purple">
+                  mdi-image-size-select-large
+                </v-icon>
                 画質設定
               </v-card-subtitle>
               <v-card-text class="pt-0">
@@ -390,7 +442,9 @@
           <v-window-item value="details" class="pa-3">
             <v-list density="compact">
               <v-list-subheader>
-                <v-icon size="small" class="mr-2">mdi-calendar</v-icon>
+                <v-icon size="small" class="mr-2">
+                  mdi-calendar
+                </v-icon>
                 日付情報
               </v-list-subheader>
               <v-list-item>
@@ -405,12 +459,16 @@
               <v-divider class="my-2" />
 
               <v-list-subheader>
-                <v-icon size="small" class="mr-2">mdi-book-clock</v-icon>
+                <v-icon size="small" class="mr-2">
+                  mdi-book-clock
+                </v-icon>
                 読書状況
               </v-list-subheader>
               <v-list-item>
                 <template #prepend>
-                  <v-icon color="green">mdi-counter</v-icon>
+                  <v-icon color="green">
+                    mdi-counter
+                  </v-icon>
                 </template>
                 <v-list-item-title>読んだ回数</v-list-item-title>
                 <template #append>
@@ -421,7 +479,9 @@
               </v-list-item>
               <v-list-item v-if="bookData.userData?.openPage">
                 <template #prepend>
-                  <v-icon color="blue">mdi-bookmark</v-icon>
+                  <v-icon color="blue">
+                    mdi-bookmark
+                  </v-icon>
                 </template>
                 <v-list-item-title>最後に開いたページ</v-list-item-title>
                 <template #append>
@@ -432,7 +492,9 @@
               </v-list-item>
               <v-list-item v-if="bookData.userData?.lastOpenDate">
                 <template #prepend>
-                  <v-icon color="orange">mdi-clock-outline</v-icon>
+                  <v-icon color="orange">
+                    mdi-clock-outline
+                  </v-icon>
                 </template>
                 <v-list-item-title>最終閲覧日</v-list-item-title>
                 <template #append>
@@ -443,7 +505,9 @@
               <v-divider class="my-4" />
 
               <v-list-subheader>
-                <v-icon size="small" class="mr-2">mdi-file-code</v-icon>
+                <v-icon size="small" class="mr-2">
+                  mdi-file-code
+                </v-icon>
                 技術情報
               </v-list-subheader>
               <v-list-item>

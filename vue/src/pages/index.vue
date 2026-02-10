@@ -3,7 +3,9 @@
     <!-- 前回の続きを開くか確認するダイアログ -->
     <v-dialog v-model="resumeDialog" max-width="450" persistent>
       <v-card>
-        <v-card-title class="text-h6"> 読書を再開しますか？ </v-card-title>
+        <v-card-title class="text-h6">
+          読書を再開しますか？
+        </v-card-title>
         <v-card-text>
           前回読んでいた本があります。続きから開きますか？
           <div class="text-body-2 text-grey mt-2">
@@ -12,7 +14,9 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="dismissResume"> 開かない </v-btn>
+          <v-btn variant="text" @click="dismissResume">
+            開かない
+          </v-btn>
           <v-btn color="primary" variant="flat" @click="acceptResume">
             続きから開く
           </v-btn>
@@ -106,7 +110,9 @@
               size="small"
               @click="queryRate = null"
             >
-              <v-icon start size="small"> mdi-format-list-bulleted </v-icon>
+              <v-icon start size="small">
+                mdi-format-list-bulleted
+              </v-icon>
               全て
             </v-btn>
             <v-btn
@@ -115,7 +121,9 @@
               size="small"
               @click="queryRate = 0"
             >
-              <v-icon start size="small"> mdi-star-off-outline </v-icon>
+              <v-icon start size="small">
+                mdi-star-off-outline
+              </v-icon>
               未評価
             </v-btn>
           </v-btn-group>
@@ -171,9 +179,11 @@
             "
           >
             <template #prepend>
-              <v-icon>{{
-                showListMode ? "mdi-view-list" : "mdi-view-grid"
-              }}</v-icon>
+              <v-icon>
+                {{
+                  showListMode ? "mdi-view-list" : "mdi-view-grid"
+                }}
+              </v-icon>
             </template>
           </v-switch>
         </v-list-item>
@@ -208,7 +218,9 @@
               size="small"
               @click="querySortDesc = false"
             >
-              <v-icon start size="small"> mdi-sort-ascending </v-icon>
+              <v-icon start size="small">
+                mdi-sort-ascending
+              </v-icon>
               昇順
             </v-btn>
             <v-btn
@@ -217,7 +229,9 @@
               size="small"
               @click="querySortDesc = true"
             >
-              <v-icon start size="small"> mdi-sort-descending </v-icon>
+              <v-icon start size="small">
+                mdi-sort-descending
+              </v-icon>
               降順
             </v-btn>
           </v-btn-group>
