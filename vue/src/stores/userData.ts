@@ -36,9 +36,12 @@ export const useUserDataStore = defineStore('userData', {
 
         if (accessToken) {
           try {
-            const { error } = await apiClient.GET('/api/auth/validate')
+            const { data, error } = await apiClient.GET('/api/auth/validate')
             if (error) throw error
-            this.authenticaitonSuccessful(accessToken)
+            if (data) {
+              this.authenticaitonSuccessful(accessToken, data.username)
+              this.isAdmin = data.is_admin
+            }
           } catch {
             this.authenticaitonFail()
           }
@@ -71,8 +74,11 @@ export const useUserDataStore = defineStore('userData', {
       if (!this.accessToken) return
 
       try {
-        const { error } = await apiClient.GET('/api/auth/validate')
+        const { data, error } = await apiClient.GET('/api/auth/validate')
         if (error) throw error
+        if (data) {
+          this.isAdmin = data.is_admin
+        }
       } catch {
         this.authenticaitonFail()
       }

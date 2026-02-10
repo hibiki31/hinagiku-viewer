@@ -1788,13 +1788,18 @@
           "username": {
             "type": "string",
             "title": "Username"
+          },
+          "is_admin": {
+            "type": "boolean",
+            "title": "Is Admin"
           }
         },
         "type": "object",
         "required": [
           "access_token",
           "token_type",
-          "username"
+          "username",
+          "is_admin"
         ],
         "title": "AuthValidateResponse"
       },

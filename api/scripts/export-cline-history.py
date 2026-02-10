@@ -16,11 +16,11 @@ Cline タスク履歴をエクスポートするスクリプト
     scripts/cline-history.md    (表示用Markdown)
 """
 
+import datetime
 import json
 import os
-import datetime
 from pathlib import Path
-from typing import Optional, List, Dict
+from typing import Dict, List, Optional
 
 CLINE_TASKS_DIR = os.path.expanduser(
     "~/.vscode-server/data/User/globalStorage/saoudrizwan.claude-dev/tasks"
@@ -91,12 +91,12 @@ def extract_task_info(task_dir: str, task_id: str) -> Optional[Dict]:
                 # JSONデコーダーを使って最初のオブジェクトのみを取得
                 decoder = json.JSONDecoder()
                 meta, idx = decoder.raw_decode(content)
-                
+
             if meta.get("model_usage"):
                 model_id = meta["model_usage"][0].get("model_id", "")
             if meta.get("environment_history"):
                 cline_version = meta["environment_history"][0].get("cline_version", "")
-        except (json.JSONDecodeError, ValueError, KeyError, IndexError) as e:
+        except (json.JSONDecodeError, ValueError, KeyError, IndexError):
             # JSONのパースエラーは無視してデフォルト値を使用
             pass
 

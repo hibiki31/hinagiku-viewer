@@ -528,6 +528,8 @@ export interface components {
             token_type: string;
             /** Username */
             username: string;
+            /** Is Admin */
+            is_admin: boolean;
         };
         /** AuthorGet */
         AuthorGet: {
