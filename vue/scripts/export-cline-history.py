@@ -12,8 +12,8 @@ Cline タスク履歴をエクスポートするスクリプト
     python3 scripts/export-cline-history.py
 
 出力:
-    memory-bank/cline-history.json  (永続データ)
-    memory-bank/cline-history.md    (表示用Markdown)
+    scripts/cline-history.json  (永続データ)
+    scripts/cline-history.md    (表示用Markdown)
 """
 
 import json
@@ -29,7 +29,7 @@ CLINE_TASKS_DIR_ALT = os.path.expanduser(
     "~/.vscode/extensions/saoudrizwan.claude-dev-*/globalStorage/tasks"
 )
 
-BASE_DIR = Path(__file__).parent.parent / "memory-bank"
+BASE_DIR = Path(__file__).parent.parent / "scripts"
 JSON_FILE = BASE_DIR / "cline-history.json"
 MD_FILE = BASE_DIR / "cline-history.md"
 
