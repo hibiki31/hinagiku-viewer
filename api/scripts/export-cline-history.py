@@ -84,12 +84,21 @@ def extract_task_info(task_dir: str, task_id: str) -> Optional[Dict]:
     model_id = ""
     cline_version = ""
     if os.path.exists(metadata_file):
-        with open(metadata_file, encoding="utf-8") as f:
-            meta = json.load(f)
-        if meta.get("model_usage"):
-            model_id = meta["model_usage"][0].get("model_id", "")
-        if meta.get("environment_history"):
-            cline_version = meta["environment_history"][0].get("cline_version", "")
+        try:
+            with open(metadata_file, encoding="utf-8") as f:
+                # ファイル全体を読み込んで最初の完全なJSONオブジェクトのみをデコード
+                content = f.read()
+                # JSONデコーダーを使って最初のオブジェクトのみを取得
+                decoder = json.JSONDecoder()
+                meta, idx = decoder.raw_decode(content)
+                
+            if meta.get("model_usage"):
+                model_id = meta["model_usage"][0].get("model_id", "")
+            if meta.get("environment_history"):
+                cline_version = meta["environment_history"][0].get("cline_version", "")
+        except (json.JSONDecodeError, ValueError, KeyError, IndexError) as e:
+            # JSONのパースエラーは無視してデフォルト値を使用
+            pass
 
     title = ""
     total_cost = 0.0

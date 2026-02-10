@@ -46,7 +46,7 @@ def add_book_tag(
     db.commit()
     db.refresh(book)
 
-    logger.info(f"タグ追加: book={uuid}, tag={model.name}, user={current_user.name}")
+    logger.info(f"タグ追加: book={uuid}, tag={model.name}, user={current_user.id}")
     return get_model_dict(book)
 
 
@@ -88,7 +88,7 @@ def remove_book_tag(
     db.commit()
     db.refresh(book)
 
-    logger.info(f"タグ削除: book={uuid}, tag_id={tag_id}, user={current_user.name}")
+    logger.info(f"タグ削除: book={uuid}, tag_id={tag_id}, user={current_user.id}")
     return get_model_dict(book)
 
 
