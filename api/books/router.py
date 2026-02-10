@@ -210,8 +210,8 @@ def update_books(
         if model.series is not None:
             book.series = model.series
 
-        if model.series_no is not None:
-            book.series_no = model.series_no
+        if model.series_number is not None:
+            book.series_no = model.series_number
 
         if model.title is not None:
             book.title = model.title

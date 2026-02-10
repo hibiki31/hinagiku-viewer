@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import and_
 from sqlalchemy.orm import Session, exc
 
+from books.models import BookUserMetaDataModel
 from mixins.database import get_db
 from mixins.log import setup_logger
 from mixins.parser import get_model_dict

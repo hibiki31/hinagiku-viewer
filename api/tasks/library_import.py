@@ -18,7 +18,7 @@ from books.models import (
     PublisherModel,
     SeriesModel,
 )
-from mixins.convertor import NotContentZip, get_hash, make_thumbnail
+from mixins.convertor import NotContentZipError, get_hash, make_thumbnail
 from mixins.log import setup_logger
 from mixins.parser import ParseResult, parse_filename
 from settings import DATA_ROOT
@@ -66,7 +66,7 @@ def main(db, user_id):
         try:
             book_import(send_book, user_model, db)
 
-        except (PIL.Image.DecompressionBombError, NotContentZip, BadZipFile, zlib.error) as e:
+        except (PIL.Image.DecompressionBombError, NotContentZipError, BadZipFile, zlib.error) as e:
             logger.error(f'{send_book} ファイルに問題があるためインポート処理を中止 {e}')
             shutil.move(send_book, f'{DATA_ROOT}/book_fail/{Path(send_book).name}')
 

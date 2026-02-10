@@ -6,6 +6,7 @@ import datetime
 from collections import defaultdict
 from multiprocessing import Pool
 from typing import Dict, List, Set, Tuple
+from uuid import uuid4
 
 import imagehash
 from PIL import Image
@@ -336,7 +337,7 @@ def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel):
 
     # 新しい重複データを保存
     for _group_root, pairs in groups.items():
-        group_id = str(uuid.uuid4())
+        group_id = str(uuid4())
 
         # グループ内の全UUIDを集める
         uuids_in_group = set()

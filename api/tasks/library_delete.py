@@ -17,7 +17,9 @@ def main(db, delete_uuid, file_name):
     try:
         shutil.move(f'{DATA_ROOT}/book_thum/{delete_uuid}.jpg', str(Path(delete_path) / (file_name+".jpg")))
         shutil.move(f'{DATA_ROOT}/book_library/{delete_uuid}.zip', str(Path(delete_path) / file_name))
-        os.removedirs(f'{DATA_ROOT}/book_cache/{delete_uuid}')
+        cache_dir = f'{DATA_ROOT}/book_cache/{delete_uuid}'
+        if Path(cache_dir).exists():
+            shutil.rmtree(cache_dir)
     except FileNotFoundError:
         logger.info(f"UUID={delete_uuid}: 削除中一部ファイルは存在しませんでした", exc_info=True)
 
