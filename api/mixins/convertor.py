@@ -20,13 +20,16 @@ Path("/tmp/hinav/").mkdir(parents=True, exist_ok=True)
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class DebugTimer:
+    """デバッグ用のラップタイム計測クラス"""
     def __init__(self):
         self.time = time()
-    def rap(self, message, level='debug'):
+    
+    def lap(self, message, level='debug'):
+        """ラップタイムを記録する"""
         now_time = time()
         run_time = (now_time - self.time) * 1000
         if level == 'info':
-            logger.debug(f'{run_time:.1f}ms - {message}')
+            logger.info(f'{run_time:.1f}ms - {message}')
         else:
             logger.debug(f'{run_time:.1f}ms - {message}')
         self.time = now_time
@@ -62,10 +65,14 @@ def get_hash(path):
     return h.hexdigest()
 
 
-def is_copping(file_path):
-    '''
+def is_copying(file_path):
+    """
+    ファイルがコピー中かどうかを確認する
     ファイルサイズの変更がなくなるまで待機する
-    '''
+    
+    Returns:
+        bool: コピー中ならTrue
+    """
     path = Path(file_path)
     for _i in range(1,10):
         seize_point1 = path.stat().st_size
@@ -84,10 +91,17 @@ def is_copping(file_path):
     return True
 
 
-def make_thum(send_book, book_uuid):
+def make_thumbnail(send_book, book_uuid):
     """
-    サムネイルの作成とページ数の取得 -> page_len
+    サムネイルの作成とページ数の取得
     マルチハッシュ（ahash, phash, dhash）も計算して返す
+    
+    Args:
+        send_book: Zipファイルのパス
+        book_uuid: 書籍UUID
+        
+    Returns:
+        tuple: (page_len, ahash, phash, dhash)
     """
     import imagehash
 
@@ -129,7 +143,7 @@ def task_convert(book_uuid, to_height=1080, mode=3):
     for index, original_image in enumerate(original_images):
         convert_path = f"{DATA_ROOT}/book_cache/{book_uuid}/{to_height}_{str(index+1).zfill(4)}.jpg"
         image_convertor(original_image, convert_path, to_height=to_height, quality=85)
-    timer.rap(f"変換終了: {book_uuid}")
+    timer.lap(f"変換終了: {book_uuid}")
 
 
 def unzip_original(book_uuid):
@@ -205,11 +219,11 @@ def direct_book_page(book_uuid, page, to_height, quality):
                     status_code=404,
                     detail="ページが存在しません",
                 )
-            timer.rap("リストをソート")
+            timer.lap("リストをソート")
 
             # 指定されたページだけ読み込んでPILに
             img_src = Image.open(BytesIO(existing_zip.read(file_list_in_zip[page-1]))).convert('RGB')
-            timer.rap("ZIPをREADしてPILに")
+            timer.lap("ZIPをREADしてPILに")
 
             # 縦横計算
             width, height = img_src.size
@@ -226,7 +240,7 @@ def direct_book_page(book_uuid, page, to_height, quality):
             new_img = img_src.resize((new_width, new_height), Image.LANCZOS)
             new_img.save(img_dst, format='JPEG')
             img_dst.seek(0)
-            timer.rap("変換")
+            timer.lap("変換")
 
             return img_dst
     except FileNotFoundError:
@@ -252,11 +266,11 @@ def create_book_page_cache(book_uuid, page, to_height, quality):
                 status_code=404,
                 detail="ページが存在しません",
             )
-        timer.rap("リストをソート")
+        timer.lap("リストをソート")
 
         # 指定されたページだけ読み込んでPILに
         img_src = Image.open(BytesIO(existing_zip.read(file_list_in_zip[page-1]))).convert('RGB')
-        timer.rap("ZIPをREADしてPILに")
+        timer.lap("ZIPをREADしてPILに")
 
         # 縦横計算
         width, height = img_src.size
@@ -276,7 +290,7 @@ def create_book_page_cache(book_uuid, page, to_height, quality):
         temp_path = dst_path.parent / f'{temp_file}.page_temp{temp_ext}'
         new_img.save(str(temp_path), quality=quality)
         shutil.move(str(temp_path), str(dst_path))
-        timer.rap("変換")
+        timer.lap("変換")
 
 
 

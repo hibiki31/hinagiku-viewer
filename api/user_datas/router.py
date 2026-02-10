@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, exc
 
 from mixins.database import get_db
 from mixins.log import setup_logger
-from mixins.purser import get_model_dict
+from mixins.parser import get_model_dict
 from users.router import get_current_user
 from users.schemas import UserCurrent
 

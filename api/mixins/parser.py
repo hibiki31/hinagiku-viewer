@@ -1,13 +1,16 @@
 import re
 
 
-class PurseResult:
+class ParseResult:
+    """ファイル名パース結果を保持するクラス"""
     def __init__(self, publisher, author, title):
         self.publisher = publisher
         self.author = author
         self.title = title
 
-def old_purser(text):
+
+def old_parser(text):
+    """旧形式のファイル名パーサー（後方互換性のため保持）"""
     publisher = re.findall(r'^\((.*?)\).*', text)
     if len(publisher) == 0:
         publisher = None
@@ -23,28 +26,51 @@ def old_purser(text):
     print({'publisher': publisher, 'author': author, 'title': title})
 
 
-def base_purser(text):
+def parse_filename(text):
+    """
+    ファイル名から書籍メタデータをパースする
+    
+    フォーマット: (出版社) [著者] タイトル.zip
+    例: (Publisher) [Author] Title.zip
+    
+    Args:
+        text: パースするファイル名
+        
+    Returns:
+        ParseResult: パース結果
+    """
     res = re.findall(r'^(\((.*?)\))? ?(\[(.*?)\])? ?(.*?)(\.zip)?$', text)
-    return PurseResult(publisher=res[0][1], author=res[0][3], title=res[0][4])
+    return ParseResult(publisher=res[0][1], author=res[0][3], title=res[0][4])
 
 
 def get_model_dict(model):
+    """SQLAlchemyモデルを辞書に変換する"""
     return {column.name: getattr(model, column.name)
             for column in model.__table__.columns
         }
 
+
 def book_result_mapper(rows):
+    """
+    書籍クエリ結果をAPIレスポンス用に整形する
+    
+    Args:
+        rows: SQLAlchemyクエリ結果
+        
+    Returns:
+        list: 整形された結果リスト
+    """
     result = []
     for row in rows:
         dic = row[0].__dict__
         if dic["user_data"] != []:
             dic["user_data"] = dic["user_data"][0].__dict__
-            # del dic["user_data"]["book_uuid"], dic["user_data"]["user_id"]
         else:
-            dic["user_data"] = { "rate": None }
+            dic["user_data"] = {"rate": None}
         result.append(dic)
     return result
 
+
 if __name__ == "__main__":
-    print(base_purser("aa"))
-    print(base_purser("[] aa"))
+    print(parse_filename("aa"))
+    print(parse_filename("[] aa"))

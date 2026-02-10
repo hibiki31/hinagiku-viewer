@@ -18,9 +18,9 @@ from books.models import (
     PublisherModel,
     SeriesModel,
 )
-from mixins.convertor import NotContentZip, get_hash, make_thum
+from mixins.convertor import NotContentZip, get_hash, make_thumbnail
 from mixins.log import setup_logger
-from mixins.purser import PurseResult, base_purser
+from mixins.parser import ParseResult, parse_filename
 from settings import DATA_ROOT
 from users.models import UserModel
 
@@ -105,15 +105,15 @@ def book_import(send_book, user_model, db):
         # 新規追加モード
         pre_model.uuid = str(uuid.uuid4())
         # ファイル名からパース
-        file_name_purse:PurseResult = base_purser(send_book_path.name)
-        pre_model = book_model_mapper_file(pre_model, file_name_purse)
+        parsed_filename: ParseResult = parse_filename(send_book_path.name)
+        pre_model = book_model_mapper_file(pre_model, parsed_filename)
         pre_model.size = send_book_path.stat().st_size
         pre_model.file_date = datetime.datetime.fromtimestamp(send_book_path.stat().st_mtime)
         pre_model.import_file_name = send_book_path.name
         is_import = False
 
     # サムネイルの作成、ページ数取得、マルチハッシュ計算
-    page_len, ahash, phash, dhash = make_thum(send_book, pre_model.uuid)
+    page_len, ahash, phash, dhash = make_thumbnail(send_book, pre_model.uuid)
     pre_model.page = page_len
     pre_model.ahash = ahash
     pre_model.phash = phash

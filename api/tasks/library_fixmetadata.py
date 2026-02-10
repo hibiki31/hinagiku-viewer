@@ -15,9 +15,9 @@ from books.models import (
     PublisherModel,
     SeriesModel,
 )
-from mixins.convertor import get_hash, make_thum
+from mixins.convertor import get_hash, make_thumbnail
 from mixins.log import setup_logger
-from mixins.purser import PurseResult, base_purser
+from mixins.parser import ParseResult, parse_filename
 from settings import DATA_ROOT
 from users.models import UserModel
 
@@ -53,12 +53,12 @@ def main(db, user_id):
     for book_model in book_models:
         book_model:BookModel
 
-        file_name_purse:PurseResult = base_purser(book_model.import_file_name)
+        parsed_filename: ParseResult = parse_filename(book_model.import_file_name)
 
-        publisher_model = db.query(PublisherModel).filter(PublisherModel.name==file_name_purse.publisher).one_or_none()
+        publisher_model = db.query(PublisherModel).filter(PublisherModel.name==parsed_filename.publisher).one_or_none()
 
         if publisher_model is None:
-            publisher_model = PublisherModel(name=file_name_purse.publisher)
+            publisher_model = PublisherModel(name=parsed_filename.publisher)
             db.add(publisher_model)
             db.commit()
 
@@ -97,15 +97,15 @@ def book_import(send_book, user_model, db):
         # 新規追加モード
         pre_model.uuid = str(uuid.uuid4())
         # ファイル名からパース
-        file_name_purse:PurseResult = base_purser(send_book_path.name)
-        pre_model = book_model_mapper_file(pre_model, file_name_purse)
+        parsed_filename: ParseResult = parse_filename(send_book_path.name)
+        pre_model = book_model_mapper_file(pre_model, parsed_filename)
         pre_model.size = send_book_path.stat().st_size
         pre_model.file_date = datetime.datetime.fromtimestamp(send_book_path.stat().st_mtime)
         pre_model.import_file_name = send_book_path.name
         is_import = False
 
     # サムネイルの作成とページ数取得
-    pre_model.page = make_thum(send_book, pre_model.uuid)
+    pre_model.page = make_thumbnail(send_book, pre_model.uuid)
 
     if not (library_model := db.query(LibraryModel).filter(and_(LibraryModel.name==pre_model.library,LibraryModel.user_id==user_model.id)).one_or_none()):
         library_model = LibraryModel(name=pre_model.library, user_id=user_model.id)
@@ -202,11 +202,11 @@ def book_model_mapper_json(model:BookModel, json):
 
     return model
 
-def book_model_mapper_file(model, file_name_purse):
-
-    model.title = file_name_purse.title
-    model.author = file_name_purse.author
-    model.publisher = file_name_purse.publisher
+def book_model_mapper_file(model, parsed_filename):
+    """ファイル名パース結果からモデルにマッピングする"""
+    model.title = parsed_filename.title
+    model.author = parsed_filename.author
+    model.publisher = parsed_filename.publisher
     model.add_date = datetime.datetime.now()
 
     return model
