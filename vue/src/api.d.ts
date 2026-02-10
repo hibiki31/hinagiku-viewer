@@ -11,11 +11,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read Api Users */
-        get: operations["read_api_users_api_users_get"];
+        /** List Users */
+        get: operations["list_users_api_users_get"];
         put?: never;
-        /** Post Api Users */
-        post: operations["post_api_users_api_users_post"];
+        /** Create User */
+        post: operations["create_user_api_users_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -29,8 +29,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read Api Users Me */
-        get: operations["read_api_users_me_api_users_me__get"];
+        /** Get Current User Info */
+        get: operations["get_current_user_info_api_users_me__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -97,8 +97,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Api Library */
-        get: operations["get_api_library_api_libraries_get"];
+        /** List Libraries */
+        get: operations["list_libraries_api_libraries_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -114,10 +114,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Api Books */
-        get: operations["get_api_books_api_books_get"];
-        /** Change Book Data */
-        put: operations["change_book_data_api_books_put"];
+        /** Search Books */
+        get: operations["search_books_api_books_get"];
+        /** Update Books */
+        put: operations["update_books_api_books_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -135,8 +135,8 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete Book Data */
-        delete: operations["delete_book_data_api_books__book_uuid__delete"];
+        /** Delete Book */
+        delete: operations["delete_book_api_books__book_uuid__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -255,13 +255,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Show Tag */
-        get: operations["show_tag_api_books_tag_get"];
+        /** List Tags */
+        get: operations["list_tags_api_books_tag_get"];
         put?: never;
-        /** Append Tag */
-        post: operations["append_tag_api_books_tag_post"];
-        /** Delete Tag */
-        delete: operations["delete_tag_api_books_tag_delete"];
+        /** Add Book Tags */
+        post: operations["add_book_tags_api_books_tag_post"];
+        /** Remove Book Tags */
+        delete: operations["remove_book_tags_api_books_tag_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -274,15 +274,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Api Library */
-        get: operations["get_api_library_api_authors_get"];
+        /** List Authors */
+        get: operations["list_authors_api_authors_get"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /** Delete Api Books Uuid Authors */
-        patch: operations["delete_api_books_uuid_authors_api_authors_patch"];
+        /** Update Author */
+        patch: operations["update_author_api_authors_patch"];
         trace?: never;
     };
     "/api/books/{book_uuid}/authors": {
@@ -294,10 +294,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Post Api Books Uuid Authors */
-        post: operations["post_api_books_uuid_authors_api_books__book_uuid__authors_post"];
-        /** Delete Api Books Uuid Authors */
-        delete: operations["delete_api_books_uuid_authors_api_books__book_uuid__authors_delete"];
+        /** Add Book Author */
+        post: operations["add_book_author_api_books__book_uuid__authors_post"];
+        /** Remove Book Author */
+        delete: operations["remove_book_author_api_books__book_uuid__authors_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -365,7 +365,10 @@ export interface components {
             id?: number | null;
             /** Name */
             name?: string | null;
-            /** Isfavorite */
+            /**
+             * Isfavorite
+             * @default false
+             */
             isFavorite: boolean;
         };
         /** Body_login_for_access_token_api_auth_post */
@@ -412,7 +415,10 @@ export interface components {
             name: string;
             /** Description */
             description?: string | null;
-            /** Isfavorite */
+            /**
+             * Isfavorite
+             * @default false
+             */
             isFavorite: boolean;
         };
         /** BookBase */
@@ -626,7 +632,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    read_api_users_api_users_get: {
+    list_users_api_users_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -646,7 +652,7 @@ export interface operations {
             };
         };
     };
-    post_api_users_api_users_post: {
+    create_user_api_users_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -679,7 +685,7 @@ export interface operations {
             };
         };
     };
-    read_api_users_me_api_users_me__get: {
+    get_current_user_info_api_users_me__get: {
         parameters: {
             query?: never;
             header?: never;
@@ -785,7 +791,7 @@ export interface operations {
             };
         };
     };
-    get_api_library_api_libraries_get: {
+    list_libraries_api_libraries_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -805,21 +811,21 @@ export interface operations {
             };
         };
     };
-    get_api_books_api_books_get: {
+    search_books_api_books_get: {
         parameters: {
             query?: {
-                uuid?: string;
-                fileNameLike?: string;
-                chached?: boolean;
-                authorLike?: string;
-                titleLike?: string;
-                fullText?: string;
-                rate?: number;
-                seriesId?: string;
-                genreId?: string;
+                uuid?: string | null;
+                fileNameLike?: string | null;
+                cached?: boolean | null;
+                authorLike?: string | null;
+                titleLike?: string | null;
+                fullText?: string | null;
+                rate?: number | null;
+                seriesId?: string | null;
+                genreId?: string | null;
                 libraryId?: number;
-                tag?: string;
-                state?: string;
+                tag?: string | null;
+                state?: string | null;
                 limit?: number;
                 offset?: number;
                 sortKey?: string;
@@ -851,7 +857,7 @@ export interface operations {
             };
         };
     };
-    change_book_data_api_books_put: {
+    update_books_api_books_put: {
         parameters: {
             query?: never;
             header?: never;
@@ -884,7 +890,7 @@ export interface operations {
             };
         };
     };
-    delete_book_data_api_books__book_uuid__delete: {
+    delete_book_api_books__book_uuid__delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -1098,7 +1104,7 @@ export interface operations {
             };
         };
     };
-    show_tag_api_books_tag_get: {
+    list_tags_api_books_tag_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1118,7 +1124,7 @@ export interface operations {
             };
         };
     };
-    append_tag_api_books_tag_post: {
+    add_book_tags_api_books_tag_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1151,7 +1157,7 @@ export interface operations {
             };
         };
     };
-    delete_tag_api_books_tag_delete: {
+    remove_book_tags_api_books_tag_delete: {
         parameters: {
             query?: never;
             header?: never;
@@ -1184,12 +1190,12 @@ export interface operations {
             };
         };
     };
-    get_api_library_api_authors_get: {
+    list_authors_api_authors_get: {
         parameters: {
             query: {
                 isFavorite: boolean;
-                name?: string;
-                nameLike?: string;
+                name?: string | null;
+                nameLike?: string | null;
             };
             header?: never;
             path?: never;
@@ -1217,7 +1223,7 @@ export interface operations {
             };
         };
     };
-    delete_api_books_uuid_authors_api_authors_patch: {
+    update_author_api_authors_patch: {
         parameters: {
             query?: never;
             header?: never;
@@ -1250,7 +1256,7 @@ export interface operations {
             };
         };
     };
-    post_api_books_uuid_authors_api_books__book_uuid__authors_post: {
+    add_book_author_api_books__book_uuid__authors_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1285,7 +1291,7 @@ export interface operations {
             };
         };
     };
-    delete_api_books_uuid_authors_api_books__book_uuid__authors_delete: {
+    remove_book_author_api_books__book_uuid__authors_delete: {
         parameters: {
             query?: never;
             header?: never;
