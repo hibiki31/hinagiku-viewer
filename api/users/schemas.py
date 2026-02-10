@@ -15,6 +15,7 @@ class TokenRFC6749Response(BaseModel):
 
 class AuthValidateResponse(TokenRFC6749Response):
     username: str
+    is_admin: bool
 
 class UserBase(BaseSchema):
     id: Optional[str] = None

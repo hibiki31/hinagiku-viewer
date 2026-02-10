@@ -202,4 +202,9 @@ async def api_auth_setup(
 def validate_token(
         current_user: CurrentUser = Security(get_current_user, scopes=["user"])
     ):
-    return {"access_token": current_user.token, "username": current_user.id, "token_type": "Bearer"}
+    return {
+        "access_token": current_user.token,
+        "username": current_user.id,
+        "token_type": "Bearer",
+        "is_admin": current_user.is_admin
+    }
