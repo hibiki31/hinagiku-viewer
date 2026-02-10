@@ -391,6 +391,131 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/system/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Settings
+         * @description システム設定一覧を取得
+         *
+         *     - 管理者: 全設定を取得可能
+         *     - 一般ユーザー: is_public=true の設定のみ取得可能
+         *     - category パラメータでフィルタリング可能
+         */
+        get: operations["list_settings_api_system_settings_get"];
+        put?: never;
+        /**
+         * Create Setting
+         * @description 新規設定を作成（管理者のみ）
+         */
+        post: operations["create_setting_api_system_settings_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system/settings/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Setting By Key
+         * @description 個別設定を取得
+         *
+         *     - 管理者: 全設定を取得可能
+         *     - 一般ユーザー: is_public=true の設定のみ取得可能
+         */
+        get: operations["get_setting_by_key_api_system_settings__key__get"];
+        /**
+         * Update Setting
+         * @description 設定を更新（管理者のみ）
+         */
+        put: operations["update_setting_api_system_settings__key__put"];
+        post?: never;
+        /**
+         * Delete Setting
+         * @description 設定を削除（管理者のみ）
+         */
+        delete: operations["delete_setting_api_system_settings__key__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system/settings/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Bulk Update Settings
+         * @description 設定を一括更新（管理者のみ）
+         */
+        post: operations["bulk_update_settings_api_system_settings_bulk_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system/settings/category/{category}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Settings By Category Endpoint
+         * @description カテゴリ別に設定を取得（型変換済みの値）
+         *
+         *     - 管理者: 全設定を取得可能
+         *     - 一般ユーザー: is_public=true の設定のみ取得可能
+         */
+        get: operations["get_settings_by_category_endpoint_api_system_settings_category__category__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/system/settings/all/values": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get All Settings Values
+         * @description 全設定を取得（型変換済みの値）
+         *
+         *     - 管理者: 全設定を取得可能
+         *     - 一般ユーザー: is_public=true の設定のみ取得可能
+         */
+        get: operations["get_all_settings_values_api_system_settings_all_values_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -623,6 +748,86 @@ export interface components {
             authorId: number;
             /** Isfavorite */
             isFavorite: boolean;
+        };
+        /**
+         * SystemSettingBulkUpdateSchema
+         * @description 一括更新用
+         */
+        SystemSettingBulkUpdateSchema: {
+            /** Settings */
+            settings: {
+                [key: string]: string;
+            };
+        };
+        /**
+         * SystemSettingCreateSchema
+         * @description 設定作成用
+         */
+        SystemSettingCreateSchema: {
+            /** Key */
+            key: string;
+            /** Value */
+            value: string;
+            /**
+             * Datatype
+             * @default string
+             */
+            dataType: string;
+            /** Description */
+            description?: string | null;
+            /** Category */
+            category?: string | null;
+            /**
+             * Ispublic
+             * @default false
+             */
+            isPublic: boolean;
+        };
+        /**
+         * SystemSettingSchema
+         * @description システム設定項目
+         */
+        SystemSettingSchema: {
+            /** Key */
+            key: string;
+            /** Value */
+            value: string;
+            /** Datatype */
+            dataType: string;
+            /** Description */
+            description?: string | null;
+            /** Category */
+            category?: string | null;
+            /**
+             * Ispublic
+             * @default false
+             */
+            isPublic: boolean;
+            /**
+             * Updatedat
+             * Format: date-time
+             */
+            updatedAt: string;
+            /** Updatedby */
+            updatedBy?: string | null;
+        };
+        /**
+         * SystemSettingValueSchema
+         * @description 設定値のみ（更新用）
+         */
+        SystemSettingValueSchema: {
+            /** Value */
+            value: string;
+        };
+        /**
+         * SystemSettingsListResponse
+         * @description 設定一覧レスポンス
+         */
+        SystemSettingsListResponse: {
+            /** Settings */
+            settings: components["schemas"]["SystemSettingSchema"][];
+            /** Total */
+            total: number;
         };
         /**
          * TagCreate
@@ -1491,6 +1696,251 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Version"];
+                };
+            };
+        };
+    };
+    list_settings_api_system_settings_get: {
+        parameters: {
+            query?: {
+                category?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemSettingsListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_setting_api_system_settings_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SystemSettingCreateSchema"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemSettingSchema"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_setting_by_key_api_system_settings__key__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemSettingSchema"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_setting_api_system_settings__key__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SystemSettingValueSchema"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemSettingSchema"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_setting_api_system_settings__key__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bulk_update_settings_api_system_settings_bulk_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SystemSettingBulkUpdateSchema"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_settings_by_category_endpoint_api_system_settings_category__category__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                category: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_all_settings_values_api_system_settings_all_values_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };

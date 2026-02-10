@@ -160,6 +160,13 @@
           title="重複リスト"
           @click="toDuplicateView"
         />
+
+        <v-list-item
+          v-if="userDataStore.isAdmin"
+          prepend-icon="mdi-cog"
+          title="システム設定"
+          @click="toSettingsPage"
+        />
       </v-list>
 
       <v-divider />
@@ -529,6 +536,11 @@ const createCache = (book: BookBase) => {
 
 const toDuplicateView = () => {
   router.push("/duplicate");
+};
+
+// システム設定ページへ遷移
+const toSettingsPage = () => {
+  router.push("/settings");
 };
 
 // ログアウト処理
