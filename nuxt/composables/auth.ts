@@ -1,1 +1,0 @@
-export const useBasicCounter = () => useState('token', () => 0)
