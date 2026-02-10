@@ -163,6 +163,13 @@
 
         <v-list-item
           v-if="userDataStore.isAdmin"
+          prepend-icon="mdi-progress-clock"
+          title="タスク実行状況"
+          @click="toTasksPage"
+        />
+
+        <v-list-item
+          v-if="userDataStore.isAdmin"
           prepend-icon="mdi-cog"
           title="システム設定"
           @click="toSettingsPage"
@@ -550,6 +557,11 @@ const createCache = (book: BookBase) => {
 
 const toDuplicateView = () => {
   router.push("/duplicate");
+};
+
+// タスク実行状況ページへ遷移
+const toTasksPage = () => {
+  router.push("/tasks");
 };
 
 // システム設定ページへ遷移
