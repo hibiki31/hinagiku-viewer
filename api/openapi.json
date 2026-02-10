@@ -613,6 +613,52 @@
         }
       }
     },
+    "/api/books/{book_uuid}/download": {
+      "get": {
+        "tags": [
+          "Book"
+        ],
+        "summary": "本のZipファイルダウンロード",
+        "description": "指定された本のZipファイルをダウンロードする",
+        "operationId": "download_book_api_books__book_uuid__download_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "book_uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Book Uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/media/books/cache": {
       "get": {
         "tags": [

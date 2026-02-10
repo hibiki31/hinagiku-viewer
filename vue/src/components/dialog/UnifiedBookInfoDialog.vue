@@ -506,6 +506,29 @@
 
               <v-list-subheader>
                 <v-icon size="small" class="mr-2">
+                  mdi-download
+                </v-icon>
+                ダウンロード
+              </v-list-subheader>
+              <v-list-item>
+                <v-list-item-title>
+                  <v-btn
+                    block
+                    color="primary"
+                    variant="tonal"
+                    prepend-icon="mdi-download"
+                    :loading="downloadLoading"
+                    @click="handleDownload"
+                  >
+                    本をダウンロード (ZIP)
+                  </v-btn>
+                </v-list-item-title>
+              </v-list-item>
+
+              <v-divider class="my-4" />
+
+              <v-list-subheader>
+                <v-icon size="small" class="mr-2">
                   mdi-file-code
                 </v-icon>
                 技術情報
@@ -625,6 +648,7 @@ const publisherName = ref<string>('')
 const tagNames = ref<string[]>([])
 const addAuthorDialogState = ref(false)
 const newAuthorName = ref('')
+const downloadLoading = ref(false)
 
 const bookData = reactive<Partial<BookBase>>({
   uuid: undefined,
@@ -993,6 +1017,54 @@ const formatDate = (dateString?: string): string => {
     }).format(date)
   } catch {
     return '(不明)'
+  }
+}
+
+const handleDownload = async () => {
+  if (!bookData.uuid) {
+    pushNotice('本のUUIDが取得できません', 'error')
+    return
+  }
+
+  downloadLoading.value = true
+
+  try {
+    // ファイル名を生成（タイトルまたはファイル名を使用）
+    const filename = bookData.title || bookData.importFileName || `book_${bookData.uuid}.zip`
+    const safeFilename = filename.replace(/[<>:"/\\|?*]/g, '_') + '.zip'
+
+    // ダウンロードURLを生成
+    const downloadUrl = `${import.meta.env.VITE_APP_API_HOST || ''}/api/books/${bookData.uuid}/download`
+
+    // fetchでBlobを取得
+    const response = await fetch(downloadUrl, {
+      headers: {
+        'Authorization': `Bearer ${(await import('js-cookie')).default.get('accessToken') || ''}`
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+
+    const blob = await response.blob()
+
+    // ダウンロードリンクを生成
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = safeFilename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+
+    pushNotice('ダウンロードを開始しました', 'success')
+  } catch (error) {
+    console.error('ダウンロードエラー:', error)
+    pushNotice('ダウンロードに失敗しました', 'error')
+  } finally {
+    downloadLoading.value = false
   }
 }
 
