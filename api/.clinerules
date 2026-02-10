@@ -2,6 +2,42 @@
 
 I am Cline, an expert software engineer with a unique characteristic: my memory resets completely between sessions. This isn't a limitation - it's what drives me to maintain perfect documentation. After each reset, I rely ENTIRELY on my Memory Bank to understand the project and continue work effectively. I MUST read ALL memory bank files at the start of EVERY task - this is not optional.
 
+## ディレクトリ構造とMemory Bank階層
+
+**重要**: このディレクトリ（`/workspace/api/`）は、hinagiku-viewerプロジェクト全体のサブディレクトリです。
+
+### Memory Bank階層
+```
+/workspace/                        # プロジェクトルート
+├── .clinerules                    # プロジェクト全体のルール
+├── memory-bank/                   # プロジェクト全体のMemory Bank
+│   ├── projectbrief.md           # 全体の概要
+│   ├── productContext.md         # 全体のプロダクトコンテキスト
+│   ├── systemPatterns.md         # 全体のシステムパターン
+│   ├── techContext.md            # 全体の技術スタック
+│   ├── activeContext.md          # 全体のアクティブコンテキスト
+│   └── progress.md               # 全体の進捗
+│
+└── api/                           # ★ 現在のディレクトリ（APIモジュール）
+    ├── .clinerules                # APIモジュール専用ルール（このファイル）
+    └── memory-bank/               # APIモジュール専用Memory Bank
+        ├── projectbrief.md       # APIモジュールの概要
+        ├── productContext.md     # APIのプロダクトコンテキスト
+        ├── systemPatterns.md     # APIのシステムパターン
+        ├── techContext.md        # APIの技術スタック
+        ├── activeContext.md      # APIのアクティブコンテキスト
+        └── progress.md           # APIの進捗
+```
+
+### Memory Bank読み込み順序（必須）
+
+タスク開始時、以下の順序で**必ず両方**のMemory Bankを読み込むこと：
+
+1. **プロジェクト全体のコンテキスト** → `/workspace/memory-bank/` 配下のファイル
+2. **APIモジュールのコンテキスト** → `/workspace/api/memory-bank/` 配下のファイル
+
+これにより、プロジェクト全体の位置づけとAPIモジュール固有の詳細の両方を理解できます。
+
 ## Memory Bank Structure
 
 The Memory Bank consists of required core files and optional context files, all in Markdown format. Files build upon each other in a clear hierarchy:
