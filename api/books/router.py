@@ -1,5 +1,6 @@
 
 from pathlib import Path
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
@@ -275,11 +276,14 @@ def download_book(
 
     logger.info(f"書籍ダウンロード: {book_uuid} ({download_filename}) by {current_user.id}")
 
+    # RFC 5987に準拠したUTF-8エンコードファイル名（日本語対応）
+    encoded_filename = quote(download_filename, safe='')
+
     return FileResponse(
         path=str(file_path),
         media_type="application/zip",
         filename=download_filename,
         headers={
-            "Content-Disposition": f'attachment; filename="{download_filename}"'
+            "Content-Disposition": f"attachment; filename=\"{download_filename.encode('ascii', 'ignore').decode('ascii') or 'download.zip'}\"; filename*=UTF-8''{encoded_filename}"
         }
     )
