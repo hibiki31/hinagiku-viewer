@@ -165,16 +165,34 @@
 
           <!-- フィルタータブ -->
           <v-window-item value="filters">
-            <v-combobox
+            <v-autocomplete
               v-model="searchQuery.tag"
               :items="availableTags"
+              :loading="tagsLoading"
+              spellcheck="false"
               label="タグで絞り込み"
+              placeholder="タグを入力してください"
               prepend-inner-icon="mdi-tag"
               variant="outlined"
               clearable
               hide-details="auto"
               class="mb-4"
-            />
+            >
+              <template #item="{ props }">
+                <v-list-item v-bind="props">
+                  <template #prepend>
+                    <v-icon>mdi-tag</v-icon>
+                  </template>
+                </v-list-item>
+              </template>
+              <template #no-data>
+                <v-list-item>
+                  <v-list-item-title class="text-grey">
+                    該当するタグが見つかりません
+                  </v-list-item-title>
+                </v-list-item>
+              </template>
+            </v-autocomplete>
 
             <v-text-field
               v-model="searchQuery.seriesId"
@@ -330,6 +348,7 @@ const emit = defineEmits<{
 const dialogState = ref(false)
 const activeTab = ref('basic')
 const availableTags = ref<string[]>([])
+const tagsLoading = ref(false)
 const authorSuggestions = ref<AuthorGet[]>([])
 const authorLoading = ref(false)
 const authorSearchInput = ref<string | undefined>(undefined)
@@ -430,6 +449,7 @@ const submitDialog = async () => {
 
 const loadTags = async () => {
   try {
+    tagsLoading.value = true
     const { data, error } = await apiClient.GET('/api/tags', {})
     if (error) throw error
     if (data && Array.isArray(data)) {
@@ -437,6 +457,8 @@ const loadTags = async () => {
     }
   } catch (error) {
     console.error('タグ取得エラー:', error)
+  } finally {
+    tagsLoading.value = false
   }
 }
 
