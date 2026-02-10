@@ -461,7 +461,21 @@ const search = async (resetOffset = false) => {
 
 const reload = () => {
   const query = { ...searchQuery.value };
+  // ライブラリとソート以外のパラメータを初期化
   query.fullText = "";
+  query.title = null;
+  query.rate = null;
+  query.genre = null;
+  query.authorLike = null;
+  query.titleLike = null;
+  query.fileNameLike = null;
+  query.cached = null;
+  query.authorIsFavorite = null;
+  query.seriesId = null;
+  query.tag = null;
+  query.state = null;
+  query.uuid = null;
+  // libraryId, sortKey, sortDescは保持される
   readerStateStore.setSearchQuery(query);
   search(true);
 };
