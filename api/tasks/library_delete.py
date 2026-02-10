@@ -1,5 +1,6 @@
 import os
 import shutil
+from pathlib import Path
 
 from mixins.log import setup_logger
 from settings import DATA_ROOT
@@ -11,11 +12,11 @@ logger = setup_logger(__name__)
 
 def main(db, delete_uuid, file_name):
     delete_path = f"{DATA_ROOT}/book_export/deleted"
-    os.makedirs(delete_path, exist_ok=True)
+    Path(delete_path).mkdir(parents=True, exist_ok=True)
 
     try:
-        shutil.move(f'{DATA_ROOT}/book_thum/{delete_uuid}.jpg', os.path.join(delete_path, file_name+".jpg"))
-        shutil.move(f'{DATA_ROOT}/book_library/{delete_uuid}.zip', os.path.join(delete_path, file_name))
+        shutil.move(f'{DATA_ROOT}/book_thum/{delete_uuid}.jpg', str(Path(delete_path) / (file_name+".jpg")))
+        shutil.move(f'{DATA_ROOT}/book_library/{delete_uuid}.zip', str(Path(delete_path) / file_name))
         os.removedirs(f'{DATA_ROOT}/book_cache/{delete_uuid}')
     except FileNotFoundError:
         logger.info(f"UUID={delete_uuid}: 削除中一部ファイルは存在しませんでした", exc_info=True)
@@ -32,7 +33,7 @@ def task_export(book_model, export_uuid):
     else:
         file_name = book_model.import_file_name
 
-    os.makedirs(export_dir, exist_ok=True)
+    Path(export_dir).mkdir(parents=True, exist_ok=True)
 
     try:
         shutil.move(export_file, export_dir+file_name)
@@ -40,11 +41,11 @@ def task_export(book_model, export_uuid):
         logger.error(f"UUID={book_model.uuid}: 存在しないためデータベースから消去")
 
     try:
-        os.remove(f'{DATA_ROOT}/book_cache/thum/{book_uuid}.jpg')
+        Path(f'{DATA_ROOT}/book_cache/thum/{book_uuid}.jpg').unlink()
     except Exception:
         logger.error(f'UUID={book_model.uuid}: サムネイルが削除出来ませんでした')
 
-    os.chmod(export_dir+file_name,0o777)
+    Path(export_dir+file_name).chmod(0o777)
 
 
 def get_model_dict(model):

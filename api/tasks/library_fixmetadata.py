@@ -1,8 +1,8 @@
 import datetime
 import json
-import os
 import shutil
 import uuid
+from pathlib import Path
 
 from sqlalchemy import and_
 
@@ -70,22 +70,25 @@ def main(db, user_id):
 def book_import(send_book, user_model, db):
     # モデル定義
     pre_model = PreBookClass()
+    send_book_path = Path(send_book)
+
     # チェックサム
     pre_model.sha1 = get_hash(send_book)
     # ライブラリ名定義
-    if os.path.basename(os.path.dirname(send_book)) == "book_send":
+    if send_book_path.parent.name == "book_send":
         pre_model.library = "default"
     else:
-        pre_model.library = os.path.basename(os.path.dirname(send_book))
+        pre_model.library = send_book_path.parent.name
 
-    if os.path.exists(f'{os.path.splitext(send_book)[0]}.json'):
+    json_path = send_book_path.with_suffix('.json')
+    if json_path.exists():
         # Jsonインポート
-        with open(f'{os.path.splitext(send_book)[0]}.json') as f:
+        with json_path.open() as f:
             json_metadata = json.load(f)
         # 破損チェック
         if pre_model.sha1 != json_metadata["sha1"]:
             logger.error(f'{send_book} メタデータとハッシュ値が異なるため破損している可能性がありエラーへ移動')
-            shutil.move(send_book, f'{DATA_ROOT}book_fail/{os.path.basename(send_book)}')
+            shutil.move(send_book, f'{DATA_ROOT}book_fail/{send_book_path.name}')
             return
         # モデルに代入
         pre_model = book_model_mapper_json(pre_model, json_metadata)
@@ -94,11 +97,11 @@ def book_import(send_book, user_model, db):
         # 新規追加モード
         pre_model.uuid = str(uuid.uuid4())
         # ファイル名からパース
-        file_name_purse:PurseResult = base_purser(os.path.basename(send_book))
+        file_name_purse:PurseResult = base_purser(send_book_path.name)
         pre_model = book_model_mapper_file(pre_model, file_name_purse)
-        pre_model.size = os.path.getsize(send_book)
-        pre_model.file_date = datetime.datetime.fromtimestamp(os.path.getmtime(send_book))
-        pre_model.import_file_name = os.path.basename(send_book)
+        pre_model.size = send_book_path.stat().st_size
+        pre_model.file_date = datetime.datetime.fromtimestamp(send_book_path.stat().st_mtime)
+        pre_model.import_file_name = send_book_path.name
         is_import = False
 
     # サムネイルの作成とページ数取得
@@ -177,7 +180,7 @@ def book_import(send_book, user_model, db):
         logger.info(f'ライブラリに追加: {DATA_ROOT}/book_library/{pre_model.uuid}.zip')
 
     shutil.rmtree("/tmp/hinav/")
-    os.mkdir("/tmp/hinav/")
+    Path("/tmp/hinav/").mkdir()
 
 
 def book_model_mapper_json(model:BookModel, json):

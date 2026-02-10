@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
@@ -10,7 +12,7 @@ app = FastAPI()
 @app.get("/")
 async def main():
     def iterfile():
-        with open(some_file_path, mode="rb") as file_like:
+        with Path(some_file_path).open(mode="rb") as file_like:
             yield from file_like
 
     return StreamingResponse(iterfile())

@@ -1,6 +1,6 @@
 import json
-import os
 import shutil
+from pathlib import Path
 
 from books.models import BookModel
 from mixins.log import setup_logger
@@ -12,7 +12,7 @@ logger = setup_logger(__name__)
 
 
 def main(db, export_uuid):
-    os.makedirs(f"{DATA_ROOT}book_export/", exist_ok=True)
+    Path(f"{DATA_ROOT}book_export/").mkdir(parents=True, exist_ok=True)
     for book_model in db.query(BookModel).all():
         book_model:BookModel
         d = get_model_dict(book_model)
@@ -46,7 +46,7 @@ def main(db, export_uuid):
             d["authors"].append(i.name)
 
         # ファイル出力
-        with open(f"{DATA_ROOT}book_export/{book_model.uuid}.json", 'w') as f:
+        with Path(f"{DATA_ROOT}book_export/{book_model.uuid}.json").open('w') as f:
             json.dump(d, f, indent=4,sort_keys=True)
 
         logger.debug(f"UUID={book_model.uuid}: JSONエクスポート完了")
@@ -69,7 +69,7 @@ def task_export(book_model, export_uuid):
     else:
         file_name = book_model.import_file_name
 
-    os.makedirs(export_dir, exist_ok=True)
+    Path(export_dir).mkdir(parents=True, exist_ok=True)
 
     try:
         shutil.move(export_file, export_dir+file_name)
@@ -77,11 +77,11 @@ def task_export(book_model, export_uuid):
         logger.error(f"UUID={book_model.uuid}: 存在しないためデータベースから消去")
 
     try:
-        os.remove(f'{DATA_ROOT}/book_cache/thum/{book_uuid}.jpg')
+        Path(f'{DATA_ROOT}/book_cache/thum/{book_uuid}.jpg').unlink()
     except Exception:
         logger.error(f'UUID={book_model.uuid}: サムネイルが削除出来ませんでした')
 
-    os.chmod(export_dir+file_name,0o777)
+    Path(export_dir+file_name).chmod(0o777)
 
 
 def get_model_dict(model):

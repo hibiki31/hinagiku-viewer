@@ -1,10 +1,9 @@
 import datetime
-import glob
 import json
-import os
 import shutil
 import uuid
 import zlib
+from pathlib import Path
 from zipfile import BadZipFile
 
 import PIL
@@ -51,15 +50,15 @@ class PreBookClass:
 
 def main(db, user_id):
     # ディレクトリ作成
-    os.makedirs(f"{DATA_ROOT}/book_library/", exist_ok=True)
-    os.makedirs(f"{DATA_ROOT}/book_send/", exist_ok=True)
-    os.makedirs(f"{DATA_ROOT}/book_fail/", exist_ok=True)
-    os.makedirs(f"{DATA_ROOT}/book_thum/", exist_ok=True)
+    Path(f"{DATA_ROOT}/book_library/").mkdir(parents=True, exist_ok=True)
+    Path(f"{DATA_ROOT}/book_send/").mkdir(parents=True, exist_ok=True)
+    Path(f"{DATA_ROOT}/book_fail/").mkdir(parents=True, exist_ok=True)
+    Path(f"{DATA_ROOT}/book_thum/").mkdir(parents=True, exist_ok=True)
 
     user_model = db.query(UserModel).filter(UserModel.id == user_id).one()
 
-    send_books_list = glob.glob(f"{DATA_ROOT}/book_send/**", recursive=True)
-    send_books_list = [p for p in send_books_list if os.path.splitext(p)[1].lower() in [".zip"]]
+    send_books_path = Path(f"{DATA_ROOT}/book_send")
+    send_books_list = [str(p) for p in send_books_path.rglob("*") if p.suffix.lower() == ".zip"]
     if len(send_books_list) != 0:
         logger.info(str(len(send_books_list)) + "件の本をライブラリに追加します")
 
@@ -69,7 +68,7 @@ def main(db, user_id):
 
         except (PIL.Image.DecompressionBombError, NotContentZip, BadZipFile, zlib.error) as e:
             logger.error(f'{send_book} ファイルに問題があるためインポート処理を中止 {e}')
-            shutil.move(send_book, f'{DATA_ROOT}/book_fail/{os.path.basename(send_book)}')
+            shutil.move(send_book, f'{DATA_ROOT}/book_fail/{Path(send_book).name}')
 
         except Exception as e:
             logger.critical(e, exc_info=True)
@@ -78,24 +77,26 @@ def main(db, user_id):
 def book_import(send_book, user_model, db):
     # モデル定義
     pre_model = PreBookClass()
+    send_book_path = Path(send_book)
 
     # チェックサム
     pre_model.sha1 = get_hash(send_book)
 
     # ライブラリ名定義
-    if os.path.basename(os.path.dirname(send_book)) == "book_send":
+    if send_book_path.parent.name == "book_send":
         pre_model.library = "default"
     else:
-        pre_model.library = os.path.basename(os.path.dirname(send_book))
+        pre_model.library = send_book_path.parent.name
 
-    if os.path.exists(f'{os.path.splitext(send_book)[0]}.json'):
+    json_path = send_book_path.with_suffix('.json')
+    if json_path.exists():
         # Jsonインポート
-        with open(f'{os.path.splitext(send_book)[0]}.json') as f:
+        with json_path.open() as f:
             json_metadata = json.load(f)
         # 破損チェック
         if pre_model.sha1 != json_metadata["sha1"]:
             logger.error(f'{send_book} メタデータとハッシュ値が異なるため破損している可能性がありエラーへ移動')
-            shutil.move(send_book, f'{DATA_ROOT}/book_fail/{os.path.basename(send_book)}')
+            shutil.move(send_book, f'{DATA_ROOT}/book_fail/{send_book_path.name}')
             return
         # モデルに代入
         pre_model = book_model_mapper_json(pre_model, json_metadata)
@@ -104,11 +105,11 @@ def book_import(send_book, user_model, db):
         # 新規追加モード
         pre_model.uuid = str(uuid.uuid4())
         # ファイル名からパース
-        file_name_purse:PurseResult = base_purser(os.path.basename(send_book))
+        file_name_purse:PurseResult = base_purser(send_book_path.name)
         pre_model = book_model_mapper_file(pre_model, file_name_purse)
-        pre_model.size = os.path.getsize(send_book)
-        pre_model.file_date = datetime.datetime.fromtimestamp(os.path.getmtime(send_book))
-        pre_model.import_file_name = os.path.basename(send_book)
+        pre_model.size = send_book_path.stat().st_size
+        pre_model.file_date = datetime.datetime.fromtimestamp(send_book_path.stat().st_mtime)
+        pre_model.import_file_name = send_book_path.name
         is_import = False
 
     # サムネイルの作成、ページ数取得、マルチハッシュ計算
@@ -197,7 +198,7 @@ def book_import(send_book, user_model, db):
         logger.info(f'ライブラリに追加: {DATA_ROOT}/book_library/{pre_model.uuid}.zip')
 
     shutil.rmtree("/tmp/hinav/")
-    os.mkdir("/tmp/hinav/")
+    Path("/tmp/hinav/").mkdir()
 
 
 def book_model_mapper_json(model:BookModel, json):

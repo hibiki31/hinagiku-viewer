@@ -4,6 +4,7 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="pydantic._internal._generate_schema")
 
 import json
+from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI
@@ -62,7 +63,7 @@ app.include_router(router=mixins_router)
 if __name__ == "__main__":
     # OpenAPI JSONをファイルとして保存
     openapi_schema = app.openapi()
-    with open("openapi.json", "w", encoding="utf-8") as f:
+    with Path("openapi.json").open("w", encoding="utf-8") as f:
         json.dump(openapi_schema, f, ensure_ascii=False, indent=2)
     logger.info("OpenAPI JSONを openapi.json として保存しました")
 

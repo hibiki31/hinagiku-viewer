@@ -1,5 +1,6 @@
 import csv
 from datetime import datetime
+from pathlib import Path
 
 import httpx
 from common import BASE_URL, HEADERS, DebugTimer
@@ -21,7 +22,7 @@ def main():
         })
         timer.rap()
 
-    with open(f'request_result{formatted_date}.csv', 'w') as f:
+    with Path(f'request_result{formatted_date}.csv').open('w') as f:
         writer = csv.writer(f)
         writer.writerow(timer.data)
 

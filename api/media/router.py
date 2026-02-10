@@ -1,7 +1,6 @@
-import glob
-import os
 import re
 import subprocess
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
@@ -32,12 +31,12 @@ def get_media_books_cache(
     original_size = 0
     convert_size = 0
 
-    for file in glob.glob(f"{DATA_ROOT}/book_cache/**", recursive=True):
-        file_name = os.path.basename(file)
-        if re.fullmatch(r"^original_.*",file_name):
-            original_size += os.path.getsize(file)
-        else:
-            convert_size += os.path.getsize(file)
+    for file_path in Path(f"{DATA_ROOT}/book_cache").rglob("*"):
+        if file_path.is_file():
+            if re.fullmatch(r"^original_.*", file_path.name):
+                original_size += file_path.stat().st_size
+            else:
+                convert_size += file_path.stat().st_size
 
     return {"original_mb": original_size/1024/1024, "convert_mb": convert_size/1024/1024}
 
@@ -112,7 +111,7 @@ def get_media_books_uuid(
         uuid: str
     ):
     file_path = f"{DATA_ROOT}/book_thum/{uuid}.jpg"
-    if not os.path.exists(file_path):
+    if not Path(file_path).exists():
         raise HTTPException(
             status_code=404,
             detail="ファイルが存在しません",
@@ -128,15 +127,18 @@ def media_books_uuid_page(
     ):
 
     cache_file = f"{DATA_ROOT}/book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
-    original_file = f"{DATA_ROOT}/book_cache/{uuid}/original_{str(page).zfill(4)}*"
+    original_pattern = f"original_{str(page).zfill(4)}*"
 
-    if os.path.exists(cache_file):
+    if Path(cache_file).exists():
         logger.debug(f"完全キャッシュから読み込み{uuid} {page}")
-    elif glob.glob(original_file):
-        logger.debug(f"部分キャッシュから読み込み{uuid} {page}")
-        image_convertor(glob.glob(original_file)[0], cache_file, to_height=height, quality=85)
     else:
-        create_book_page_cache(uuid, page, height, 85)
+        # Path.globでマッチするファイルを検索
+        matched_files = list(Path(f"{DATA_ROOT}/book_cache/{uuid}").glob(original_pattern))
+        if matched_files:
+            logger.debug(f"部分キャッシュから読み込み{uuid} {page}")
+            image_convertor(str(matched_files[0]), cache_file, to_height=height, quality=85)
+        else:
+            create_book_page_cache(uuid, page, height, 85)
     return FileResponse(path=cache_file)
 
 
