@@ -102,7 +102,7 @@ def get_current_user(
 
 
 @app.get("/api/users", tags=["User"],response_model=List[UserGet])
-def read_api_users(
+def list_users(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
     ):
@@ -110,7 +110,7 @@ def read_api_users(
 
 
 @app.get("/api/users/me/", tags=["User"], response_model=UserGet)
-def read_api_users_me(
+def get_current_user_info(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
     ):
@@ -120,7 +120,7 @@ def read_api_users_me(
 
 
 @app.post("/api/users", tags=["User"])
-def post_api_users(
+def create_user(
         user: UserPost,
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)

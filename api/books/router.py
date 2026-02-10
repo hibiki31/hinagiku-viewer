@@ -25,7 +25,7 @@ exception_notfund = HTTPException(
 
 
 @app.get("/api/libraries", tags=["Library"], response_model=List[GetLibrary])
-async def get_api_library(
+async def list_libraries(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
     ):
@@ -43,7 +43,7 @@ async def get_api_library(
 
 
 @app.get("/api/books", tags=["Book"], response_model=BookGet)
-async def get_api_books(
+async def search_books(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user),
         uuid: Optional[str] = None,
@@ -181,7 +181,7 @@ async def get_api_books(
 
 
 @app.put("/api/books", tags=["Book"])
-def change_book_data(
+def update_books(
         db: Session = Depends(get_db),
         model: BookPut = None,
         current_user: UserCurrent = Depends(get_current_user)
@@ -223,7 +223,7 @@ def change_book_data(
     return book
 
 @app.delete("/api/books/{book_uuid}", tags=["Book"])
-def delete_book_data(
+def delete_book(
         book_uuid: str,
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user),

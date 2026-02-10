@@ -16,7 +16,7 @@ logger = setup_logger(__name__)
 
 
 @app.post("/api/books/tag", tags=["Tag"])
-def append_tag(
+def add_book_tags(
         model: BookTagBase,
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
@@ -43,7 +43,7 @@ def append_tag(
     return result_data
 
 @app.delete("/api/books/tag", tags=["Tag"])
-def delete_tag(
+def remove_book_tags(
         model: BookTagBase,
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
@@ -67,7 +67,7 @@ def delete_tag(
     return result_data
 
 @app.get("/api/books/tag", tags=["Tag"])
-def show_tag(
+def list_tags(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
     ):

@@ -16,7 +16,7 @@ logger = setup_logger(__name__)
 
 
 @app.get("/api/authors", tags=["Author"], response_model=List[AuthorGet])
-async def get_api_library(
+async def list_authors(
         isFavorite: bool,
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user),
@@ -41,7 +41,7 @@ async def get_api_library(
 
 
 @app.post("/api/books/{book_uuid}/authors", tags=["Author"])
-def post_api_books_uuid_authors(
+def add_book_author(
         request_model:BookAuthorPost,
         book_uuid: str,
         db: Session = Depends(get_db),
@@ -78,7 +78,7 @@ def post_api_books_uuid_authors(
 
 
 @app.delete("/api/books/{book_uuid}/authors", tags=["Author"])
-def delete_api_books_uuid_authors(
+def remove_book_author(
         request_model: BookAuthorDelete,
         book_uuid: str,
         db: Session = Depends(get_db),
@@ -113,7 +113,7 @@ def delete_api_books_uuid_authors(
 
 
 @app.patch("/api/authors", tags=["Author"])
-def patch_api_authors(
+def update_author(
         request_model: PatchAuthor,
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)

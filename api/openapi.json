@@ -16,8 +16,8 @@
         "tags": [
           "User"
         ],
-        "summary": "Read Api Users",
-        "operationId": "read_api_users_api_users_get",
+        "summary": "List Users",
+        "operationId": "list_users_api_users_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -28,7 +28,7 @@
                     "$ref": "#/components/schemas/UserGet"
                   },
                   "type": "array",
-                  "title": "Response Read Api Users Api Users Get"
+                  "title": "Response List Users Api Users Get"
                 }
               }
             }
@@ -44,8 +44,8 @@
         "tags": [
           "User"
         ],
-        "summary": "Post Api Users",
-        "operationId": "post_api_users_api_users_post",
+        "summary": "Create User",
+        "operationId": "create_user_api_users_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -88,8 +88,8 @@
         "tags": [
           "User"
         ],
-        "summary": "Read Api Users Me",
-        "operationId": "read_api_users_me_api_users_me__get",
+        "summary": "Get Current User Info",
+        "operationId": "get_current_user_info_api_users_me__get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -222,8 +222,8 @@
         "tags": [
           "Library"
         ],
-        "summary": "Get Api Library",
-        "operationId": "get_api_library_api_libraries_get",
+        "summary": "List Libraries",
+        "operationId": "list_libraries_api_libraries_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -234,7 +234,7 @@
                     "$ref": "#/components/schemas/GetLibrary"
                   },
                   "type": "array",
-                  "title": "Response Get Api Library Api Libraries Get"
+                  "title": "Response List Libraries Api Libraries Get"
                 }
               }
             }
@@ -252,8 +252,8 @@
         "tags": [
           "Book"
         ],
-        "summary": "Get Api Books",
-        "operationId": "get_api_books_api_books_get",
+        "summary": "Search Books",
+        "operationId": "search_books_api_books_get",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -514,8 +514,8 @@
         "tags": [
           "Book"
         ],
-        "summary": "Change Book Data",
-        "operationId": "change_book_data_api_books_put",
+        "summary": "Update Books",
+        "operationId": "update_books_api_books_put",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -557,8 +557,8 @@
         "tags": [
           "Book"
         ],
-        "summary": "Delete Book Data",
-        "operationId": "delete_book_data_api_books__book_uuid__delete",
+        "summary": "Delete Book",
+        "operationId": "delete_book_api_books__book_uuid__delete",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -870,8 +870,8 @@
         "tags": [
           "Tag"
         ],
-        "summary": "Show Tag",
-        "operationId": "show_tag_api_books_tag_get",
+        "summary": "List Tags",
+        "operationId": "list_tags_api_books_tag_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -892,8 +892,8 @@
         "tags": [
           "Tag"
         ],
-        "summary": "Append Tag",
-        "operationId": "append_tag_api_books_tag_post",
+        "summary": "Add Book Tags",
+        "operationId": "add_book_tags_api_books_tag_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -934,8 +934,8 @@
         "tags": [
           "Tag"
         ],
-        "summary": "Delete Tag",
-        "operationId": "delete_tag_api_books_tag_delete",
+        "summary": "Remove Book Tags",
+        "operationId": "remove_book_tags_api_books_tag_delete",
         "requestBody": {
           "content": {
             "application/json": {
@@ -978,8 +978,8 @@
         "tags": [
           "Author"
         ],
-        "summary": "Get Api Library",
-        "operationId": "get_api_library_api_authors_get",
+        "summary": "List Authors",
+        "operationId": "list_authors_api_authors_get",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1038,7 +1038,7 @@
                   "items": {
                     "$ref": "#/components/schemas/AuthorGet"
                   },
-                  "title": "Response Get Api Library Api Authors Get"
+                  "title": "Response List Authors Api Authors Get"
                 }
               }
             }
@@ -1059,8 +1059,8 @@
         "tags": [
           "Author"
         ],
-        "summary": "Patch Api Authors",
-        "operationId": "patch_api_authors_api_authors_patch",
+        "summary": "Update Author",
+        "operationId": "update_author_api_authors_patch",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1103,8 +1103,8 @@
         "tags": [
           "Author"
         ],
-        "summary": "Post Api Books Uuid Authors",
-        "operationId": "post_api_books_uuid_authors_api_books__book_uuid__authors_post",
+        "summary": "Add Book Author",
+        "operationId": "add_book_author_api_books__book_uuid__authors_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1156,8 +1156,8 @@
         "tags": [
           "Author"
         ],
-        "summary": "Delete Api Books Uuid Authors",
-        "operationId": "delete_api_books_uuid_authors_api_books__book_uuid__authors_delete",
+        "summary": "Remove Book Author",
+        "operationId": "remove_book_author_api_books__book_uuid__authors_delete",
         "security": [
           {
             "OAuth2PasswordBearer": []
