@@ -116,13 +116,14 @@ async def search_books(
         elif params.full_text is not None:
             query = query.outerjoin(
                 BookModel.authors
+            ).outerjoin(
+                BookModel.tags
             ).filter(or_(
-                BookModel.title.like(f'%{params.full_text}%'),
-                BookModel.import_file_name.like(f'%{params.full_text}%'),
-                AuthorModel.name.like(f'%{params.full_text}%')
-            )).union(
-                base_query.filter(BookModel.tags.any(name=params.tag))
-            )
+                BookModel.title.ilike(f'%{params.full_text}%'),
+                BookModel.import_file_name.ilike(f'%{params.full_text}%'),
+                AuthorModel.name.ilike(f'%{params.full_text}%'),
+                TagsModel.name.ilike(f'%{params.full_text}%')
+            )).distinct()
 
         if params.file_name_like is not None:
             query = query.filter(BookModel.import_file_name.like(f'%{params.file_name_like}%'))
