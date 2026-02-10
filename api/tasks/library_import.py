@@ -171,7 +171,7 @@ def book_import(send_book, user_model, db):
         add_date = pre_model.add_date,
         file_date = pre_model.file_date,
         import_file_name = pre_model.import_file_name,
-        is_shered = False
+        is_shared = False
     )
 
     db.add(model)

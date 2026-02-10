@@ -293,7 +293,7 @@
             }
           },
           {
-            "name": "chached",
+            "name": "cached",
             "in": "query",
             "required": false,
             "schema": {
@@ -305,7 +305,7 @@
                   "type": "null"
                 }
               ],
-              "title": "Chached"
+              "title": "Cached"
             }
           },
           {

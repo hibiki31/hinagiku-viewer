@@ -48,7 +48,7 @@ async def search_books(
         current_user: UserCurrent = Depends(get_current_user),
         uuid: Optional[str] = None,
         fileNameLike: Optional[str] = None,
-        chached: Optional[bool] = None,
+        cached: Optional[bool] = None,
         authorLike: Optional[str] = None,
         titleLike: Optional[str] = None,
         fullText: Optional[str] = None,
@@ -87,7 +87,7 @@ async def search_books(
     if not current_user.is_admin:
         base_query = base_query.filter(
             or_(
-                BookModel.is_shered,
+                BookModel.is_shared,
                 BookModel.user_id==current_user.id,
             )
         )
@@ -116,8 +116,8 @@ async def search_books(
                 AuthorModel.name.like(f'%{authorLike}%')
             )
 
-        if chached is not None:
-            query = query.filter(BookModel.chached == chached)
+        if cached is not None:
+            query = query.filter(BookModel.cached == cached)
 
         elif fullText is not None:
             query = query.outerjoin(

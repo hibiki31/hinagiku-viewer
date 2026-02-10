@@ -45,7 +45,7 @@ def main(db: Session, book_uuid, to_height=1080, mode=3):
 
     # キャッシュの状態を保存
     book_model:BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
-    book_model.chached = True
+    book_model.cached = True
     db.commit()
 
     timer.rap(f"変換終了: {book_uuid}")

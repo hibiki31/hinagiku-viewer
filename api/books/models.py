@@ -86,7 +86,7 @@ class BookModel(Base):
     add_date = Column(DateTime, nullable=False)
     file_date = Column(DateTime, nullable=False)
     import_file_name = Column(String, nullable=False)
-    chached = Column(Boolean, nullable=False, server_default='f', default=False)
+    cached = Column(Boolean, nullable=False, server_default='f', default=False)
 
     # ソフトメタデータ
     title = Column(String)
@@ -117,7 +117,7 @@ class BookModel(Base):
     )
 
     # 設定
-    is_shered = Column(Boolean)
+    is_shared = Column(Boolean)
 
     # ユーザ固有データ
     user_data = relationship('BookUserMetaDataModel',lazy=False)
