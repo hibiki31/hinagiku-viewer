@@ -855,44 +855,39 @@ const handlePublisherChange = async () => {
 
 const handleTagsChange = async () => {
   try {
-    // 元のタグ名リストを取得
-    const originalTagNames = (bookData.tags || [])
-      .map(t => {
-        if (typeof t === 'string') {
-          return t
-        }
-        if (t && typeof t === 'object' && 'name' in t && typeof t.name === 'string') {
-          return t.name
-        }
-        return ''
-      })
-      .filter(name => name && name.trim() !== '')
+    // 元のタグリストを取得（BookTag[]形式）
+    const originalTags = bookData.tags || []
 
     // 新しいタグ名リスト
     const newTagNames = tagNames.value.filter(Boolean)
 
-    // 削除されたタグ
-    const removedTags = originalTagNames.filter(tag => !newTagNames.includes(tag))
+    // 削除されたタグ（元のタグから新しいタグ名リストに含まれないもの）
+    const removedTags = originalTags.filter(tag => !newTagNames.includes(tag.name))
 
-    // 追加されたタグ
-    const addedTags = newTagNames.filter(tag => !originalTagNames.includes(tag))
+    // 追加されたタグ（新しいタグ名リストから元のタグ名に含まれないもの）
+    const originalTagNames = originalTags.map(t => t.name)
+    const addedTagNames = newTagNames.filter(tagName => !originalTagNames.includes(tagName))
 
-    // 削除処理
-    for (const tagName of removedTags) {
-      const { error } = await apiClient.DELETE('/api/books/tag', {
-        body: {
-          uuids: [bookData.uuid!],
-          name: tagName
+    // 削除処理 - 新API: DELETE /api/books/{uuid}/tags/{tag_id}
+    for (const tag of removedTags) {
+      const { error } = await apiClient.DELETE('/api/books/{uuid}/tags/{tag_id}', {
+        params: {
+          path: {
+            uuid: bookData.uuid!,
+            tag_id: tag.id
+          }
         }
       })
       if (error) throw error
     }
 
-    // 追加処理
-    for (const tagName of addedTags) {
-      const { error } = await apiClient.POST('/api/books/tag', {
+    // 追加処理 - 新API: POST /api/books/{uuid}/tags
+    for (const tagName of addedTagNames) {
+      const { error } = await apiClient.POST('/api/books/{uuid}/tags', {
+        params: {
+          path: { uuid: bookData.uuid! }
+        },
         body: {
-          uuids: [bookData.uuid!],
           name: tagName
         }
       })

@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-02-10T11:09:10.671195+00:00",
-  "task_count": 42,
-  "total_cost": 25.0774,
+  "updated_at": "2026-02-10T16:36:48.121425+00:00",
+  "task_count": 46,
+  "total_cost": 26.3563,
   "tasks": [
     {
       "id": "1770568553080",
@@ -504,6 +504,54 @@
       "tokens_out": 3110,
       "cache_writes": 27935,
       "cache_reads": 28880,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770729665274",
+      "date": "2026-02-10 13:21:05",
+      "title": "src/api.d.tsが更新されました。\n動作を確認せよ。",
+      "cost": 0.2961,
+      "tokens_in": 90,
+      "tokens_out": 3971,
+      "cache_writes": 43010,
+      "cache_reads": 249777,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770739542550",
+      "date": "2026-02-10 16:05:42",
+      "title": "API側に大きなリファクタリングがあったためsrc/api.d.tsにも差分が多く発生しています。修正対応し、各種チェックを実行してください。",
+      "cost": 0.229,
+      "tokens_in": 110,
+      "tokens_out": 4506,
+      "cache_writes": 26246,
+      "cache_reads": 208894,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770739927374",
+      "date": "2026-02-10 16:12:07",
+      "title": "本のタグを変更するエンドポイントが間違っています。修正してください。",
+      "cost": 0.2151,
+      "tokens_in": 60,
+      "tokens_out": 4077,
+      "cache_writes": 34106,
+      "cache_reads": 86385,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770740738649",
+      "date": "2026-02-10 16:25:38",
+      "title": "API側でタグに関する実装が大きく変わりました。src/api.d.tsを更新して、実装を変更してください。",
+      "cost": 0.5387,
+      "tokens_in": 110,
+      "tokens_out": 7529,
+      "cache_writes": 78344,
+      "cache_reads": 438982,
       "model": "claude-sonnet-4-5-20250929",
       "cline_version": "3.57.1"
     }

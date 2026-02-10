@@ -248,20 +248,65 @@ export interface paths {
         patch: operations["patch_media_library_media_library_patch"];
         trace?: never;
     };
-    "/api/books/tag": {
+    "/api/books/{uuid}/tags": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** List Tags */
-        get: operations["list_tags_api_books_tag_get"];
+        /**
+         * Get Book Tags
+         * @description 指定した書籍のタグ一覧を取得する
+         */
+        get: operations["get_book_tags_api_books__uuid__tags_get"];
         put?: never;
-        /** Add Book Tags */
-        post: operations["add_book_tags_api_books_tag_post"];
-        /** Remove Book Tags */
-        delete: operations["remove_book_tags_api_books_tag_delete"];
+        /**
+         * Add Book Tag
+         * @description 指定した書籍にタグを追加する
+         */
+        post: operations["add_book_tag_api_books__uuid__tags_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/books/{uuid}/tags/{tag_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Book Tag
+         * @description 指定した書籍から指定したタグを削除する（ボディなし）
+         */
+        delete: operations["remove_book_tag_api_books__uuid__tags__tag_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Tags
+         * @description ユーザーが所有する書籍に関連付けられているタグの一覧を取得する
+         */
+        get: operations["list_tags_api_tags_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -516,13 +561,6 @@ export interface components {
             /** Name */
             name: string;
         };
-        /** BookTagBase */
-        BookTagBase: {
-            /** Uuids */
-            uuids: string[];
-            /** Name */
-            name: string;
-        };
         /** BookUserDataBase */
         BookUserDataBase: {
             /** Lastopendate */
@@ -585,6 +623,14 @@ export interface components {
             authorId: number;
             /** Isfavorite */
             isFavorite: boolean;
+        };
+        /**
+         * TagCreate
+         * @description タグ作成スキーマ
+         */
+        TagCreate: {
+            /** Name */
+            name: string;
         };
         /** TokenRFC6749Response */
         TokenRFC6749Response: {
@@ -1104,7 +1150,109 @@ export interface operations {
             };
         };
     };
-    list_tags_api_books_tag_get: {
+    get_book_tags_api_books__uuid__tags_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 書籍UUID */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_book_tag_api_books__uuid__tags_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 書籍UUID */
+                uuid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["TagCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_book_tag_api_books__uuid__tags__tag_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 書籍UUID */
+                uuid: string;
+                /** @description タグID */
+                tag_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_tags_api_tags_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -1120,72 +1268,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
-                };
-            };
-        };
-    };
-    add_book_tags_api_books_tag_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BookTagBase"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    remove_book_tags_api_books_tag_delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["BookTagBase"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
