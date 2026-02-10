@@ -1,13 +1,13 @@
 """全テーブル初期化
 
 Revision ID: 428705209e04
-Revises: 
+Revises:
 Create Date: 2021-12-24 14:16:27.192517
 
 """
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '428705209e04'
