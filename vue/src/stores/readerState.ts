@@ -16,6 +16,14 @@ interface SearchQuery {
   titleLike: string | null
   sortKey?: string
   sortDesc?: boolean
+  // 新規追加パラメータ
+  fileNameLike?: string | null
+  cached?: boolean | null
+  authorIsFavorite?: boolean | null
+  seriesId?: string | null
+  tag?: string | null
+  state?: string | null
+  uuid?: string | null
 }
 
 type OpenBook = Partial<BookBase> & Pick<BookBase, 'userData'>
@@ -122,6 +130,14 @@ export const useReaderStateStore = defineStore('readerState', {
               offset: query.offset,
               sortKey: query.sortKey,
               sortDesc: query.sortDesc,
+              // 新規追加パラメータ
+              fileNameLike: query.fileNameLike || undefined,
+              cached: query.cached ?? undefined,
+              authorIsFavorite: query.authorIsFavorite ?? undefined,
+              seriesId: query.seriesId || undefined,
+              tag: query.tag || undefined,
+              state: query.state || undefined,
+              uuid: query.uuid || undefined,
             }
           }
         })
