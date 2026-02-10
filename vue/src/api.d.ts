@@ -864,6 +864,7 @@ export interface operations {
                 fileNameLike?: string | null;
                 cached?: boolean | null;
                 authorLike?: string | null;
+                authorIsFavorite?: boolean | null;
                 titleLike?: string | null;
                 fullText?: string | null;
                 rate?: number | null;

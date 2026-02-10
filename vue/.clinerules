@@ -1,5 +1,10 @@
 # Vue フロントエンド Cline Rules
 
+必要に応じてmemorybankを参照し、タスクが完了した際に適切に更新せよ。
+
+Vue ディレクトリ固有のメモリーバンクは `memory-bank/` に配置。
+プロジェクト全体のメモリーバンクは `../memory-bank/` を参照。
+
 ## 重要: プロジェクト全体のルールを参照
 
 このファイルは `vue/` ディレクトリ固有の補足ルールを記載しています。
@@ -21,6 +26,12 @@
 - **現在の作業ディレクトリ**: `/workspaces/hinagiku-viewer/vue`
 - このディレクトリでVue 3フロントエンドの開発を行う
 
+### 開発時の注意
+
+- 動作確認は型チェックとbuildを必ず行うこと、また開発サーバの起動は不要である
+- APIの変更があるとときは、npx openapi-typescript /workspaces/hinagiku-viewer/api/openapi.json -o ./src/api.d.tsを実行し、型定義を更新すること
+- 作業が完了したら適切にコミットメッセージを作成し確認を取り、コミットすること
+
 ### 開発サーバー起動
 ```bash
 pnpm dev
@@ -38,7 +49,3 @@ pnpm dev
 4. **Axiosは完全排除済み** — 新規コードでは絶対に使用しないこと
 5. **通知は `usePushNotice()` composable を使用**
 6. **カバー画像URLは `useGetCoverURL()` composable を使用**
-
-### メモリーバンク
-Vue ディレクトリ固有のメモリーバンクは `memory-bank/` に配置。
-プロジェクト全体のメモリーバンクは `../memory-bank/` を参照。

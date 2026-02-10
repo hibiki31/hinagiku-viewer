@@ -325,6 +325,22 @@
             }
           },
           {
+            "name": "authorIsFavorite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorisfavorite"
+            }
+          },
+          {
             "name": "titleLike",
             "in": "query",
             "required": false,
