@@ -105,7 +105,8 @@ def book_import(send_book, user_model, db):
         is_import = False
 
     # サムネイルの作成とページ数取得
-    pre_model.page = make_thumbnail(send_book, pre_model.uuid)
+    page_len, _ahash, _phash, _dhash = make_thumbnail(send_book, pre_model.uuid, db)
+    pre_model.page = page_len
 
     if not (library_model := db.query(LibraryModel).filter(and_(LibraryModel.name==pre_model.library,LibraryModel.user_id==user_model.id)).one_or_none()):
         library_model = LibraryModel(name=pre_model.library, user_id=user_model.id)

@@ -7,10 +7,12 @@ from time import sleep, time
 
 from fastapi import HTTPException
 from PIL import Image, ImageFile
+from sqlalchemy.orm import Session
 
 from books.models import *
 from mixins.log import setup_logger
 from settings import DATA_ROOT
+from system.utility import get_setting
 
 logger = setup_logger(__name__)
 
@@ -91,7 +93,7 @@ def is_copying(file_path):
     return True
 
 
-def make_thumbnail(send_book, book_uuid):
+def make_thumbnail(send_book, book_uuid, db: Session):
     """
     サムネイルの作成とページ数の取得
     マルチハッシュ（ahash, phash, dhash）も計算して返す
@@ -99,14 +101,36 @@ def make_thumbnail(send_book, book_uuid):
     Args:
         send_book: Zipファイルのパス
         book_uuid: 書籍UUID
+        db: DBセッション
 
     Returns:
         tuple: (page_len, ahash, phash, dhash)
     """
     import imagehash
 
+    # 除外ファイル名リストを取得
+    exclude_filenames_str = get_setting(db, 'thumbnail_exclude_filenames', default='')
+    exclude_filenames = [name.strip() for name in exclude_filenames_str.split(',') if name.strip()]
+
     with zipfile.ZipFile(send_book) as existing_zip:
         zip_content = [p for p in existing_zip.namelist() if Path(p).suffix.lower() in [".png", ".jpeg", ".jpg"]]
+
+        # 除外ファイルをフィルタリング
+        if exclude_filenames:
+            filtered_content = []
+            for file_path in zip_content:
+                file_name = Path(file_path).name
+                # ファイル名に除外文字列が含まれていないかチェック
+                should_exclude = False
+                for exclude_name in exclude_filenames:
+                    if exclude_name in file_name:
+                        should_exclude = True
+                        logger.debug(f"サムネイル候補から除外: {file_name} (パターン: {exclude_name})")
+                        break
+                if not should_exclude:
+                    filtered_content.append(file_path)
+            zip_content = filtered_content
+
         # ページ数取得
         page_len = len(zip_content)
         zip_content.sort()

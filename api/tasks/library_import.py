@@ -113,7 +113,7 @@ def book_import(send_book, user_model, db):
         is_import = False
 
     # サムネイルの作成、ページ数取得、マルチハッシュ計算
-    page_len, ahash, phash, dhash = make_thumbnail(send_book, pre_model.uuid)
+    page_len, ahash, phash, dhash = make_thumbnail(send_book, pre_model.uuid, db)
     pre_model.page = page_len
     pre_model.ahash = ahash
     pre_model.phash = phash
