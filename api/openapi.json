@@ -1365,13 +1365,11 @@
           },
           "isFavorite": {
             "type": "boolean",
-            "title": "Isfavorite"
+            "title": "Isfavorite",
+            "default": false
           }
         },
         "type": "object",
-        "required": [
-          "isFavorite"
-        ],
         "title": "AuthorGet"
       },
       "Body_login_for_access_token_api_auth_post": {
@@ -1497,14 +1495,14 @@
           },
           "isFavorite": {
             "type": "boolean",
-            "title": "Isfavorite"
+            "title": "Isfavorite",
+            "default": false
           }
         },
         "type": "object",
         "required": [
           "id",
-          "name",
-          "isFavorite"
+          "name"
         ],
         "title": "BookAuthors"
       },

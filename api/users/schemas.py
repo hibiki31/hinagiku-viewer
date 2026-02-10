@@ -1,12 +1,15 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from mixins.schema import BaseSchema
 
 
-# RFCでスネークケース指定あるやんけ
+# RFCでスネークケース指定があるため、こちらは変換しない
 class TokenRFC6749Response(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
     access_token: str
     token_type: str
 

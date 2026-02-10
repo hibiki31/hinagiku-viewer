@@ -2,6 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, List, Literal, Optional
 
+from pydantic import Field
 from mixins.schema import BaseSchema
 
 
@@ -23,7 +24,8 @@ class BookBase(BaseSchema):
     title: Optional[str] = None
     authors: Any
     publisher: Any
-    is_shered: bool
+    # データベースのタイポをPython側では正しく扱う（OpenAPIではタイポを維持）
+    is_shared: bool = Field(..., alias="isShered")
     library_id: int
     genre_id: Optional[str] = None
     tags: Optional[list] = None
@@ -44,7 +46,7 @@ class BookGet(BaseSchema):
 
 class BookPut(BaseSchema):
     uuids: List[str]
-    series_no: Optional[int] = None
+    series_number: Optional[int] = Field(default=None, alias="seriesNo")
     series: Optional[str] = None
     author: Optional[str] = None
     title: Optional[str] = None

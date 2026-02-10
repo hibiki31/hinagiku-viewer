@@ -2,6 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Literal, Optional
 
+from pydantic import Field
 from mixins.schema import BaseSchema
 
 
@@ -20,8 +21,8 @@ class BookUserMetaDataPatch(BaseSchema):
 
 class BookUserDataBase(BaseSchema):
     last_open_date: datetime | None = None
-    read_times:int | None = None
-    open_page:int | None = None
+    read_times: int | None = None
+    open_page: int | None = None
     rate: int | None = None
 
 
@@ -29,7 +30,7 @@ class BookAuthors(BaseSchema):
     id: int
     name: str
     description: str | None = None
-    is_favorite: bool
+    is_favorite: bool = False
 
 
 class BookTag(BaseSchema):
@@ -48,8 +49,9 @@ class BookBase(BaseSchema):
     title: str | None = None
     authors: List[BookAuthors]
     publisher: BookPublisher
-    is_shered: bool
-    chached: bool
+    # データベースのタイポをPython側では正しく扱う（OpenAPIではタイポを維持）
+    is_shared: bool = Field(..., alias="isShered")
+    cached: bool = Field(..., alias="chached")
     library_id: int
     genre_id: str | None = None
     tags: List[BookTag]
@@ -62,7 +64,6 @@ class BookBase(BaseSchema):
     user_data: BookUserDataBase
 
 
-
 class BookGet(BaseSchema):
     limit: int
     offset: int
@@ -72,7 +73,8 @@ class BookGet(BaseSchema):
 
 class BookPut(BaseSchema):
     uuids: List[str]
-    series_no: Optional[int] = None
+    # series_number -> seriesNo (numberではなくno)
+    series_number: Optional[int] = Field(default=None, alias="seriesNo")
     series: Optional[str] = None
     author: Optional[str] = None
     title: Optional[str] = None

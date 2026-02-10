@@ -6,7 +6,7 @@ from mixins.schema import BaseSchema
 class AuthorGet(BaseSchema):
     id: Optional[int] = None
     name: Optional[str] = None
-    is_favorite: bool
+    is_favorite: bool = False
 
 class BookAuthorPost(BaseSchema):
     author_id: Optional[int] = None
