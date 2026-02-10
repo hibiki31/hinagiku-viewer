@@ -1120,6 +1120,7 @@
           "Author"
         ],
         "summary": "List Authors",
+        "description": "著者一覧を取得する\n\n- name: 完全一致検索\n- name_like: 部分一致検索\n- is_favorite: お気に入りフィルタ（True/False/None）",
         "operationId": "list_authors_api_authors_get",
         "security": [
           {
@@ -1127,15 +1128,6 @@
           }
         ],
         "parameters": [
-          {
-            "name": "isFavorite",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "boolean",
-              "title": "Isfavorite"
-            }
-          },
           {
             "name": "name",
             "in": "query",
@@ -1166,6 +1158,22 @@
                 }
               ],
               "title": "Namelike"
+            }
+          },
+          {
+            "name": "isFavorite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Isfavorite"
             }
           }
         ],
@@ -1201,7 +1209,9 @@
           "Author"
         ],
         "summary": "Update Author",
+        "description": "著者情報を更新する（旧形式・非推奨）\n\nこのエンドポイントは後方互換性のために残されています。\n新規実装では PATCH /api/authors/{author_id} を使用してください。",
         "operationId": "update_author_api_authors_patch",
+        "deprecated": true,
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1239,12 +1249,161 @@
         }
       }
     },
+    "/api/authors/{author_id}": {
+      "get": {
+        "tags": [
+          "Author"
+        ],
+        "summary": "Get Author",
+        "description": "著者の詳細情報を取得する\n\n- author_id: 著者ID",
+        "operationId": "get_author_api_authors__author_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "author_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Author Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Author"
+        ],
+        "summary": "Update Author By Id",
+        "description": "著者情報を更新する\n\n- name: 著者名\n- is_favorite: お気に入り設定\n- description: 説明",
+        "operationId": "update_author_by_id_api_authors__author_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "author_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Author Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthorUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Author"
+        ],
+        "summary": "Delete Author",
+        "description": "著者を削除する\n\n書籍に紐づいている著者は削除できません。",
+        "operationId": "delete_author_api_authors__author_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "author_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Author Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/books/{book_uuid}/authors": {
       "post": {
         "tags": [
           "Author"
         ],
         "summary": "Add Book Author",
+        "description": "書籍に著者を追加する\n\n- author_id: 既存の著者IDを指定\n- author_name: 著者名を指定（存在しない場合は新規作成）",
         "operationId": "add_book_author_api_books__book_uuid__authors_post",
         "security": [
           {
@@ -1298,6 +1457,7 @@
           "Author"
         ],
         "summary": "Remove Book Author",
+        "description": "書籍から著者を削除する\n\n- author_id: 削除する著者ID",
         "operationId": "remove_book_author_api_books__book_uuid__authors_delete",
         "security": [
           {
@@ -1849,9 +2009,63 @@
         ],
         "title": "AuthValidateResponse"
       },
+      "AuthorDetail": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "isFavorite": {
+            "type": "boolean",
+            "title": "Isfavorite"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "bookCount": {
+            "type": "integer",
+            "title": "Bookcount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "isFavorite",
+          "description",
+          "bookCount"
+        ],
+        "title": "AuthorDetail",
+        "description": "著者詳細レスポンス"
+      },
       "AuthorGet": {
         "properties": {
           "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "isFavorite": {
+            "type": "boolean",
+            "title": "Isfavorite",
+            "default": false
+          },
+          "bookCount": {
             "anyOf": [
               {
                 "type": "integer"
@@ -1860,8 +2074,30 @@
                 "type": "null"
               }
             ],
-            "title": "Id"
+            "title": "Bookcount"
           },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "AuthorGet",
+        "description": "著者取得レスポンス"
+      },
+      "AuthorUpdate": {
+        "properties": {
           "name": {
             "anyOf": [
               {
@@ -1874,13 +2110,31 @@
             "title": "Name"
           },
           "isFavorite": {
-            "type": "boolean",
-            "title": "Isfavorite",
-            "default": false
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Isfavorite"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
           }
         },
         "type": "object",
-        "title": "AuthorGet"
+        "title": "AuthorUpdate",
+        "description": "著者更新リクエスト"
       },
       "Body_login_for_access_token_api_auth_post": {
         "properties": {
@@ -1952,7 +2206,8 @@
         "required": [
           "authorId"
         ],
-        "title": "BookAuthorDelete"
+        "title": "BookAuthorDelete",
+        "description": "書籍から著者削除リクエスト"
       },
       "BookAuthorPost": {
         "properties": {
@@ -1980,7 +2235,8 @@
           }
         },
         "type": "object",
-        "title": "BookAuthorPost"
+        "title": "BookAuthorPost",
+        "description": "書籍への著者追加リクエスト"
       },
       "BookAuthors": {
         "properties": {
@@ -2511,7 +2767,8 @@
           "authorId",
           "isFavorite"
         ],
-        "title": "PatchAuthor"
+        "title": "PatchAuthor",
+        "description": "著者更新リクエスト（旧形式・非推奨）"
       },
       "SystemSettingBulkUpdateSchema": {
         "properties": {

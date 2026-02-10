@@ -339,15 +339,65 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Authors */
+        /**
+         * List Authors
+         * @description 著者一覧を取得する
+         *
+         *     - name: 完全一致検索
+         *     - name_like: 部分一致検索
+         *     - is_favorite: お気に入りフィルタ（True/False/None）
+         */
         get: operations["list_authors_api_authors_get"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /** Update Author */
+        /**
+         * Update Author
+         * @deprecated
+         * @description 著者情報を更新する（旧形式・非推奨）
+         *
+         *     このエンドポイントは後方互換性のために残されています。
+         *     新規実装では PATCH /api/authors/{author_id} を使用してください。
+         */
         patch: operations["update_author_api_authors_patch"];
+        trace?: never;
+    };
+    "/api/authors/{author_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Author
+         * @description 著者の詳細情報を取得する
+         *
+         *     - author_id: 著者ID
+         */
+        get: operations["get_author_api_authors__author_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Author
+         * @description 著者を削除する
+         *
+         *     書籍に紐づいている著者は削除できません。
+         */
+        delete: operations["delete_author_api_authors__author_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Author By Id
+         * @description 著者情報を更新する
+         *
+         *     - name: 著者名
+         *     - is_favorite: お気に入り設定
+         *     - description: 説明
+         */
+        patch: operations["update_author_by_id_api_authors__author_id__patch"];
         trace?: never;
     };
     "/api/books/{book_uuid}/authors": {
@@ -359,9 +409,20 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Add Book Author */
+        /**
+         * Add Book Author
+         * @description 書籍に著者を追加する
+         *
+         *     - author_id: 既存の著者IDを指定
+         *     - author_name: 著者名を指定（存在しない場合は新規作成）
+         */
         post: operations["add_book_author_api_books__book_uuid__authors_post"];
-        /** Remove Book Author */
+        /**
+         * Remove Book Author
+         * @description 書籍から著者を削除する
+         *
+         *     - author_id: 削除する著者ID
+         */
         delete: operations["remove_book_author_api_books__book_uuid__authors_delete"];
         options?: never;
         head?: never;
@@ -551,17 +612,52 @@ export interface components {
             /** Is Admin */
             is_admin: boolean;
         };
-        /** AuthorGet */
+        /**
+         * AuthorDetail
+         * @description 著者詳細レスポンス
+         */
+        AuthorDetail: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Isfavorite */
+            isFavorite: boolean;
+            /** Description */
+            description: string | null;
+            /** Bookcount */
+            bookCount: number;
+        };
+        /**
+         * AuthorGet
+         * @description 著者取得レスポンス
+         */
         AuthorGet: {
             /** Id */
-            id?: number | null;
+            id: number;
             /** Name */
-            name?: string | null;
+            name: string;
             /**
              * Isfavorite
              * @default false
              */
             isFavorite: boolean;
+            /** Bookcount */
+            bookCount?: number | null;
+            /** Description */
+            description?: string | null;
+        };
+        /**
+         * AuthorUpdate
+         * @description 著者更新リクエスト
+         */
+        AuthorUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Isfavorite */
+            isFavorite?: boolean | null;
+            /** Description */
+            description?: string | null;
         };
         /** Body_login_for_access_token_api_auth_post */
         Body_login_for_access_token_api_auth_post: {
@@ -587,12 +683,18 @@ export interface components {
              */
             client_secret?: string | null;
         };
-        /** BookAuthorDelete */
+        /**
+         * BookAuthorDelete
+         * @description 書籍から著者削除リクエスト
+         */
         BookAuthorDelete: {
             /** Authorid */
             authorId: number;
         };
-        /** BookAuthorPost */
+        /**
+         * BookAuthorPost
+         * @description 書籍への著者追加リクエスト
+         */
         BookAuthorPost: {
             /** Authorid */
             authorId?: number | null;
@@ -764,7 +866,10 @@ export interface components {
          * @enum {string}
          */
         LibraryPatchEnum: "export" | "load" | "export_uuid" | "fixmetadata" | "sim_all" | "rule" | "thumbnail_recreate";
-        /** PatchAuthor */
+        /**
+         * PatchAuthor
+         * @description 著者更新リクエスト（旧形式・非推奨）
+         */
         PatchAuthor: {
             /** Authorid */
             authorId: number;
@@ -1533,10 +1638,10 @@ export interface operations {
     };
     list_authors_api_authors_get: {
         parameters: {
-            query: {
-                isFavorite: boolean;
+            query?: {
                 name?: string | null;
                 nameLike?: string | null;
+                isFavorite?: boolean | null;
             };
             header?: never;
             path?: never;
@@ -1584,6 +1689,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_author_api_authors__author_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                author_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_author_api_authors__author_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                author_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_author_by_id_api_authors__author_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                author_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthorUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorDetail"];
                 };
             };
             /** @description Validation Error */

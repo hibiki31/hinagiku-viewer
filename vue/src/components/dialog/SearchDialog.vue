@@ -106,17 +106,40 @@
 
           <!-- 著者タブ -->
           <v-window-item value="author">
-            <v-text-field
+            <v-autocomplete
               v-model="searchQuery.authorLike"
+              :items="authorSuggestions"
+              :loading="authorLoading"
+              :search="authorSearchInput"
               spellcheck="false"
               label="著者名検索"
-              placeholder="著者名に含まれる文字列"
+              placeholder="著者名を入力してください"
               prepend-inner-icon="mdi-account-search"
               variant="outlined"
               clearable
               hide-details="auto"
               class="mb-4"
-            />
+              item-title="name"
+              item-value="name"
+              no-filter
+              @update:search="onAuthorSearchInput"
+            >
+              <template #item="{ props, item }">
+                <v-list-item v-bind="props">
+                  <template #prepend>
+                    <v-icon v-if="item.raw.isFavorite" color="pink">mdi-heart</v-icon>
+                    <v-icon v-else>mdi-account</v-icon>
+                  </template>
+                </v-list-item>
+              </template>
+              <template #no-data>
+                <v-list-item>
+                  <v-list-item-title class="text-grey">
+                    {{ authorSearchInput ? '該当する著者が見つかりません' : '著者名を入力してください' }}
+                  </v-list-item-title>
+                </v-list-item>
+              </template>
+            </v-autocomplete>
 
             <v-divider class="my-4" />
 
@@ -294,6 +317,9 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useReaderStateStore } from '@/stores/readerState'
 import { apiClient } from '@/func/client'
+import type { components } from '@/api'
+
+type AuthorGet = components['schemas']['AuthorGet']
 
 const readerStateStore = useReaderStateStore()
 
@@ -304,6 +330,10 @@ const emit = defineEmits<{
 const dialogState = ref(false)
 const activeTab = ref('basic')
 const availableTags = ref<string[]>([])
+const authorSuggestions = ref<AuthorGet[]>([])
+const authorLoading = ref(false)
+const authorSearchInput = ref<string | undefined>(undefined)
+let authorSearchTimeout: ReturnType<typeof setTimeout> | null = null
 
 interface ExtendedSearchQuery {
   // 既存のパラメータ
@@ -407,6 +437,55 @@ const loadTags = async () => {
     }
   } catch (error) {
     console.error('タグ取得エラー:', error)
+  }
+}
+
+const onAuthorSearchInput = (value: string | undefined) => {
+  authorSearchInput.value = value
+
+  // デバウンス処理
+  if (authorSearchTimeout) {
+    clearTimeout(authorSearchTimeout)
+  }
+
+  // 入力が空の場合はクリア
+  if (!value || value.trim().length === 0) {
+    authorSuggestions.value = []
+    return
+  }
+
+  // 300ms後にAPI呼び出し
+  authorSearchTimeout = setTimeout(async () => {
+    await loadAuthorSuggestions(value)
+  }, 300)
+}
+
+const loadAuthorSuggestions = async (searchTerm: string) => {
+  if (!searchTerm || searchTerm.trim().length === 0) {
+    authorSuggestions.value = []
+    return
+  }
+
+  try {
+    authorLoading.value = true
+    const { data, error } = await apiClient.GET('/api/authors', {
+      params: {
+        query: {
+          isFavorite: false,
+          nameLike: searchTerm
+        }
+      }
+    })
+
+    if (error) throw error
+    if (data) {
+      authorSuggestions.value = data as AuthorGet[]
+    }
+  } catch (error) {
+    console.error('著者検索エラー:', error)
+    authorSuggestions.value = []
+  } finally {
+    authorLoading.value = false
   }
 }
 
