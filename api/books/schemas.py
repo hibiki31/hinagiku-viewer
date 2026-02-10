@@ -3,6 +3,7 @@ from enum import Enum
 from typing import List, Literal, Optional
 
 from pydantic import Field
+
 from mixins.schema import BaseSchema
 
 
@@ -108,10 +109,10 @@ class LibraryPatch(BaseSchema):
 
 class BookSearchParams(BaseSchema):
     """書籍検索用クエリパラメータ
-    
+
     snake_caseで定義することでPython側の命名規則に従い、
     BaseSchemaのalias_generator=to_camelにより自動的にCamelCaseでAPIに公開される。
-    
+
     例:
         - file_name_like (Python) -> fileNameLike (API)
         - author_like (Python) -> authorLike (API)

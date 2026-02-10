@@ -855,13 +855,50 @@ const handlePublisherChange = async () => {
 
 const handleTagsChange = async () => {
   try {
-    const { error } = await apiClient.PUT('/api/books', {
-      body: {
-        uuids: [bookData.uuid!],
-        tags: tagNames.value.filter(Boolean)
-      }
-    })
-    if (error) throw error
+    // 元のタグ名リストを取得
+    const originalTagNames = (bookData.tags || [])
+      .map(t => {
+        if (typeof t === 'string') {
+          return t
+        }
+        if (t && typeof t === 'object' && 'name' in t && typeof t.name === 'string') {
+          return t.name
+        }
+        return ''
+      })
+      .filter(name => name && name.trim() !== '')
+
+    // 新しいタグ名リスト
+    const newTagNames = tagNames.value.filter(Boolean)
+
+    // 削除されたタグ
+    const removedTags = originalTagNames.filter(tag => !newTagNames.includes(tag))
+
+    // 追加されたタグ
+    const addedTags = newTagNames.filter(tag => !originalTagNames.includes(tag))
+
+    // 削除処理
+    for (const tagName of removedTags) {
+      const { error } = await apiClient.DELETE('/api/books/tag', {
+        body: {
+          uuids: [bookData.uuid!],
+          name: tagName
+        }
+      })
+      if (error) throw error
+    }
+
+    // 追加処理
+    for (const tagName of addedTags) {
+      const { error } = await apiClient.POST('/api/books/tag', {
+        body: {
+          uuids: [bookData.uuid!],
+          name: tagName
+        }
+      })
+      if (error) throw error
+    }
+
     pushNotice('タグを更新しました', 'success')
     emit('search')
   } catch {

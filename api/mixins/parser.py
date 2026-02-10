@@ -29,13 +29,13 @@ def old_parser(text):
 def parse_filename(text):
     """
     ファイル名から書籍メタデータをパースする
-    
+
     フォーマット: (出版社) [著者] タイトル.zip
     例: (Publisher) [Author] Title.zip
-    
+
     Args:
         text: パースするファイル名
-        
+
     Returns:
         ParseResult: パース結果
     """
@@ -53,10 +53,10 @@ def get_model_dict(model):
 def book_result_mapper(rows):
     """
     書籍クエリ結果をAPIレスポンス用に整形する
-    
+
     Args:
         rows: SQLAlchemyクエリ結果
-        
+
     Returns:
         list: 整形された結果リスト
     """

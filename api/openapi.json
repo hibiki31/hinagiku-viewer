@@ -865,103 +865,182 @@
         ]
       }
     },
-    "/api/books/tag": {
+    "/api/books/{uuid}/tags": {
+      "post": {
+        "tags": [
+          "Tag"
+        ],
+        "summary": "Add Book Tag",
+        "description": "指定した書籍にタグを追加する",
+        "operationId": "add_book_tag_api_books__uuid__tags_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "書籍UUID",
+              "title": "Uuid"
+            },
+            "description": "書籍UUID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Tag"
+        ],
+        "summary": "Get Book Tags",
+        "description": "指定した書籍のタグ一覧を取得する",
+        "operationId": "get_book_tags_api_books__uuid__tags_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "書籍UUID",
+              "title": "Uuid"
+            },
+            "description": "書籍UUID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/books/{uuid}/tags/{tag_id}": {
+      "delete": {
+        "tags": [
+          "Tag"
+        ],
+        "summary": "Remove Book Tag",
+        "description": "指定した書籍から指定したタグを削除する（ボディなし）",
+        "operationId": "remove_book_tag_api_books__uuid__tags__tag_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "書籍UUID",
+              "title": "Uuid"
+            },
+            "description": "書籍UUID"
+          },
+          {
+            "name": "tag_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "タグID",
+              "title": "Tag Id"
+            },
+            "description": "タグID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tags": {
       "get": {
         "tags": [
           "Tag"
         ],
         "summary": "List Tags",
-        "operationId": "list_tags_api_books_tag_get",
+        "description": "ユーザーが所有する書籍に関連付けられているタグの一覧を取得する",
+        "operationId": "list_tags_api_tags_get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {}
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      },
-      "post": {
-        "tags": [
-          "Tag"
-        ],
-        "summary": "Add Book Tags",
-        "operationId": "add_book_tags_api_books_tag_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BookTagBase"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      },
-      "delete": {
-        "tags": [
-          "Tag"
-        ],
-        "summary": "Remove Book Tags",
-        "operationId": "remove_book_tags_api_books_tag_delete",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BookTagBase"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
               }
             }
           }
@@ -1806,27 +1885,6 @@
         ],
         "title": "BookTag"
       },
-      "BookTagBase": {
-        "properties": {
-          "uuids": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Uuids"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          }
-        },
-        "type": "object",
-        "required": [
-          "uuids",
-          "name"
-        ],
-        "title": "BookTagBase"
-      },
       "BookUserDataBase": {
         "properties": {
           "lastOpenDate": {
@@ -2022,6 +2080,20 @@
           "isFavorite"
         ],
         "title": "PatchAuthor"
+      },
+      "TagCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "TagCreate",
+        "description": "タグ作成スキーマ"
       },
       "TokenRFC6749Response": {
         "properties": {

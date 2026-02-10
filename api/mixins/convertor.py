@@ -23,7 +23,7 @@ class DebugTimer:
     """デバッグ用のラップタイム計測クラス"""
     def __init__(self):
         self.time = time()
-    
+
     def lap(self, message, level='debug'):
         """ラップタイムを記録する"""
         now_time = time()
@@ -69,7 +69,7 @@ def is_copying(file_path):
     """
     ファイルがコピー中かどうかを確認する
     ファイルサイズの変更がなくなるまで待機する
-    
+
     Returns:
         bool: コピー中ならTrue
     """
@@ -95,11 +95,11 @@ def make_thumbnail(send_book, book_uuid):
     """
     サムネイルの作成とページ数の取得
     マルチハッシュ（ahash, phash, dhash）も計算して返す
-    
+
     Args:
         send_book: Zipファイルのパス
         book_uuid: 書籍UUID
-        
+
     Returns:
         tuple: (page_len, ahash, phash, dhash)
     """
