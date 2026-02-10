@@ -10,6 +10,7 @@ from tasks.library_rule import main as task_library_rule
 from tasks.library_sim import main as task_library_sim
 from tasks.library_sim_lsh import main as task_library_sim_lsh
 from tasks.media_cache import main as task_media_cache
+from tasks.thumbnail_recreate import main as task_thumbnail_recreate
 
 logger = setup_logger(__name__)
 
@@ -85,3 +86,12 @@ if __name__ == "__main__":
             uuid=uuid
         )
         logger.info('ワーカでrule適応完了')
+
+    if args[1] == "thumbnail_recreate":
+        uuid = args[2] if len(args) == 3 else None
+        logger.info('ワーカでサムネイル再作成開始')
+        task_thumbnail_recreate(
+            db=db,
+            book_uuid=uuid
+        )
+        logger.info('ワーカでサムネイル再作成完了')

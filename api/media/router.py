@@ -188,4 +188,7 @@ def patch_media_library(
     elif model.state == "rule":
         library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "rule"]))
 
+    elif model.state == "thumbnail_recreate":
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "thumbnail_recreate"]))
+
     return { "status": "ok" }

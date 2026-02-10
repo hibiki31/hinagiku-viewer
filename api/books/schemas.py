@@ -102,6 +102,7 @@ class LibraryPatchEnum(str, Enum):
     fixmetadata = "fixmetadata"
     sim_all = "sim_all"
     rule = "rule"
+    thumbnail_recreate = "thumbnail_recreate"
 
 class LibraryPatch(BaseSchema):
     state: LibraryPatchEnum = LibraryPatchEnum.load
