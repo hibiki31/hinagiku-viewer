@@ -1,6 +1,7 @@
 import sys
 import uuid
 from multiprocessing import Pipe, Pool, Process
+from typing import Optional
 
 import imagehash
 from PIL import Image
@@ -14,7 +15,7 @@ from settings import CONVERT_THREAD, DATA_ROOT
 logger = setup_logger(__name__)
 
 
-def main(db: Session, mode):
+def main(db: Session, mode, task_id: Optional[str] = None):
     ## multithreadでハッシュを取得する、取得済みは基本スキップ
     if mode == "all-force":
         books = db.query(BookModel.uuid).all()

@@ -49,6 +49,20 @@
             </v-card-title>
             <v-card-text>
               <v-list>
+                <v-list-item @click="router.push('/tasks')">
+                  <v-list-item-title>タスク実行状況</v-list-item-title>
+                  <v-list-item-subtitle>
+                    実行中のタスクや過去のタスク履歴を確認できます。
+                  </v-list-item-subtitle>
+                  <template #append>
+                    <v-btn
+                      color="primary"
+                      icon="mdi-chevron-right"
+                      variant="text"
+                    ></v-btn>
+                  </template>
+                </v-list-item>
+                <v-divider />
                 <v-list-item>
                   <v-list-item-title>サムネイル一括再作成</v-list-item-title>
                   <v-list-item-subtitle>

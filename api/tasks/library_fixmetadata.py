@@ -3,6 +3,7 @@ import json
 import shutil
 import uuid
 from pathlib import Path
+from typing import Optional
 
 from sqlalchemy import and_
 
@@ -45,7 +46,7 @@ class PreBookClass:
         self.series_no = None
         self.rate = None
 
-def main(db, user_id):
+def main(db, user_id, task_id: Optional[str] = None):
     db.query(UserModel).filter(UserModel.id == user_id).one()
 
     book_models = db.query(BookModel).all()

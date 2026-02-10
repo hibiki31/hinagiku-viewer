@@ -8,7 +8,7 @@ from mixins.log import setup_logger
 logger = setup_logger(__name__)
 
 
-def main(db: Session, uuid: Optional[str]=None):
+def main(db: Session, uuid: Optional[str] = None, task_id: Optional[str] = None):
     pass
 
 

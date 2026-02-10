@@ -472,6 +472,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * タスク一覧取得
+         * @description タスク一覧を取得する
+         *
+         *     Args:
+         *         status: ステータスフィルタ (pending, running, completed, failed)
+         *         task_type: タスク種別フィルタ (load, sim_all, export等)
+         *         limit: 取得件数
+         *         offset: オフセット
+         */
+        get: operations["list_tasks_api_tasks_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tasks/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * タスク詳細取得
+         * @description タスクの詳細情報を取得する
+         *
+         *     Args:
+         *         task_id: タスクID
+         */
+        get: operations["get_task_api_tasks__task_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * タスクキャンセル（未実装）
+         * @description タスクをキャンセルする（将来実装予定）
+         *
+         *     現在はステータスをcancelledに変更するのみで、
+         *     実際のプロセス停止は未実装。
+         */
+        delete: operations["cancel_task_api_tasks__task_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/system/settings": {
         parameters: {
             query?: never;
@@ -963,6 +1019,55 @@ export interface components {
         TagCreate: {
             /** Name */
             name: string;
+        };
+        /**
+         * TaskListResponse
+         * @description タスク一覧レスポンス
+         */
+        TaskListResponse: {
+            /** Count */
+            count: number;
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Rows */
+            rows: components["schemas"]["TaskSchema"][];
+        };
+        /**
+         * TaskSchema
+         * @description タスク詳細スキーマ
+         */
+        TaskSchema: {
+            /** Id */
+            id: string;
+            /** Tasktype */
+            taskType: string;
+            /** Status */
+            status: string;
+            /** Progress */
+            progress: number;
+            /** Currentitem */
+            currentItem: number;
+            /** Totalitems */
+            totalItems?: number | null;
+            /** Currentstep */
+            currentStep?: string | null;
+            /** Message */
+            message?: string | null;
+            /** Errormessage */
+            errorMessage?: string | null;
+            /**
+             * Createdat
+             * Format: date-time
+             */
+            createdAt: string;
+            /** Startedat */
+            startedAt?: string | null;
+            /** Completedat */
+            completedAt?: string | null;
+            /** Userid */
+            userId?: string | null;
         };
         /** TokenRFC6749Response */
         TokenRFC6749Response: {
@@ -1951,6 +2056,102 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Version"];
+                };
+            };
+        };
+    };
+    list_tasks_api_tasks_get: {
+        parameters: {
+            query?: {
+                status?: string | null;
+                task_type?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_task_api_tasks__task_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskSchema"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_task_api_tasks__task_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

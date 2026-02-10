@@ -1,6 +1,7 @@
 import json
 import shutil
 from pathlib import Path
+from typing import Optional
 
 from books.models import BookModel
 from mixins.log import setup_logger
@@ -11,7 +12,7 @@ logger = setup_logger(__name__)
 
 
 
-def main(db, export_uuid):
+def main(db, export_uuid, task_id: Optional[str] = None):
     Path(f"{DATA_ROOT}book_export/").mkdir(parents=True, exist_ok=True)
     for book_model in db.query(BookModel).all():
         book_model:BookModel
