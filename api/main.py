@@ -1,3 +1,7 @@
+import warnings
+# Pydantic v2のalias_generator関連の警告を抑制
+warnings.filterwarnings("ignore", category=UserWarning, module="pydantic._internal._generate_schema")
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware

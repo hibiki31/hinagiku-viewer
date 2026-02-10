@@ -17,7 +17,6 @@ logger = setup_logger(__name__)
 
 
 def main(db, export_uuid):
-    print(export_uuid)
     os.makedirs(f"{DATA_ROOT}book_export/", exist_ok=True)
     for book_model in db.query(BookModel).all():
         book_model:BookModel
@@ -76,8 +75,6 @@ def task_export(book_model, export_uuid):
         file_name = book_model.import_file_name
 
     os.makedirs(export_dir, exist_ok=True)
-
-    print(export_uuid, file_name)
 
     try:
         shutil.move(export_file, export_dir+file_name)

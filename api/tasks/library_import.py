@@ -103,8 +103,12 @@ def book_import(send_book, user_model, db):
         pre_model.import_file_name = os.path.basename(send_book)
         is_import = False
     
-    # サムネイルの作成とページ数取得
-    pre_model.page = make_thum(send_book, pre_model.uuid)
+    # サムネイルの作成、ページ数取得、マルチハッシュ計算
+    page_len, ahash, phash, dhash = make_thum(send_book, pre_model.uuid)
+    pre_model.page = page_len
+    pre_model.ahash = ahash
+    pre_model.phash = phash
+    pre_model.dhash = dhash
     
     if not (library_model := db.query(LibraryModel).filter(and_(LibraryModel.name==pre_model.library,LibraryModel.user_id==user_model.id)).one_or_none()):
         library_model = LibraryModel(name=pre_model.library, user_id=user_model.id)
@@ -140,11 +144,11 @@ def book_import(send_book, user_model, db):
     elif (pre_model.series != None):
         pre_model.series_model = series_model.id
 
-    ahash = str(imagehash.average_hash(PIL.Image.open(f'{DATA_ROOT}/book_thum/{pre_model.uuid}.jpg'), hash_size=16))
-
     model = BookModel(
         sha1 = pre_model.sha1,
-        ahash = ahash,
+        ahash = pre_model.ahash,
+        phash = pre_model.phash,
+        dhash = pre_model.dhash,
         uuid = pre_model.uuid,
         user_id = user_model.id,
         title = pre_model.title,

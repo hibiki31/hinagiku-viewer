@@ -1,15 +1,15 @@
 from mixins.schema import BaseSchema
-
+from typing import Optional
 
 
 class AuthorGet(BaseSchema):
-    id: int = None
-    name: str = None
+    id: Optional[int] = None
+    name: Optional[str] = None
     is_favorite: bool
 
 class BookAuthorPost(BaseSchema):
-    author_id: int = None
-    author_name: str = None
+    author_id: Optional[int] = None
+    author_name: Optional[str] = None
 
 class BookAuthorDelete(BaseSchema):
     author_id: int

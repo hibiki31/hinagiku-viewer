@@ -80,8 +80,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read Auth Validate */
-        get: operations["read_auth_validate_api_auth_validate_get"];
+        /** Validate Token */
+        get: operations["validate_token_api_auth_validate_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -90,7 +90,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/librarys": {
+    "/api/libraries": {
         parameters: {
             query?: never;
             header?: never;
@@ -98,7 +98,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get Api Library */
-        get: operations["get_api_library_api_librarys_get"];
+        get: operations["get_api_library_api_libraries_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -350,12 +350,21 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AuthValidateResponse */
+        AuthValidateResponse: {
+            /** Access Token */
+            access_token: string;
+            /** Token Type */
+            token_type: string;
+            /** Username */
+            username: string;
+        };
         /** AuthorGet */
         AuthorGet: {
             /** Id */
-            id?: number;
+            id?: number | null;
             /** Name */
-            name?: string;
+            name?: string | null;
             /** Isfavorite */
             isFavorite: boolean;
         };
@@ -365,7 +374,10 @@ export interface components {
             grant_type?: string | null;
             /** Username */
             username: string;
-            /** Password */
+            /**
+             * Password
+             * Format: password
+             */
             password: string;
             /**
              * Scope
@@ -374,7 +386,10 @@ export interface components {
             scope: string;
             /** Client Id */
             client_id?: string | null;
-            /** Client Secret */
+            /**
+             * Client Secret
+             * Format: password
+             */
             client_secret?: string | null;
         };
         /** BookAuthorDelete */
@@ -385,9 +400,9 @@ export interface components {
         /** BookAuthorPost */
         BookAuthorPost: {
             /** Authorid */
-            authorId?: number;
+            authorId?: number | null;
             /** Authorname */
-            authorName?: string;
+            authorName?: string | null;
         };
         /** BookAuthors */
         BookAuthors: {
@@ -474,19 +489,19 @@ export interface components {
             /** Uuids */
             uuids: string[];
             /** Seriesno */
-            seriesNo?: number;
+            seriesNo?: number | null;
             /** Series */
-            series?: string;
+            series?: string | null;
             /** Author */
-            author?: string;
+            author?: string | null;
             /** Title */
-            title?: string;
+            title?: string | null;
             /** Publisher */
-            publisher?: string;
+            publisher?: string | null;
             /** Genre */
-            genre?: string;
+            genre?: string | null;
             /** Libraryid */
-            libraryId?: number;
+            libraryId?: number | null;
         };
         /** BookTag */
         BookTag: {
@@ -518,7 +533,7 @@ export interface components {
             /** Uuids */
             uuids: string[];
             /** Page */
-            page?: number;
+            page?: number | null;
             /**
              * Status
              * @enum {string}
@@ -530,7 +545,7 @@ export interface components {
             /** Uuids */
             uuids: string[];
             /** Rate */
-            rate?: number;
+            rate?: number | null;
         };
         /** GetLibrary */
         GetLibrary: {
@@ -575,14 +590,14 @@ export interface components {
         /** UserGet */
         UserGet: {
             /** Id */
-            id?: string;
+            id?: string | null;
             /** Isadmin */
             isAdmin: boolean;
         };
         /** UserPost */
         UserPost: {
             /** Id */
-            id?: string;
+            id?: string | null;
             /** Password */
             password: string;
         };
@@ -750,7 +765,7 @@ export interface operations {
             };
         };
     };
-    read_auth_validate_api_auth_validate_get: {
+    validate_token_api_auth_validate_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -765,12 +780,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AuthValidateResponse"];
                 };
             };
         };
     };
-    get_api_library_api_librarys_get: {
+    get_api_library_api_libraries_get: {
         parameters: {
             query?: never;
             header?: never;

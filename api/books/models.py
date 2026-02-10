@@ -80,6 +80,8 @@ class BookModel(Base):
     size = Column(Numeric, nullable=False)
     sha1 = Column(String, nullable=False)
     ahash = Column(String, nullable=True)
+    phash = Column(String, nullable=True)
+    dhash = Column(String, nullable=True)
     page = Column(Integer, nullable=False)
     add_date = Column(DateTime, nullable=False)
     file_date = Column(DateTime, nullable=False)
@@ -152,3 +154,14 @@ class DuplicationModel(Base):
     book_uuid_1 = Column(String, ForeignKey('books.uuid', onupdate='CASCADE', ondelete='CASCADE'), primary_key=True)
     book_uuid_2 = Column(String, ForeignKey('books.uuid', onupdate='CASCADE', ondelete='CASCADE'), primary_key=True)
     score = Column(Integer)
+
+
+class DuplicateSettingsModel(Base):
+    __tablename__ = 'duplicate_settings'
+    id = Column(Integer, primary_key=True)
+    ahash_threshold = Column(Integer, nullable=False, default=10)
+    phash_threshold = Column(Integer, nullable=False, default=12)
+    dhash_threshold = Column(Integer, nullable=False, default=15)
+    lsh_bands = Column(Integer, nullable=False, default=16)
+    lsh_band_size = Column(Integer, nullable=False, default=16)
+    updated_at = Column(DateTime, nullable=False)

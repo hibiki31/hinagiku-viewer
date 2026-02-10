@@ -106,7 +106,10 @@ def is_copping(file_path):
 def make_thum(send_book, book_uuid):
     """
     サムネイルの作成とページ数の取得 -> page_len
+    マルチハッシュ（ahash, phash, dhash）も計算して返す
     """
+    import imagehash
+    
     with zipfile.ZipFile(send_book) as existing_zip:
         zip_content = [p for p in existing_zip.namelist() if os.path.splitext(p)[1].lower() in [".png", ".jpeg", ".jpg"]]
         # ページ数取得
@@ -118,8 +121,18 @@ def make_thum(send_book, book_uuid):
         cover_path = zip_content[0]
         existing_zip.extract(cover_path, f"/tmp/hinav/")
         image_convertor(src_path=f"/tmp/hinav/{cover_path}",dst_path=f'{DATA_ROOT}/book_thum/{book_uuid}.jpg',to_height=600,quality=85)
-  
-    return page_len
+    
+    # マルチハッシュを計算
+    try:
+        image = Image.open(f'{DATA_ROOT}/book_thum/{book_uuid}.jpg')
+        ahash = str(imagehash.average_hash(image, hash_size=16))
+        phash = str(imagehash.phash(image, hash_size=16))
+        dhash = str(imagehash.dhash(image, hash_size=16))
+        logger.debug(f"ハッシュ計算完了 {book_uuid}: ahash={ahash}, phash={phash}, dhash={dhash}")
+        return page_len, ahash, phash, dhash
+    except Exception as e:
+        logger.warning(f"ハッシュ計算失敗 {book_uuid}: {e}")
+        return page_len, None, None, None
 
 
 def task_convert(book_uuid, to_height=1080, mode=3):

@@ -41,8 +41,6 @@ def task_export(book_model, export_uuid):
 
     os.makedirs(export_dir, exist_ok=True)
 
-    print(export_uuid, file_name)
-
     try:
         shutil.move(export_file, export_dir+file_name)
     except FileNotFoundError:

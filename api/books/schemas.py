@@ -15,7 +15,7 @@ class GetLibrary(BaseSchema):
 
 class BookUserMetaDataPatch(BaseSchema):
     uuids: List[str]
-    page: int = None
+    page: Optional[int] = None
     status: Literal['open', 'close', 'pause']
 
 
@@ -73,17 +73,17 @@ class BookGet(BaseSchema):
 
 class BookPut(BaseSchema):
     uuids: List[str]
-    series_no: int = None
-    series: str = None
-    author: str = None
-    title: str = None
-    publisher: str = None
-    genre: str = None
-    library_id: int = None
+    series_no: Optional[int] = None
+    series: Optional[str] = None
+    author: Optional[str] = None
+    title: Optional[str] = None
+    publisher: Optional[str] = None
+    genre: Optional[str] = None
+    library_id: Optional[int] = None
 
 class BookUserMetaDataPut(BaseSchema):
     uuids: List[str]
-    rate: int = None
+    rate: Optional[int] = None
 
 class BookTagBase(BaseSchema):
     uuids: List[str]

@@ -201,7 +201,7 @@ async def api_auth_setup(
     return user
 
 
-@app.get("/validate", tags=["auth"], response_model=AuthValidateResponse)
+@app.get("/api/auth/validate", tags=["Auth"], response_model=AuthValidateResponse)
 def validate_token(
         current_user: CurrentUser = Security(get_current_user, scopes=["user"])
     ):

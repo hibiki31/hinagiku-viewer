@@ -13,6 +13,7 @@ from tasks.library_export import main as task_library_export
 from tasks.library_fixmetadata import main as task_library_fixmetadata
 from tasks.media_cache import main as task_media_cache
 from tasks.library_sim import main as task_library_sim
+from tasks.library_sim_lsh import main as task_library_sim_lsh
 from tasks.library_rule import main as task_library_rule
 
 from books.models import BookModel 
@@ -73,12 +74,16 @@ if __name__ == "__main__":
     
     if args[1] == "sim":
         mode = args[2]
-        logger.info(f'ワーカで重複検索開始')
-        task_library_sim(
-            db=db,
-            mode = mode
-        )
-        logger.info(f'ワーカで重複検索完了')
+        # 旧アルゴリズム使用（sim_old指定時）
+        if mode == "old":
+            logger.info(f'ワーカで重複検索開始（旧アルゴリズム）')
+            task_library_sim(db=db, mode="all")
+            logger.info(f'ワーカで重複検索完了（旧アルゴリズム）')
+        else:
+            # 新LSHアルゴリズム使用（デフォルト）
+            logger.info(f'ワーカで重複検索開始（LSHアルゴリズム）')
+            task_library_sim_lsh(db=db, mode=mode)
+            logger.info(f'ワーカで重複検索完了（LSHアルゴリズム）')
         
     if args[1] == "rule":
         uuid = args[2] if len(args) == 3 else None
