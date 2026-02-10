@@ -78,7 +78,7 @@ def task_export(book_model, export_uuid):
 
     try:
         os.remove(f'{DATA_ROOT}/book_cache/thum/{book_uuid}.jpg')
-    except:
+    except Exception:
         logger.error(f'UUID={book_model.uuid}: サムネイルが削除出来ませんでした')
 
     os.chmod(export_dir+file_name,0o777)

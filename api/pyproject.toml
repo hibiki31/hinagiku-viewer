@@ -65,9 +65,11 @@ ignore = [
 # ファイルごとの無視設定
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # 未使用のインポートを許可
-"tests/*.py" = ["PLR2004", "ARG001"]  # テストファイルでは一部ルールを緩和
+"tests/*.py" = ["PLR2004", "ARG001", "SIM115", "PLR1704"]  # テストファイルでは一部ルールを緩和
 "alembic/*.py" = ["F401", "E402"]  # Alembicファイルは除外
-"verification/*.py" = ["E402", "F401"]  # 検証スクリプトは除外
+"verification/*.py" = ["E402", "F401", "SIM115", "PLC0415", "B007"]  # 検証スクリプトは除外
+"main.py" = ["E402"]  # Pydantic警告フィルター用
+"mixins/convertor.py" = ["PLC0415"]  # imagehashの遅延インポート
 
 [tool.ruff.lint.isort]
 # import順序の設定

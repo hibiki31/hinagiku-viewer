@@ -1,21 +1,8 @@
 import csv
 from datetime import datetime
-from time import time
 
 import httpx
 from common import BASE_URL, HEADERS, DebugTimer
-
-
-class DebugTimer:
-    def __init__(self):
-        self.data = []
-        self.time = time()
-    def rap(self):
-        now_time = time()
-        run_time = (now_time - self.time) * 1000
-        print(f'{run_time:.1f}ms')
-        self.data.append(run_time)
-        self.time = now_time
 
 
 def main():
