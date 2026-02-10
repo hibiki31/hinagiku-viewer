@@ -41,6 +41,35 @@
             class="mb-4"
           />
 
+          <!-- 管理タスク -->
+          <v-card class="mt-4">
+            <v-card-title class="bg-primary">
+              <v-icon class="mr-2">mdi-cog-play</v-icon>
+              管理タスク
+            </v-card-title>
+            <v-card-text>
+              <v-list>
+                <v-list-item>
+                  <v-list-item-title>サムネイル一括再作成</v-list-item-title>
+                  <v-list-item-subtitle>
+                    全ての書籍のサムネイルを再作成します。時間がかかる場合があります。
+                  </v-list-item-subtitle>
+                  <template #append>
+                    <v-btn
+                      color="primary"
+                      :loading="isRecreatingThumbnails"
+                      :disabled="isRecreatingThumbnails"
+                      @click="recreateThumbnails"
+                    >
+                      <v-icon class="mr-1">mdi-image-refresh</v-icon>
+                      実行
+                    </v-btn>
+                  </template>
+                </v-list-item>
+              </v-list>
+            </v-card-text>
+          </v-card>
+
           <!-- カテゴリがない場合 -->
           <v-card v-if="!settingsStore.isLoading && categories.length === 0" class="mt-4">
             <v-card-text class="text-center py-8">
@@ -221,6 +250,7 @@ import { useSystemSettingsStore } from '@/stores/systemSettings'
 import { useUserDataStore } from '@/stores/userData'
 import { usePushNotice } from '@/composables/utility'
 import { useTitle } from '@/composables/title'
+import { apiClient } from '@/func/client'
 
 // ページタイトル設定
 useTitle('システム設定')
@@ -233,6 +263,7 @@ const { pushNotice } = usePushNotice()
 const selectedTab = ref<string>('')
 const editValues = ref<Record<string, string>>({})
 const isSaving = ref(false)
+const isRecreatingThumbnails = ref(false)
 
 // 管理者チェック
 const isAdmin = computed(() => userDataStore.isAdmin)
@@ -309,6 +340,35 @@ const saveAllChanges = async () => {
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString)
   return date.toLocaleString('ja-JP')
+}
+
+/**
+ * サムネイル一括再作成
+ */
+const recreateThumbnails = async () => {
+  if (!confirm('全ての書籍のサムネイルを再作成します。よろしいですか？\n\n※この処理には時間がかかる場合があります。')) {
+    return
+  }
+
+  isRecreatingThumbnails.value = true
+  try {
+    const { error } = await apiClient.PATCH('/media/library', {
+      body: {
+        state: 'thumbnail_recreate'
+      }
+    })
+
+    if (error) {
+      throw new Error('サムネイル再作成の開始に失敗しました')
+    }
+
+    pushNotice('サムネイル再作成タスクを開始しました', 'success')
+  } catch (error) {
+    pushNotice('サムネイル再作成の開始に失敗しました', 'error')
+    console.error('サムネイル再作成エラー:', error)
+  } finally {
+    isRecreatingThumbnails.value = false
+  }
 }
 
 /**

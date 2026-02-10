@@ -2444,7 +2444,8 @@
           "export_uuid",
           "fixmetadata",
           "sim_all",
-          "rule"
+          "rule",
+          "thumbnail_recreate"
         ],
         "title": "LibraryPatchEnum"
       },

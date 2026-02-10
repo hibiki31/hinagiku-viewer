@@ -743,7 +743,7 @@ export interface components {
          * LibraryPatchEnum
          * @enum {string}
          */
-        LibraryPatchEnum: "export" | "load" | "export_uuid" | "fixmetadata" | "sim_all" | "rule";
+        LibraryPatchEnum: "export" | "load" | "export_uuid" | "fixmetadata" | "sim_all" | "rule" | "thumbnail_recreate";
         /** PatchAuthor */
         PatchAuthor: {
             /** Authorid */
