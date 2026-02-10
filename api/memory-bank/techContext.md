@@ -241,3 +241,29 @@ npx openapi-typescript https://hinav.hinagiku.me/api/openapi.json -o ./src/api.d
 - 依存関係の定期更新
 - セキュリティパッチの適用
 - Python最新バージョン追従
+
+## 発見された技術的詳細（2026/02/10）
+
+### API Version
+- `API_VERSION = '3.0.0'`（settings.pyでハードコード）
+- 今後の改善: package.jsonや環境変数から動的取得
+
+### 認証設定
+- トークン有効期限: 30日（`ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 30`）
+- 改善推奨: 15分〜1時間 + リフレッシュトークン
+
+### 重複検出パラメータ
+- ハッシュサイズ: 16×16 = 256bit
+- 判定閾値: score < 10（ビット差分）
+- アルゴリズム: average hash（aHash）
+
+### ワーカー設定
+- 並列度: `CONVERT_THREAD = int(os.cpu_count())`
+- 実行方法: `subprocess.Popen`
+- タスク: convert, page, export, export_uuid, load, fixmetadata, sim, rule
+
+### 既知のタイポ
+- `chached` → cached
+- `is_shered` → is_shared
+- `comaier` → compared
+- 影響: データベースカラム名、API型定義
