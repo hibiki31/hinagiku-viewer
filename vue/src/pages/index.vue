@@ -541,7 +541,7 @@ const dismissResume = () => {
 const initLibraryAndSearch = async () => {
   // ライブラリ情報取得
   try {
-    const { data, error } = await apiClient.GET("/api/librarys");
+    const { data, error } = await apiClient.GET("/api/libraries", {});
     if (error) throw error;
     if (data) {
       libraryList.value = data;
