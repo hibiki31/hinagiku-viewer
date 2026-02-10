@@ -1,6 +1,7 @@
 import re
 import subprocess
 from pathlib import Path
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
@@ -12,6 +13,7 @@ from mixins.convertor import create_book_page_cache, image_convertor
 from mixins.database import get_db
 from mixins.log import setup_logger
 from settings import APP_ROOT, CONVERT_THREAD, DATA_ROOT
+from tasks.utility import create_task
 from users.router import get_current_user
 from users.schemas import UserCurrent
 
@@ -165,6 +167,7 @@ def patch_media_books_(
 @app.patch("/media/library", tags=["Media"], summary="ライブラリのロードやエクスポート")
 def patch_media_library(
         model: LibraryPatch,
+        db: Session = Depends(get_db),
         current_user:UserCurrent = Depends(get_current_user)
     ):
     """
@@ -174,21 +177,26 @@ def patch_media_library(
     for i in library_pool:
         if i.poll() is None:
             return { "status": "allredy" }
+
+    # タスクレコード作成
+    task_id = str(uuid4())
+    create_task(db=db, task_id=task_id, task_type=model.state, user_id=current_user.id)
+
     if model.state == "load":
-        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "load", current_user.id]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "load", current_user.id, task_id]))
     elif model.state == "fixmetadata":
-        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "fixmetadata", current_user.id]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "fixmetadata", current_user.id, task_id]))
     elif model.state == "export":
-        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "export"]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "export", task_id]))
     elif model.state == "export_uuid":
-        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "export_uuid"]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "export_uuid", task_id]))
     elif model.state == "sim_all":
-        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "sim", "all"]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "sim", "all", task_id]))
 
     elif model.state == "rule":
-        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "rule"]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "rule", task_id]))
 
     elif model.state == "thumbnail_recreate":
-        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "thumbnail_recreate"]))
+        library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "thumbnail_recreate", task_id]))
 
-    return { "status": "ok" }
+    return { "status": "ok", "taskId": task_id }

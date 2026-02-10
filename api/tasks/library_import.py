@@ -18,10 +18,13 @@ from books.models import (
     PublisherModel,
     SeriesModel,
 )
+from typing import Optional
+
 from mixins.convertor import NotContentZipError, get_hash, make_thumbnail
 from mixins.log import setup_logger
 from mixins.parser import ParseResult, parse_filename
 from settings import DATA_ROOT
+from tasks.utility import update_task_status
 from users.models import UserModel
 
 logger = setup_logger(__name__)
@@ -48,31 +51,67 @@ class PreBookClass:
         self.series_no = None
         self.rate = None
 
-def main(db, user_id):
-    # ディレクトリ作成
-    Path(f"{DATA_ROOT}/book_library/").mkdir(parents=True, exist_ok=True)
-    Path(f"{DATA_ROOT}/book_send/").mkdir(parents=True, exist_ok=True)
-    Path(f"{DATA_ROOT}/book_fail/").mkdir(parents=True, exist_ok=True)
-    Path(f"{DATA_ROOT}/book_thum/").mkdir(parents=True, exist_ok=True)
+def main(db, user_id, task_id: Optional[str] = None):
+    """
+    ライブラリ追加処理
+    
+    Args:
+        db: データベースセッション
+        user_id: ユーザーID
+        task_id: タスクID
+    """
+    try:
+        # タスク開始
+        if task_id:
+            update_task_status(db, task_id, status="running", progress=0, current_step="初期化中", message="ディレクトリを準備中")
 
-    user_model = db.query(UserModel).filter(UserModel.id == user_id).one()
+        # ディレクトリ作成
+        Path(f"{DATA_ROOT}/book_library/").mkdir(parents=True, exist_ok=True)
+        Path(f"{DATA_ROOT}/book_send/").mkdir(parents=True, exist_ok=True)
+        Path(f"{DATA_ROOT}/book_fail/").mkdir(parents=True, exist_ok=True)
+        Path(f"{DATA_ROOT}/book_thum/").mkdir(parents=True, exist_ok=True)
 
-    send_books_path = Path(f"{DATA_ROOT}/book_send")
-    send_books_list = [str(p) for p in send_books_path.rglob("*") if p.suffix.lower() == ".zip"]
-    if len(send_books_list) != 0:
-        logger.info(str(len(send_books_list)) + "件の本をライブラリに追加します")
+        user_model = db.query(UserModel).filter(UserModel.id == user_id).one()
 
-    for send_book in send_books_list:
-        try:
-            book_import(send_book, user_model, db)
+        send_books_path = Path(f"{DATA_ROOT}/book_send")
+        send_books_list = [str(p) for p in send_books_path.rglob("*") if p.suffix.lower() == ".zip"]
 
-        except (PIL.Image.DecompressionBombError, NotContentZipError, BadZipFile, zlib.error) as e:
-            logger.error(f'{send_book} ファイルに問題があるためインポート処理を中止 {e}')
-            shutil.move(send_book, f'{DATA_ROOT}/book_fail/{Path(send_book).name}')
+        total_books = len(send_books_list)
+        if total_books != 0:
+            logger.info(str(total_books) + "件の本をライブラリに追加します")
+            if task_id:
+                update_task_status(db, task_id, progress=5, total_items=total_books, message=f"{total_books}件の本を追加します")
+        else:
+            if task_id:
+                update_task_status(db, task_id, status="completed", progress=100, message="追加対象の本がありません")
+            return
 
-        except Exception as e:
-            logger.critical(e, exc_info=True)
-            logger.critical(f'{send_book} 補足できないエラーが発生したためインポート処理を中止')
+        for idx, send_book in enumerate(send_books_list):
+            try:
+                book_import(send_book, user_model, db)
+
+                # 進捗更新
+                if task_id:
+                    progress = 5 + int((idx + 1) / total_books * 90)
+                    update_task_status(db, task_id, progress=progress, current_item=idx + 1, message=f"{idx + 1}/{total_books}冊追加完了")
+
+            except (PIL.Image.DecompressionBombError, NotContentZipError, BadZipFile, zlib.error) as e:
+                logger.error(f'{send_book} ファイルに問題があるためインポート処理を中止 {e}')
+                shutil.move(send_book, f'{DATA_ROOT}/book_fail/{Path(send_book).name}')
+
+            except Exception as e:
+                logger.critical(e, exc_info=True)
+                logger.critical(f'{send_book} 補足できないエラーが発生したためインポート処理を中止')
+
+        # 完了
+        if task_id:
+            update_task_status(db, task_id, status="completed", progress=100, current_step="完了", message=f"{total_books}件の本を追加しました")
+
+    except Exception as e:
+        logger.error(f"ライブラリ追加エラー: {e}", exc_info=True)
+        if task_id:
+            update_task_status(db, task_id, status="failed", error_message=str(e))
+        raise
 
 def book_import(send_book, user_model, db):
     # モデル定義

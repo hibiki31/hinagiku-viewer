@@ -5,7 +5,7 @@ LSH（Locality-Sensitive Hashing）を使用した高速重複検出
 import datetime
 from collections import defaultdict
 from multiprocessing import Pool
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 from uuid import uuid4
 
 import imagehash
@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from books.models import BookModel, DuplicateSettingsModel, DuplicationModel
 from mixins.log import setup_logger
 from settings import CONVERT_THREAD, DATA_ROOT
+from tasks.utility import update_task_status
 
 logger = setup_logger(__name__)
 
@@ -118,12 +119,13 @@ def process_hash_batch(args: Tuple[List[str], int, int]) -> List[Dict]:
     return results
 
 
-def compute_multi_hash(db: Session, mode: str = "missing"):
+def compute_multi_hash(db: Session, mode: str = "missing", task_id: Optional[str] = None):
     """
     マルチハッシュ（ahash, phash, dhash）を計算
 
     Args:
         mode: "missing" = 未計算のみ, "all" = 全件再計算
+        task_id: タスクID
     """
     # 対象書籍を取得
     if mode == "all":
@@ -145,7 +147,7 @@ def compute_multi_hash(db: Session, mode: str = "missing"):
 
     # 少数の場合はシングルスレッド
     if len(books) <= 16:
-        for book in books:
+        for idx, book in enumerate(books):
             ahash, phash, dhash = get_hash_from_thumbnail(book.uuid)
             if ahash:
                 db_book = db.query(BookModel).filter(BookModel.uuid == book.uuid).one()
@@ -153,6 +155,9 @@ def compute_multi_hash(db: Session, mode: str = "missing"):
                 db_book.phash = phash
                 db_book.dhash = dhash
                 logger.info(f"{book.uuid}: ahash={ahash}, phash={phash}, dhash={dhash}")
+                if task_id and idx % 5 == 0:
+                    progress = 10 + int((idx / len(books)) * 20)
+                    update_task_status(db, task_id, progress=progress, current_item=idx, message=f"ハッシュ計算: {idx}/{len(books)}冊")
         db.commit()
         return
 
@@ -176,17 +181,21 @@ def compute_multi_hash(db: Session, mode: str = "missing"):
     logger.info(f"{len(all_results)}件のハッシュを取得、DBに書き込み中...")
 
     # DB更新
-    for result in all_results:
+    for idx, result in enumerate(all_results):
         book = db.query(BookModel).filter(BookModel.uuid == result["uuid"]).one()
         book.ahash = result["ahash"]
         book.phash = result["phash"]
         book.dhash = result["dhash"]
 
+        if task_id and idx % 100 == 0:
+            progress = 10 + int((idx / len(all_results)) * 20)
+            update_task_status(db, task_id, progress=progress, current_item=idx, message=f"ハッシュDB保存: {idx}/{len(all_results)}件")
+
     db.commit()
     logger.info("DBへの書き込み完了")
 
 
-def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel):
+def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel, task_id: Optional[str] = None):
     """
     LSHアルゴリズムで重複を検出
 
@@ -195,6 +204,9 @@ def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel):
     2. 各書籍について候補を抽出
     3. 候補のみ詳細比較（ハミング距離計算）
     4. マルチハッシュ戦略で判定
+    
+    Args:
+        task_id: タスクID
     """
     logger.info("=== LSH重複検出開始 ===")
 
@@ -227,6 +239,9 @@ def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel):
 
     # LSHインデックス構築（ahashベース）
     logger.info("LSHインデックス構築中...")
+    if task_id:
+        update_task_status(db, task_id, progress=30, current_step="LSHインデックス構築中", message=f"{book_count}冊のインデックスを構築中")
+
     lsh_ahash = LSHIndex(num_bands=lsh_bands, band_size=lsh_band_size)
 
     # ハッシュマップ作成（UUID → ハッシュ）
@@ -244,11 +259,17 @@ def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel):
 
     # 候補ペア抽出
     logger.info("候補ペア抽出中...")
+    if task_id:
+        update_task_status(db, task_id, progress=40, current_step="候補ペア抽出中", message="類似書籍の候補を抽出中")
+
     candidate_pairs = set()
 
     for idx, book in enumerate(books):
         if idx % 1000 == 0:
             logger.info(f"進捗: {idx}/{book_count}冊処理")
+            if task_id:
+                progress = 40 + int((idx / book_count) * 20)
+                update_task_status(db, task_id, progress=progress, current_item=idx, total_items=book_count, message=f"候補抽出: {idx}/{book_count}冊")
 
         uuid = book.uuid
         # LSHで候補抽出
@@ -264,11 +285,17 @@ def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel):
 
     # 詳細比較
     logger.info("詳細比較中...")
+    if task_id:
+        update_task_status(db, task_id, progress=60, current_step="詳細比較中", total_items=len(candidate_pairs), message=f"{len(candidate_pairs)}ペアを詳細比較中")
+
     duplicates = []
 
     for idx, (uuid1, uuid2) in enumerate(candidate_pairs):
         if idx % 10000 == 0 and idx > 0:
             logger.info(f"詳細比較進捗: {idx}/{len(candidate_pairs)}ペア")
+            if task_id:
+                progress = 60 + int((idx / len(candidate_pairs)) * 20)
+                update_task_status(db, task_id, progress=progress, current_item=idx, message=f"詳細比較: {idx}/{len(candidate_pairs)}ペア")
 
         h1 = hash_map[uuid1]
         h2 = hash_map[uuid2]
@@ -330,6 +357,8 @@ def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel):
 
     # DBに保存
     logger.info("DBに保存中...")
+    if task_id:
+        update_task_status(db, task_id, progress=85, current_step="DB保存中", message=f"{len(groups)}グループをDBに保存中")
 
     # 既存の重複データを削除
     db.query(DuplicationModel).delete()
@@ -358,39 +387,58 @@ def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel):
     logger.info("=== LSH重複検出完了 ===")
 
 
-def main(db: Session, mode: str = "all"):
+def main(db: Session, mode: str = "all", task_id: Optional[str] = None):
     """
     メイン処理
 
     Args:
         mode: "all" = 全件処理, "incremental" = 増分処理
+        task_id: タスクID
     """
-    logger.info(f"重複検出開始 (mode={mode})")
+    logger.info(f"重複検出開始 (mode={mode}, task_id={task_id})")
 
-    # 設定を取得
-    settings = db.query(DuplicateSettingsModel).filter(DuplicateSettingsModel.id == 1).first()
-    if not settings:
-        logger.warning("重複検出設定が見つかりません。デフォルト値を使用します")
-        settings = DuplicateSettingsModel(
-            id=1,
-            ahash_threshold=10,
-            phash_threshold=12,
-            dhash_threshold=15,
-            lsh_bands=16,
-            lsh_band_size=16,
-            updated_at=datetime.datetime.now()
-        )
+    try:
+        # タスク開始
+        if task_id:
+            update_task_status(db, task_id, status="running", progress=0, current_step="初期化中", message="設定を読み込み中")
 
-    # ステップ1: ハッシュ計算
-    if mode == "all":
-        compute_multi_hash(db, mode="all")
-    else:
-        compute_multi_hash(db, mode="missing")
+        # 設定を取得
+        settings = db.query(DuplicateSettingsModel).filter(DuplicateSettingsModel.id == 1).first()
+        if not settings:
+            logger.warning("重複検出設定が見つかりません。デフォルト値を使用します")
+            settings = DuplicateSettingsModel(
+                id=1,
+                ahash_threshold=10,
+                phash_threshold=12,
+                dhash_threshold=15,
+                lsh_bands=16,
+                lsh_band_size=16,
+                updated_at=datetime.datetime.now()
+            )
 
-    # ステップ2: 重複検出
-    find_duplicates_lsh(db, settings)
+        # ステップ1: ハッシュ計算
+        if task_id:
+            update_task_status(db, task_id, progress=5, current_step="ハッシュ計算中", message="書籍のハッシュを計算中")
 
-    logger.info("全処理完了")
+        if mode == "all":
+            compute_multi_hash(db, mode="all", task_id=task_id)
+        else:
+            compute_multi_hash(db, mode="missing", task_id=task_id)
+
+        # ステップ2: 重複検出
+        find_duplicates_lsh(db, settings, task_id=task_id)
+
+        # 完了
+        if task_id:
+            update_task_status(db, task_id, status="completed", progress=100, current_step="完了", message="重複検出が完了しました")
+
+        logger.info("全処理完了")
+
+    except Exception as e:
+        logger.error(f"重複検出エラー: {e}", exc_info=True)
+        if task_id:
+            update_task_status(db, task_id, status="failed", error_message=str(e))
+        raise
 
 
 if __name__ == "__main__":

@@ -18,6 +18,7 @@ from mixins.router import app as mixins_router
 from settings import API_VERSION
 from system.router import app as system_router
 from tags.router import app as tags_router
+from tasks.router import app as tasks_router
 from user_datas.router import app as user_datas_router
 from users.router import app as users_router
 
@@ -31,6 +32,7 @@ tags_metadata = [
     { "name": "Library", "description": "本は必ずライブラリに所属する"},
     { "name": "Book", "description": "本は必ず１人のユーザが所有する"},
     { "name": "Author", "description": "本は著者を0以上持ちnullの場合もある"},
+    { "name": "Task", "description": "バックグラウンドタスクの管理"},
     { "name": "System", "description": "システム設定の管理"},
 ]
 
@@ -60,6 +62,7 @@ app.include_router(router=tags_router)
 app.include_router(router=authors_router)
 app.include_router(router=user_datas_router)
 app.include_router(router=mixins_router)
+app.include_router(router=tasks_router)
 app.include_router(router=system_router)
 
 

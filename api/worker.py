@@ -44,54 +44,63 @@ if __name__ == "__main__":
         logger.info(f'別プロセスでページキャッシュ完了 height:{height} uuid:{uuid}')
 
     if args[1] == "export":
-        logger.info('別プロセスでライブラリエクスポート開始')
-        task_library_export(db=db, export_uuid=False)
+        task_id = args[2] if len(args) > 2 else None
+        logger.info(f'別プロセスでライブラリエクスポート開始 (task_id={task_id})')
+        task_library_export(db=db, export_uuid=False, task_id=task_id)
         logger.info('別プロセスでライブラリエクスポート終了')
 
     if args[1] == "export_uuid":
-        logger.info('別プロセスでライブラリエクスポート開始')
-        task_library_export(db=db, export_uuid=True)
+        task_id = args[2] if len(args) > 2 else None
+        logger.info(f'別プロセスでライブラリエクスポート開始 (task_id={task_id})')
+        task_library_export(db=db, export_uuid=True, task_id=task_id)
         logger.info('別プロセスでライブラリエクスポート終了')
 
     if args[1] == "load":
         user_id = args[2]
-        logger.info('別プロセスでライブラリ追加処理開始')
-        task_library_import(db=db, user_id=user_id)
+        task_id = args[3] if len(args) > 3 else None
+        logger.info(f'別プロセスでライブラリ追加処理開始 (task_id={task_id})')
+        task_library_import(db=db, user_id=user_id, task_id=task_id)
         logger.info('別プロセスでライブラリ追加処理終了')
 
     if args[1] == "fixmetadata":
         user_id = args[2]
-        logger.info('別プロセスでメタデータ更新開始')
-        task_library_fixmetadata(db=db, user_id=user_id)
+        task_id = args[3] if len(args) > 3 else None
+        logger.info(f'別プロセスでメタデータ更新開始 (task_id={task_id})')
+        task_library_fixmetadata(db=db, user_id=user_id, task_id=task_id)
         logger.info('別プロセスでメタデータ更新完了')
 
     if args[1] == "sim":
         mode = args[2]
+        task_id = args[3] if len(args) > 3 else None
         # 旧アルゴリズム使用（sim_old指定時）
         if mode == "old":
-            logger.info('ワーカで重複検索開始（旧アルゴリズム）')
-            task_library_sim(db=db, mode="all")
+            logger.info(f'ワーカで重複検索開始（旧アルゴリズム） (task_id={task_id})')
+            task_library_sim(db=db, mode="all", task_id=task_id)
             logger.info('ワーカで重複検索完了（旧アルゴリズム）')
         else:
             # 新LSHアルゴリズム使用（デフォルト）
-            logger.info('ワーカで重複検索開始（LSHアルゴリズム）')
-            task_library_sim_lsh(db=db, mode=mode)
+            logger.info(f'ワーカで重複検索開始（LSHアルゴリズム） (task_id={task_id})')
+            task_library_sim_lsh(db=db, mode=mode, task_id=task_id)
             logger.info('ワーカで重複検索完了（LSHアルゴリズム）')
 
     if args[1] == "rule":
-        uuid = args[2] if len(args) == 3 else None
-        logger.info('ワーカでrule適応開始')
+        task_id = args[2] if len(args) > 2 and args[2] != "None" else None
+        uuid = None
+        logger.info(f'ワーカでrule適応開始 (task_id={task_id})')
         task_library_rule(
             db=db,
-            uuid=uuid
+            uuid=uuid,
+            task_id=task_id
         )
         logger.info('ワーカでrule適応完了')
 
     if args[1] == "thumbnail_recreate":
-        uuid = args[2] if len(args) == 3 else None
-        logger.info('ワーカでサムネイル再作成開始')
+        task_id = args[2] if len(args) > 2 else None
+        uuid = None
+        logger.info(f'ワーカでサムネイル再作成開始 (task_id={task_id})')
         task_thumbnail_recreate(
             db=db,
-            book_uuid=uuid
+            book_uuid=uuid,
+            task_id=task_id
         )
         logger.info('ワーカでサムネイル再作成完了')
