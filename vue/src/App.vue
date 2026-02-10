@@ -31,8 +31,10 @@
 import { onMounted } from 'vue'
 import { apiClient } from '@/func/client'
 import { usePushNotice } from '@/composables/utility'
+import { useAppStore } from '@/stores/app'
 
 const { pushNotice } = usePushNotice()
+const appStore = useAppStore()
 
 // package.json の version からビルド時に注入
 const version = __APP_VERSION__
@@ -42,16 +44,21 @@ onMounted(async () => {
   try {
     const { data, error } = await apiClient.GET('/api/version')
     if (error) throw error
-    if (data && version !== data.version) {
-      if (localStorage.apiVersion === data.version) {
-        pushNotice('クライアントとAPIでバージョン齟齬があります', 'error')
-        return
+    if (data) {
+      // APIバージョンをストアに保存
+      appStore.setApiVersion(data.version)
+
+      if (version !== data.version) {
+        if (localStorage.apiVersion === data.version) {
+          pushNotice('クライアントとAPIでバージョン齟齬があります', 'error')
+          return
+        }
+        pushNotice(data.version + 'にバージョンアップを行います', 'info')
+        localStorage.apiVersion = data.version
+        setTimeout(() => {
+          location.reload()
+        }, 3000)
       }
-      pushNotice(data.version + 'にバージョンアップを行います', 'info')
-      localStorage.apiVersion = data.version
-      setTimeout(() => {
-        location.reload()
-      }, 3000)
     }
   } catch {
     console.error('バージョンチェックエラー')

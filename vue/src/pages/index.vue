@@ -57,12 +57,17 @@
         class="px-2 py-3"
         prepend-icon="mdi-book-open-variant"
         title="Hinagiku Viewer"
-        :subtitle="`v${version}`"
       >
         <template #prepend>
           <v-icon color="primary" size="x-large">
             mdi-book-open-variant
           </v-icon>
+        </template>
+        <template #subtitle>
+          <div class="text-caption">
+            <div>WEB: v{{ version }}</div>
+            <div v-if="appStore.apiVersion">API: v{{ appStore.apiVersion }}</div>
+          </div>
         </template>
       </v-list-item>
 
@@ -333,6 +338,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useReaderStateStore } from "@/stores/readerState";
 import { useUserDataStore } from "@/stores/userData";
+import { useAppStore } from "@/stores/app";
 import { apiClient } from "@/func/client";
 import { usePushNotice } from "@/composables/utility";
 import { useTitle } from "@/composables/title";
@@ -352,6 +358,7 @@ type BookBase = components["schemas"]["BookBase"];
 const router = useRouter();
 const readerStateStore = useReaderStateStore();
 const userDataStore = useUserDataStore();
+const appStore = useAppStore();
 const { pushNotice } = usePushNotice();
 
 const searchDialogRef = ref();
