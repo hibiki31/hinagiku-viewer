@@ -1,11 +1,15 @@
 
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import FileResponse
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, aliased
 
 from mixins.database import get_db
 from mixins.log import setup_logger
 from mixins.parser import book_result_mapper
+from settings import DATA_ROOT
 from tasks.library_delete import main as library_delete
 from users.router import get_current_user
 from users.schemas import UserCurrent
@@ -231,3 +235,51 @@ def delete_book(
     db.delete(book)
     db.commit()
     return book
+
+
+@app.get("/api/books/{book_uuid}/download", tags=["Book"], summary="本のZipファイルダウンロード")
+def download_book(
+        book_uuid: str,
+        db: Session = Depends(get_db),
+        current_user: UserCurrent = Depends(get_current_user),
+    ):
+    """指定された本のZipファイルをダウンロードする"""
+    try:
+        book: BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
+    except Exception:
+        raise HTTPException(
+            status_code=404,
+            detail=f"本が存在しません: {book_uuid}",
+        ) from None
+
+    # 権限チェック: 管理者、自分の本、または共有されている本のみアクセス可能
+    if not current_user.is_admin and book.user_id != current_user.id and not book.is_shared:
+        raise HTTPException(
+            status_code=403,
+            detail="この本にアクセスする権限がありません",
+        )
+
+    # Zipファイルのパスを構築
+    file_path = Path(f"{DATA_ROOT}/book_library/{book_uuid}.zip")
+
+    # ファイルの存在確認
+    if not file_path.exists():
+        logger.error(f"Zipファイルが見つかりません: {file_path}")
+        raise HTTPException(
+            status_code=404,
+            detail="ファイルが見つかりません",
+        )
+
+    # ダウンロード時のファイル名を設定（元のファイル名を使用）
+    download_filename = book.import_file_name if book.import_file_name.endswith('.zip') else f"{book.import_file_name}.zip"
+
+    logger.info(f"書籍ダウンロード: {book_uuid} ({download_filename}) by {current_user.id}")
+
+    return FileResponse(
+        path=str(file_path),
+        media_type="application/zip",
+        filename=download_filename,
+        headers={
+            "Content-Disposition": f'attachment; filename="{download_filename}"'
+        }
+    )
