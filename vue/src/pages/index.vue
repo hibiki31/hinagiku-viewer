@@ -53,23 +53,7 @@
     <!-- ドロワー -->
     <v-navigation-drawer v-model="showDrawer">
       <!-- ヘッダー -->
-      <v-list-item
-        class="px-2 py-3"
-        prepend-icon="mdi-book-open-variant"
-        title="Hinagiku Viewer"
-      >
-        <template #prepend>
-          <v-icon color="primary" size="x-large">
-            mdi-book-open-variant
-          </v-icon>
-        </template>
-        <template #subtitle>
-          <div class="text-caption">
-            <div>WEB: v{{ version }}</div>
-            <div v-if="appStore.apiVersion">API: v{{ appStore.apiVersion }}</div>
-          </div>
-        </template>
-      </v-list-item>
+      <AppSidebarHeader />
 
       <v-divider />
 
@@ -260,45 +244,12 @@
       <v-divider />
 
       <!-- ログアウト -->
-      <v-list nav density="comfortable">
-        <v-list-item
-          prepend-icon="mdi-logout"
-          title="ログアウト"
-          base-color="error"
-          @click="handleLogout"
-        />
-      </v-list>
+      <AppLogoutListItem />
 
       <!-- フッター情報 -->
       <template #append>
         <v-divider />
-        <v-list density="compact" class="py-2">
-          <v-list-item density="compact" class="text-caption">
-            <div class="text-center">
-              Develop by
-              <a
-                href="https://github.com/hibiki31"
-                class="text-primary text-decoration-none"
-                target="_blank"
-              >
-                @hibiki31
-              </a>
-            </div>
-          </v-list-item>
-          <v-list-item density="compact" class="text-caption">
-            <div class="text-center">
-              Icons made by
-              <a
-                href="https://www.flaticon.com/authors/icon-pond"
-                title="Icon Pond"
-                class="text-primary text-decoration-none"
-                target="_blank"
-              >
-                Icon Pond
-              </a>
-            </div>
-          </v-list-item>
-        </v-list>
+        <AppSidebarFooter />
       </template>
     </v-navigation-drawer>
     <!-- メインコンテンツ -->
@@ -338,7 +289,6 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useReaderStateStore } from "@/stores/readerState";
 import { useUserDataStore } from "@/stores/userData";
-import { useAppStore } from "@/stores/app";
 import { apiClient } from "@/func/client";
 import { usePushNotice } from "@/composables/utility";
 import { useTitle } from "@/composables/title";
@@ -347,6 +297,9 @@ import UnifiedBookInfoDialog from "@/components/dialog/UnifiedBookInfoDialog.vue
 import RangeChangeDialog from "@/components/dialog/RangeChangeDialog.vue";
 import BooksListTable from "@/components/BooksListTable.vue";
 import BooksListThum from "@/components/BooksListThum.vue";
+import AppSidebarHeader from "@/components/sidebar/AppSidebarHeader.vue";
+import AppSidebarFooter from "@/components/sidebar/AppSidebarFooter.vue";
+import AppLogoutListItem from "@/components/sidebar/AppLogoutListItem.vue";
 import type { components } from "@/api";
 
 // ページタイトル設定
@@ -358,7 +311,6 @@ type BookBase = components["schemas"]["BookBase"];
 const router = useRouter();
 const readerStateStore = useReaderStateStore();
 const userDataStore = useUserDataStore();
-const appStore = useAppStore();
 const { pushNotice } = usePushNotice();
 
 const searchDialogRef = ref();
@@ -369,7 +321,6 @@ const showDrawer = ref(true);
 const isLoading = ref(true);
 const exportDialog = ref(false);
 const libraryList = ref<GetLibrary[]>([]);
-const version = __APP_VERSION__;
 
 // 前回の続きを開くか確認するダイアログ
 const resumeDialog = ref(false);
@@ -574,13 +525,6 @@ const toTasksPage = () => {
 // システム設定ページへ遷移
 const toSettingsPage = () => {
   router.push("/settings");
-};
-
-// ログアウト処理
-const handleLogout = () => {
-  userDataStore.logout();
-  pushNotice("ログアウトしました", "success");
-  router.push("/login");
 };
 
 // 前回の続きを開くダイアログのハンドラー

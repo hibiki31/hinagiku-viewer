@@ -14,18 +14,7 @@
 
     <v-navigation-drawer v-model="showDrawer" app>
       <!-- ヘッダー -->
-      <v-list-item
-        class="px-2 py-3"
-        prepend-icon="mdi-book-open-variant"
-        title="Hinagiku Viewer"
-        :subtitle="`v${version}`"
-      >
-        <template #prepend>
-          <v-icon color="primary" size="x-large">
-            mdi-book-open-variant
-          </v-icon>
-        </template>
-      </v-list-item>
+      <AppSidebarHeader />
 
       <v-divider />
 
@@ -49,45 +38,12 @@
       <v-divider />
 
       <!-- ログアウト -->
-      <v-list nav density="comfortable">
-        <v-list-item
-          prepend-icon="mdi-logout"
-          title="ログアウト"
-          base-color="error"
-          @click="handleLogout"
-        />
-      </v-list>
+      <AppLogoutListItem />
 
       <!-- フッター情報 -->
       <template #append>
         <v-divider />
-        <v-list density="compact" class="py-2">
-          <v-list-item density="compact" class="text-caption">
-            <div class="text-center">
-              Develop by
-              <a
-                href="https://github.com/hibiki31"
-                class="text-primary text-decoration-none"
-                target="_blank"
-              >
-                @hibiki31
-              </a>
-            </div>
-          </v-list-item>
-          <v-list-item density="compact" class="text-caption">
-            <div class="text-center">
-              Icons made by
-              <a
-                href="https://www.flaticon.com/authors/icon-pond"
-                title="Icon Pond"
-                class="text-primary text-decoration-none"
-                target="_blank"
-              >
-                Icon Pond
-              </a>
-            </div>
-          </v-list-item>
-        </v-list>
+        <AppSidebarFooter />
       </template>
     </v-navigation-drawer>
 
@@ -382,7 +338,6 @@
 <script setup lang="ts">
 import { ref, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserDataStore } from '@/stores/userData'
 import { apiClient } from '@/func/client'
 import {
   usePushNotice,
@@ -391,6 +346,9 @@ import {
   useConvertDateFormat
 } from '@/composables/utility'
 import { useTitle } from '@/composables/title'
+import AppSidebarHeader from '@/components/sidebar/AppSidebarHeader.vue'
+import AppSidebarFooter from '@/components/sidebar/AppSidebarFooter.vue'
+import AppLogoutListItem from '@/components/sidebar/AppLogoutListItem.vue'
 
 // ページタイトル設定
 useTitle('重複リスト')
@@ -426,7 +384,6 @@ interface DuplicateGroup {
 
 // Composables
 const router = useRouter()
-const userDataStore = useUserDataStore()
 const { pushNotice } = usePushNotice()
 const { getCoverURL } = useGetCoverURL()
 const { fitByte } = useFitByte()
@@ -435,7 +392,6 @@ const { convertDateFormat } = useConvertDateFormat()
 // State
 const showDrawer = ref(true)
 const isLoading = ref(true)
-const version = __APP_VERSION__
 const booksList = ref<DuplicateGroup[]>([])
 const openPanels = ref<number[]>([])
 
@@ -580,15 +536,6 @@ const executeDelete = async () => {
  */
 const toBookList = () => {
   router.push('/')
-}
-
-/**
- * ログアウト処理
- */
-const handleLogout = () => {
-  userDataStore.logout()
-  pushNotice('ログアウトしました', 'success')
-  router.push('/login')
 }
 
 // 初期化

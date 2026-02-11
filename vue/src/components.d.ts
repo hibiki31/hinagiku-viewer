@@ -11,6 +11,9 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AppLogoutListItem: typeof import('./components/sidebar/AppLogoutListItem.vue')['default']
+    AppSidebarFooter: typeof import('./components/sidebar/AppSidebarFooter.vue')['default']
+    AppSidebarHeader: typeof import('./components/sidebar/AppSidebarHeader.vue')['default']
     BaseAuthorChip: typeof import('./components/BaseAuthorChip.vue')['default']
     BookDetailDialog: typeof import('./components/dialog/BookDetailDialog.vue')['default']
     BooksListTable: typeof import('./components/BooksListTable.vue')['default']
