@@ -138,8 +138,10 @@ def make_thumbnail(send_book, book_uuid, db: Session):
         if page_len == 0:
             raise NotContentZipError
         cover_path = zip_content[0]
-        existing_zip.extract(cover_path, "/tmp/hinav/")
-        image_convertor(src_path=f"/tmp/hinav/{cover_path}",dst_path=f'{DATA_ROOT}/book_thum/{book_uuid}.jpg',to_height=600,quality=85)
+        # Zipから直接メモリに読み込み（レースコンディション回避）
+        img_src = Image.open(BytesIO(existing_zip.read(cover_path))).convert('RGB')
+        # PIL ImageオブジェクトをそのままConvertorに渡す
+        image_convertor(src_path=img_src, dst_path=f'{DATA_ROOT}/book_thum/{book_uuid}.jpg', to_height=600, quality=85)
 
     # マルチハッシュを計算
     try:
@@ -320,7 +322,20 @@ def create_book_page_cache(book_uuid, page, to_height, quality):
 
 
 def image_convertor(src_path, dst_path, to_height, quality):
-    img = Image.open(src_path).convert('RGB')
+    """
+    画像ファイルまたはPIL Imageオブジェクトをリサイズして保存
+
+    Args:
+        src_path: ソース画像パス（str/Path）またはPIL Imageオブジェクト
+        dst_path: 保存先パス
+        to_height: リサイズ後の高さ
+        quality: JPEG品質（1-100）
+    """
+    # PIL Imageオブジェクトまたはパスを受け取る
+    if isinstance(src_path, Image.Image):
+        img = src_path
+    else:
+        img = Image.open(src_path).convert('RGB')
 
     width, height = img.size
     if height < to_height:
