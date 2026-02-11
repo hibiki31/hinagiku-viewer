@@ -10,3 +10,13 @@ class BaseSchema(BaseModel):
         from_attributes=True,
         populate_by_name=True,
     )
+
+
+class MessageResponse(BaseSchema):
+    """汎用メッセージレスポンス"""
+    message: str
+
+
+class StatusResponse(BaseSchema):
+    """汎用ステータスレスポンス"""
+    status: str

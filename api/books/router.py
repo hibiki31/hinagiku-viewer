@@ -7,6 +7,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, aliased
 
+from books.schemas import BookDeleteResponse, BookUpdateResponse
 from mixins.database import get_db
 from mixins.log import setup_logger
 from mixins.parser import book_result_mapper
@@ -33,6 +34,11 @@ async def list_libraries(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
     ):
+    """
+    ライブラリ一覧を取得する
+
+    各ライブラリに含まれる書籍数とともにライブラリ情報を取得します。
+    """
     query = db.query(
         func.count(BookModel.uuid).label("count"),
         LibraryModel.name.label("name"),
@@ -52,7 +58,25 @@ async def search_books(
         current_user: UserCurrent = Depends(get_current_user),
         params: BookSearchParams = Depends()
     ):
+    """
+    書籍を検索する
 
+    様々な条件で書籍を検索し、ページネーション形式で結果を返します。
+    管理者は全ての書籍を、一般ユーザーは自分の書籍と共有された書籍のみを検索できます。
+
+    検索条件:
+    - uuid: 書籍UUID（完全一致）
+    - fileNameLike: ファイル名（部分一致）
+    - cached: キャッシュ済みか
+    - authorLike: 著者名（部分一致）
+    - authorIsFavorite: お気に入り著者フィルタ
+    - titleLike: タイトル（部分一致）
+    - fullText: 全文検索（タイトル、ファイル名、著者名、タグ名）
+    - rate: 評価（0は未評価）
+    - tag: タグ名（完全一致）
+    - sortKey: ソートキー（title, addDate, size, userData.lastOpenDate, authors）
+    - sortDesc: 降順ソート
+    """
     # ユーザデータのサブクエリ
     user_metadata_subquery = db.query(
         BookUserMetaDataModel
@@ -178,12 +202,29 @@ async def search_books(
 
 
 
-@app.put("/api/books", tags=["Book"])
+@app.put("/api/books", tags=["Book"], response_model=BookUpdateResponse)
 def update_books(
         db: Session = Depends(get_db),
         model: BookPut = None,
         current_user: UserCurrent = Depends(get_current_user)
     ):
+    """
+    書籍情報を一括更新する
+
+    指定されたUUID一覧の書籍に対して、同じ変更を適用します。
+
+    更新可能な項目:
+    - title: タイトル
+    - series: シリーズ名
+    - seriesNo: シリーズ番号
+    - publisher: 出版社名
+    - genre: ジャンル
+    - libraryId: ライブラリID
+
+    Raises:
+        404: 指定された書籍が存在しない場合
+    """
+    updated_count = 0
     for book_uuid in model.uuids:
         try:
             book: BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
@@ -217,15 +258,30 @@ def update_books(
         if model.genre is not None:
             book.genre = model.genre
 
-    db.commit()
-    return book
+        updated_count += 1
 
-@app.delete("/api/books/{book_uuid}", tags=["Book"])
+    db.commit()
+    logger.info(f"書籍更新: {updated_count}件, user={current_user.id}")
+    return BookUpdateResponse(message=f"{updated_count}件の書籍を更新しました", updated_count=updated_count)
+
+@app.delete("/api/books/{book_uuid}", tags=["Book"], response_model=BookDeleteResponse)
 def delete_book(
         book_uuid: str,
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user),
     ):
+    """
+    書籍を削除する
+
+    指定された書籍を完全に削除します。
+    書籍ファイル、ユーザーデータ、データベースレコードが全て削除されます。
+
+    Args:
+        book_uuid: 削除する書籍のUUID
+
+    Raises:
+        404: 指定された書籍が存在しない場合
+    """
     try:
         book: BookModel = db.query(BookModel).filter(BookModel.uuid==book_uuid).one()
     except Exception:
@@ -239,7 +295,8 @@ def delete_book(
     db.commit()
     db.delete(book)
     db.commit()
-    return book
+    logger.info(f"書籍削除: {book_uuid}, user={current_user.id}")
+    return BookDeleteResponse(message="書籍を削除しました", uuid=book_uuid)
 
 
 @app.get("/api/books/{book_uuid}/download", tags=["Book"], summary="本のZipファイルダウンロード")

@@ -49,3 +49,10 @@ class PatchAuthor(BaseSchema):
     """著者更新リクエスト（旧形式・非推奨）"""
     author_id: int
     is_favorite: bool
+
+
+class BookAuthorResponse(BaseSchema):
+    """書籍著者追加レスポンス"""
+    message: str
+    book_uuid: str
+    author_id: int

@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import and_
@@ -8,6 +9,7 @@ from books.models import BookUserMetaDataModel
 from mixins.database import get_db
 from mixins.log import setup_logger
 from mixins.parser import get_model_dict
+from user_datas.schemas import UserDataUpdateResponse
 from users.router import get_current_user
 from users.schemas import UserCurrent
 
@@ -22,12 +24,24 @@ exception_notfund = HTTPException(
     detail="Object not fund."
 )
 
-@app.put("/api/books/user-data", tags=["User data"], summary="本のユーザデータ（レート）を一括更新")
+@app.put("/api/books/user-data", tags=["User data"], summary="本のユーザデータ（レート）を一括更新", response_model=UserDataUpdateResponse)
 def change_user_data(
         db: Session = Depends(get_db),
         model: BookUserMetaDataPut = None,
         current_user: UserCurrent = Depends(get_current_user)
     ):
+    """
+    書籍のユーザーデータ（レート）を一括更新する
+    
+    指定された書籍の評価を一括で設定します。
+    
+    Args:
+        model: 更新する書籍UUIDリストと評価値
+    
+    Returns:
+        更新結果
+    """
+    updated_count = 0
     for book_uuid in model.uuids:
         try:
             metadata_model: BookUserMetaDataModel = db.query(BookUserMetaDataModel).filter(
@@ -44,8 +58,10 @@ def change_user_data(
                 rate = model.rate,
             )
         db.merge(metadata_model)
+        updated_count += 1
     db.commit()
-    return metadata_model
+    logger.info(f"ユーザーデータ更新: {updated_count}件, rate={model.rate}, user={current_user.id}")
+    return UserDataUpdateResponse(message=f"{updated_count}件のレートを更新しました", updated_count=updated_count)
 
 @app.patch("/api/books/user-data",
     tags=["User data"],
@@ -54,13 +70,28 @@ def change_user_data(
 - 本を開いたとき status=open, page=0
 - 本を途中で閉じた時 status=pause, page=5
 - 本を読み終わったとき status=close, page=None
-"""
+""",
+    response_model=List[BookUserDataBase]
 )
 def signal_book_status(
         db: Session = Depends(get_db),
         model: BookUserMetaDataPatch = None,
         current_user: UserCurrent = Depends(get_current_user)
     ):
+    """
+    書籍の閲覧状態を更新する
+    
+    書籍を開いた時、閉じた時、読み終わった時の状態を記録します。
+    
+    Args:
+        model: 書籍UUIDリスト、ページ番号、ステータス
+    
+    Returns:
+        更新されたユーザーデータリスト
+    
+    Raises:
+        400: ステータスが不正な場合
+    """
     resulet_data = []
     for book_uuid in model.uuids:
         try:

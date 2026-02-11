@@ -75,3 +75,9 @@ class LibraryPatchEnum(str, Enum):
 
 class LibraryPatch(BaseSchema):
     state: LibraryPatchEnum = LibraryPatchEnum.load
+
+
+class UserDataUpdateResponse(BaseSchema):
+    """ユーザーデータ更新レスポンス"""
+    message: str
+    updated_count: int

@@ -101,11 +101,16 @@ def get_current_user(
     return UserCurrent(id=user_id, token=token, is_admin=user.is_admin)
 
 
-@app.get("/api/users", tags=["User"],response_model=List[UserGet])
+@app.get("/api/users", tags=["User"], response_model=List[UserGet])
 def list_users(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
     ):
+    """
+    ユーザー一覧を取得する
+
+    管理者権限が必要です。
+    """
     return db.query(UserModel).all()
 
 
@@ -114,17 +119,36 @@ def get_current_user_info(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
     ):
+    """
+    現在ログイン中のユーザー情報を取得する
 
+    認証トークンから自身のユーザー情報を取得します。
+    """
     user = db.query(UserModel).filter(UserModel.id == current_user.id).one()
     return user
 
 
-@app.post("/api/users", tags=["User"])
+@app.post("/api/users", tags=["User"], response_model=UserGet)
 def create_user(
         user: UserPost,
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
     ):
+    """
+    新規ユーザーを作成する
+
+    管理者権限が必要です。
+    作成されたユーザーは非管理者として登録されます。
+
+    Args:
+        user: ユーザー情報（ID、パスワード）
+
+    Returns:
+        作成されたユーザー情報
+
+    Raises:
+        400: ユーザーIDが既に存在する場合
+    """
     db.add(UserModel(
         id=user.id,
         password=pwd_context.hash(user.password),
@@ -140,7 +164,8 @@ def create_user(
             detail="Request user already exists"
         ) from None
 
-    return user
+    created_user = db.query(UserModel).filter(UserModel.id == user.id).one()
+    return created_user
 
 
 @app.post("/api/auth", response_model=TokenRFC6749Response, tags=["Auth"])
@@ -148,7 +173,21 @@ def login_for_access_token(
         form_data: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(get_db)
     ):
+    """
+    ログインしてアクセストークンを取得する
 
+    OAuth2 Password Flowに準拠した認証エンドポイント。
+    ユーザー名とパスワードを送信し、JWTアクセストークンを取得します。
+
+    Args:
+        form_data: OAuth2のフォームデータ（username, password）
+
+    Returns:
+        アクセストークンとトークンタイプ
+
+    Raises:
+        401: ユーザー名またはパスワードが間違っている場合
+    """
     try:
         user = db.query(UserModel).filter(UserModel.id==form_data.username).one()
     except Exception:
@@ -169,11 +208,27 @@ def login_for_access_token(
     return {"access_token": access_token, "token_type": "Bearer"}
 
 
-@app.post("/api/auth/setup", tags=["Auth"])
+@app.post("/api/auth/setup", tags=["Auth"], response_model=UserGet)
 async def api_auth_setup(
         user: UserPost,
         db: Session = Depends(get_db)
     ):
+    """
+    初回セットアップで管理者ユーザーを作成する
+
+    システムに初めてアクセスする際に使用します。
+    既にユーザーが存在する場合はエラーを返します。
+    作成されたユーザーは管理者権限を持ちます。
+
+    Args:
+        user: ユーザー情報（ID、パスワード）
+
+    Returns:
+        作成された管理者ユーザー情報
+
+    Raises:
+        400: ユーザーIDが空、または既に初期化済みの場合
+    """
     if user.id is None or user.id == "":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -195,7 +250,8 @@ async def api_auth_setup(
     ))
     db.commit()
 
-    return user
+    created_user = db.query(UserModel).filter(UserModel.id == user.id).one()
+    return created_user
 
 
 @app.get("/api/auth/validate", tags=["Auth"], response_model=AuthValidateResponse)

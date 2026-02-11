@@ -137,3 +137,15 @@ class BookSearchParams(BaseSchema):
     offset: int = 0
     sort_key: str = "authors"
     sort_desc: bool = False
+
+
+class BookUpdateResponse(BaseSchema):
+    """書籍更新レスポンス"""
+    message: str
+    updated_count: int
+
+
+class BookDeleteResponse(BaseSchema):
+    """書籍削除レスポンス"""
+    message: str
+    uuid: str

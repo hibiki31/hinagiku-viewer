@@ -1,12 +1,14 @@
 
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, Path
 from sqlalchemy.orm import Session, exc
 
 from books.models import BookModel, TagsModel
 from mixins.database import get_db
 from mixins.log import setup_logger
-from mixins.parser import get_model_dict
-from tags.schemas import TagCreate
+from mixins.schema import MessageResponse
+from tags.schemas import TagCreate, TagResponse
 from users.router import get_current_user
 from users.schemas import UserCurrent
 
@@ -14,14 +16,22 @@ app = APIRouter()
 logger = setup_logger(__name__)
 
 
-@app.post("/api/books/{uuid}/tags", tags=["Tag"])
+@app.post("/api/books/{uuid}/tags", tags=["Tag"], response_model=MessageResponse)
 def add_book_tag(
         uuid: str = Path(..., description="書籍UUID"),
         model: TagCreate = None,
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
     ):
-    """指定した書籍にタグを追加する"""
+    """
+    指定した書籍にタグを追加する
+    
+    タグ名が既に存在する場合は既存のタグを使用し、
+    存在しない場合は新規作成します。
+    
+    Raises:
+        404: 書籍が存在しない、または所有していない場合
+    """
     try:
         book: BookModel = db.query(BookModel).filter(
             BookModel.uuid == uuid,
@@ -47,17 +57,22 @@ def add_book_tag(
     db.refresh(book)
 
     logger.info(f"タグ追加: book={uuid}, tag={model.name}, user={current_user.id}")
-    return get_model_dict(book)
+    return MessageResponse(message=f"タグ '{model.name}' を追加しました")
 
 
-@app.delete("/api/books/{uuid}/tags/{tag_id}", tags=["Tag"])
+@app.delete("/api/books/{uuid}/tags/{tag_id}", tags=["Tag"], response_model=MessageResponse)
 def remove_book_tag(
         uuid: str = Path(..., description="書籍UUID"),
         tag_id: int = Path(..., description="タグID"),
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
     ):
-    """指定した書籍から指定したタグを削除する（ボディなし）"""
+    """
+    指定した書籍から指定したタグを削除する
+    
+    Raises:
+        404: 書籍、タグが存在しない、またはタグが関連付けられていない場合
+    """
     try:
         book: BookModel = db.query(BookModel).filter(
             BookModel.uuid == uuid,
@@ -89,16 +104,21 @@ def remove_book_tag(
     db.refresh(book)
 
     logger.info(f"タグ削除: book={uuid}, tag_id={tag_id}, user={current_user.id}")
-    return get_model_dict(book)
+    return MessageResponse(message="タグを削除しました")
 
 
-@app.get("/api/books/{uuid}/tags", tags=["Tag"])
+@app.get("/api/books/{uuid}/tags", tags=["Tag"], response_model=List[TagResponse])
 def get_book_tags(
         uuid: str = Path(..., description="書籍UUID"),
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
     ):
-    """指定した書籍のタグ一覧を取得する"""
+    """
+    指定した書籍のタグ一覧を取得する
+    
+    Raises:
+        404: 書籍が存在しない、または所有していない場合
+    """
     try:
         book: BookModel = db.query(BookModel).filter(
             BookModel.uuid == uuid,
@@ -113,12 +133,16 @@ def get_book_tags(
     return book.tags
 
 
-@app.get("/api/tags", tags=["Tag"])
+@app.get("/api/tags", tags=["Tag"], response_model=List[TagResponse])
 def list_tags(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
     ):
-    """ユーザーが所有する書籍に関連付けられているタグの一覧を取得する"""
+    """
+    タグ一覧を取得する
+    
+    ユーザーが所有する書籍に関連付けられているタグのみを返します。
+    """
     query = db.query(TagsModel).filter(TagsModel.books.any(user_id=current_user.id))
 
     return query.all()
