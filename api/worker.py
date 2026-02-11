@@ -6,6 +6,7 @@ from mixins.log import setup_logger
 from tasks.library_export import main as task_library_export
 from tasks.library_fixmetadata import main as task_library_fixmetadata
 from tasks.library_import import main as task_library_import
+from tasks.library_integrity_check import main as task_library_integrity_check
 from tasks.library_rule import main as task_library_rule
 from tasks.library_sim import main as task_library_sim
 from tasks.library_sim_lsh import main as task_library_sim_lsh
@@ -104,3 +105,9 @@ if __name__ == "__main__":
             task_id=task_id
         )
         logger.info('ワーカでサムネイル再作成完了')
+
+    if args[1] == "integrity_check":
+        task_id = args[2] if len(args) > 2 else None
+        logger.info(f'ワーカで整合性確認開始 (task_id={task_id})')
+        task_library_integrity_check(db=db, task_id=task_id)
+        logger.info('ワーカで整合性確認完了')

@@ -103,6 +103,7 @@ class LibraryPatchEnum(str, Enum):
     sim_all = "sim_all"
     rule = "rule"
     thumbnail_recreate = "thumbnail_recreate"
+    integrity_check = "integrity_check"
 
 class LibraryPatch(BaseSchema):
     state: LibraryPatchEnum = LibraryPatchEnum.load

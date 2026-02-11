@@ -113,6 +113,9 @@ async def search_books(
         if params.cached is not None:
             query = query.filter(BookModel.cached == params.cached)
 
+        if params.state is not None:
+            query = query.filter(BookModel.state == params.state)
+
         elif params.full_text is not None:
             query = query.outerjoin(
                 BookModel.authors

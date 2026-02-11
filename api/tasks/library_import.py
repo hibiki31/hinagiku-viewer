@@ -4,6 +4,7 @@ import shutil
 import uuid
 import zlib
 from pathlib import Path
+from typing import Optional
 from zipfile import BadZipFile
 
 import PIL
@@ -18,8 +19,6 @@ from books.models import (
     PublisherModel,
     SeriesModel,
 )
-from typing import Optional
-
 from mixins.convertor import NotContentZipError, get_hash, make_thumbnail
 from mixins.log import setup_logger
 from mixins.parser import ParseResult, parse_filename
