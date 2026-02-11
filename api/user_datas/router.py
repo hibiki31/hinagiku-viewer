@@ -15,7 +15,7 @@ from users.schemas import UserCurrent
 
 from .schemas import *
 
-app = APIRouter()
+app = APIRouter(prefix="/api", tags=["User data"])
 logger = setup_logger(__name__)
 
 
@@ -24,7 +24,7 @@ exception_notfund = HTTPException(
     detail="Object not fund."
 )
 
-@app.put("/api/books/user-data", tags=["User data"], summary="本のユーザデータ（レート）を一括更新", response_model=UserDataUpdateResponse)
+@app.put("/books/user-data", summary="レート一括更新", response_model=UserDataUpdateResponse)
 def change_user_data(
         db: Session = Depends(get_db),
         model: BookUserMetaDataPut = None,
@@ -63,9 +63,8 @@ def change_user_data(
     logger.info(f"ユーザーデータ更新: {updated_count}件, rate={model.rate}, user={current_user.id}")
     return UserDataUpdateResponse(message=f"{updated_count}件のレートを更新しました", updated_count=updated_count)
 
-@app.patch("/api/books/user-data",
-    tags=["User data"],
-    summary="開いているページ、読んだ回数の管理",
+@app.patch("/books/user-data",
+    summary="閲覧状態更新",
     description="""
 - 本を開いたとき status=open, page=0
 - 本を途中で閉じた時 status=pause, page=5

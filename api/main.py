@@ -26,14 +26,50 @@ logger = setup_logger(__name__)
 
 
 tags_metadata = [
-    { "name": "Auth"},
-    { "name": "Mixin"},
-    { "name": "User"},
-    { "name": "Library", "description": "本は必ずライブラリに所属する"},
-    { "name": "Book", "description": "本は必ず１人のユーザが所有する"},
-    { "name": "Author", "description": "本は著者を0以上持ちnullの場合もある"},
-    { "name": "Task", "description": "バックグラウンドタスクの管理"},
-    { "name": "System", "description": "システム設定の管理"},
+    {
+        "name": "Auth",
+        "description": "認証・認可機能。JWT認証、ログイン、トークン検証、初期セットアップを提供"
+    },
+    {
+        "name": "Mixin",
+        "description": "共通機能。システムバージョン情報、初期化状態の確認"
+    },
+    {
+        "name": "User",
+        "description": "ユーザー管理。ユーザーの作成、一覧取得、現在のユーザー情報取得"
+    },
+    {
+        "name": "Library",
+        "description": "ライブラリ管理。書籍を分類・管理するためのライブラリ機能。各書籍は必ず1つのライブラリに所属"
+    },
+    {
+        "name": "Book",
+        "description": "書籍管理。書籍の検索、更新、削除、ダウンロード機能。各書籍は必ず1人のユーザーが所有"
+    },
+    {
+        "name": "Author",
+        "description": "著者管理。著者情報の管理、書籍との関連付け。各書籍は0人以上の著者を持つ"
+    },
+    {
+        "name": "Tag",
+        "description": "タグ管理。書籍の分類・整理のためのタグ機能"
+    },
+    {
+        "name": "User data",
+        "description": "ユーザーデータ管理。書籍の評価、閲覧履歴、読書進捗などのユーザー固有データ"
+    },
+    {
+        "name": "Media",
+        "description": "メディア処理。画像キャッシュ、サムネイル、ページ画像の配信、重複検出"
+    },
+    {
+        "name": "Task",
+        "description": "タスク管理。ライブラリ追加、エクスポート、重複検索などの長時間実行タスクの管理"
+    },
+    {
+        "name": "System",
+        "description": "システム設定管理。動的に追加・変更可能なKey-Value型の設定ストレージ"
+    },
 ]
 
 app = FastAPI(

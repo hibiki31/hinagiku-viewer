@@ -12,11 +12,11 @@ from tags.schemas import TagCreate, TagResponse
 from users.router import get_current_user
 from users.schemas import UserCurrent
 
-app = APIRouter()
+app = APIRouter(prefix="/api", tags=["Tag"])
 logger = setup_logger(__name__)
 
 
-@app.post("/api/books/{uuid}/tags", tags=["Tag"], response_model=MessageResponse)
+@app.post("/books/{uuid}/tags", summary="タグ追加", response_model=MessageResponse)
 def add_book_tag(
         uuid: str = Path(..., description="書籍UUID"),
         model: TagCreate = None,
@@ -60,7 +60,7 @@ def add_book_tag(
     return MessageResponse(message=f"タグ '{model.name}' を追加しました")
 
 
-@app.delete("/api/books/{uuid}/tags/{tag_id}", tags=["Tag"], response_model=MessageResponse)
+@app.delete("/books/{uuid}/tags/{tag_id}", summary="タグ削除", response_model=MessageResponse)
 def remove_book_tag(
         uuid: str = Path(..., description="書籍UUID"),
         tag_id: int = Path(..., description="タグID"),
@@ -107,7 +107,7 @@ def remove_book_tag(
     return MessageResponse(message="タグを削除しました")
 
 
-@app.get("/api/books/{uuid}/tags", tags=["Tag"], response_model=List[TagResponse])
+@app.get("/books/{uuid}/tags", summary="書籍のタグ一覧取得", response_model=List[TagResponse])
 def get_book_tags(
         uuid: str = Path(..., description="書籍UUID"),
         db: Session = Depends(get_db),
@@ -133,7 +133,7 @@ def get_book_tags(
     return book.tags
 
 
-@app.get("/api/tags", tags=["Tag"], response_model=List[TagResponse])
+@app.get("/tags", summary="タグ一覧取得", response_model=List[TagResponse])
 def list_tags(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)

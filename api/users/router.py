@@ -16,7 +16,7 @@ from users.models import UserModel
 from users.schemas import AuthValidateResponse, TokenRFC6749Response, UserCurrent, UserGet, UserPost
 
 logger = setup_logger(__name__)
-app = APIRouter()
+app = APIRouter(prefix="/api", tags=["User", "Auth"])
 
 
 # JWTトークンの設定
@@ -101,7 +101,7 @@ def get_current_user(
     return UserCurrent(id=user_id, token=token, is_admin=user.is_admin)
 
 
-@app.get("/api/users", tags=["User"], response_model=List[UserGet])
+@app.get("/users", summary="ユーザー一覧取得", response_model=List[UserGet])
 def list_users(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
@@ -114,7 +114,7 @@ def list_users(
     return db.query(UserModel).all()
 
 
-@app.get("/api/users/me/", tags=["User"], response_model=UserGet)
+@app.get("/users/me/", summary="現在のユーザー情報取得", response_model=UserGet)
 def get_current_user_info(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
@@ -128,7 +128,7 @@ def get_current_user_info(
     return user
 
 
-@app.post("/api/users", tags=["User"], response_model=UserGet)
+@app.post("/users", summary="ユーザー作成", response_model=UserGet)
 def create_user(
         user: UserPost,
         db: Session = Depends(get_db),
@@ -168,7 +168,7 @@ def create_user(
     return created_user
 
 
-@app.post("/api/auth", response_model=TokenRFC6749Response, tags=["Auth"])
+@app.post("/auth", summary="ログイン", response_model=TokenRFC6749Response)
 def login_for_access_token(
         form_data: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(get_db)
@@ -208,7 +208,7 @@ def login_for_access_token(
     return {"access_token": access_token, "token_type": "Bearer"}
 
 
-@app.post("/api/auth/setup", tags=["Auth"], response_model=UserGet)
+@app.post("/auth/setup", summary="初期セットアップ", response_model=UserGet)
 async def api_auth_setup(
         user: UserPost,
         db: Session = Depends(get_db)
@@ -254,10 +254,15 @@ async def api_auth_setup(
     return created_user
 
 
-@app.get("/api/auth/validate", tags=["Auth"], response_model=AuthValidateResponse)
+@app.get("/auth/validate", summary="トークン検証", response_model=AuthValidateResponse)
 def validate_token(
         current_user: CurrentUser = Security(get_current_user, scopes=["user"])
     ):
+    """
+    JWTトークンを検証し、ユーザー情報を返す
+
+    認証済みトークンの有効性を確認し、現在のユーザー情報を取得します。
+    """
     return {
         "access_token": current_user.token,
         "username": current_user.id,
