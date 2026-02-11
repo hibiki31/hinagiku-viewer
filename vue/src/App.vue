@@ -48,12 +48,16 @@ onMounted(async () => {
       // APIバージョンをストアに保存
       appStore.setApiVersion(data.version)
 
-      if (version !== data.version) {
+      // メジャーバージョンのみを比較
+      const clientMajor = version.split('.')[0]
+      const apiMajor = data.version.split('.')[0]
+
+      if (clientMajor !== apiMajor) {
         if (localStorage.apiVersion === data.version) {
-          pushNotice('クライアントとAPIでバージョン齟齬があります', 'error')
+          pushNotice('クライアントとAPIでメジャーバージョン齟齬があります', 'error')
           return
         }
-        pushNotice(data.version + 'にバージョンアップを行います', 'info')
+        pushNotice(data.version + 'にメジャーバージョンアップを行います', 'info')
         localStorage.apiVersion = data.version
         setTimeout(() => {
           location.reload()

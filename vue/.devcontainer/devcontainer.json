@@ -1,5 +1,5 @@
 {
-  "name": "Hinav-Vue",
+  "name": "hinav-vue",
   "context": ".",
   "dockerFile": "./Dockerfile",
   "remoteUser": "node",
