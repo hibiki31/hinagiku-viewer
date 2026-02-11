@@ -4,41 +4,6 @@
  */
 
 export interface paths {
-    "/api/users": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Users */
-        get: operations["list_users_api_users_get"];
-        put?: never;
-        /** Create User */
-        post: operations["create_user_api_users_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/users/me/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Current User Info */
-        get: operations["get_current_user_info_api_users_me__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/auth": {
         parameters: {
             query?: never;
@@ -48,7 +13,22 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Login For Access Token */
+        /**
+         * ログイン
+         * @description ログインしてアクセストークンを取得する
+         *
+         *     OAuth2 Password Flowに準拠した認証エンドポイント。
+         *     ユーザー名とパスワードを送信し、JWTアクセストークンを取得します。
+         *
+         *     Args:
+         *         form_data: OAuth2のフォームデータ（username, password）
+         *
+         *     Returns:
+         *         アクセストークンとトークンタイプ
+         *
+         *     Raises:
+         *         401: ユーザー名またはパスワードが間違っている場合
+         */
         post: operations["login_for_access_token_api_auth_post"];
         delete?: never;
         options?: never;
@@ -65,7 +45,23 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Api Auth Setup */
+        /**
+         * 初期セットアップ
+         * @description 初回セットアップで管理者ユーザーを作成する
+         *
+         *     システムに初めてアクセスする際に使用します。
+         *     既にユーザーが存在する場合はエラーを返します。
+         *     作成されたユーザーは管理者権限を持ちます。
+         *
+         *     Args:
+         *         user: ユーザー情報（ID、パスワード）
+         *
+         *     Returns:
+         *         作成された管理者ユーザー情報
+         *
+         *     Raises:
+         *         400: ユーザーIDが空、または既に初期化済みの場合
+         */
         post: operations["api_auth_setup_api_auth_setup_post"];
         delete?: never;
         options?: never;
@@ -80,8 +76,73 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Validate Token */
+        /**
+         * トークン検証
+         * @description JWTトークンを検証し、ユーザー情報を返す
+         *
+         *     認証済みトークンの有効性を確認し、現在のユーザー情報を取得します。
+         */
         get: operations["validate_token_api_auth_validate_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * ユーザー一覧取得
+         * @description ユーザー一覧を取得する
+         *
+         *     管理者権限が必要です。
+         */
+        get: operations["list_users_api_users_get"];
+        put?: never;
+        /**
+         * ユーザー作成
+         * @description 新規ユーザーを作成する
+         *
+         *     管理者権限が必要です。
+         *     作成されたユーザーは非管理者として登録されます。
+         *
+         *     Args:
+         *         user: ユーザー情報（ID、パスワード）
+         *
+         *     Returns:
+         *         作成されたユーザー情報
+         *
+         *     Raises:
+         *         400: ユーザーIDが既に存在する場合
+         */
+        post: operations["create_user_api_users_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/me/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 現在のユーザー情報取得
+         * @description 現在ログイン中のユーザー情報を取得する
+         *
+         *     認証トークンから自身のユーザー情報を取得します。
+         */
+        get: operations["get_current_user_info_api_users_me__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -97,7 +158,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Libraries */
+        /**
+         * ライブラリ一覧取得
+         * @description ライブラリ一覧を取得する
+         *
+         *     各ライブラリに含まれる書籍数とともにライブラリ情報を取得します。
+         */
         get: operations["list_libraries_api_libraries_get"];
         put?: never;
         post?: never;
@@ -114,9 +180,44 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Search Books */
+        /**
+         * 書籍検索
+         * @description 書籍を検索する
+         *
+         *     様々な条件で書籍を検索し、ページネーション形式で結果を返します。
+         *     管理者は全ての書籍を、一般ユーザーは自分の書籍と共有された書籍のみを検索できます。
+         *
+         *     検索条件:
+         *     - uuid: 書籍UUID（完全一致）
+         *     - fileNameLike: ファイル名（部分一致）
+         *     - cached: キャッシュ済みか
+         *     - authorLike: 著者名（部分一致）
+         *     - authorIsFavorite: お気に入り著者フィルタ
+         *     - titleLike: タイトル（部分一致）
+         *     - fullText: 全文検索（タイトル、ファイル名、著者名、タグ名）
+         *     - rate: 評価（0は未評価）
+         *     - tag: タグ名（完全一致）
+         *     - sortKey: ソートキー（title, addDate, size, userData.lastOpenDate, authors）
+         *     - sortDesc: 降順ソート
+         */
         get: operations["search_books_api_books_get"];
-        /** Update Books */
+        /**
+         * 書籍情報一括更新
+         * @description 書籍情報を一括更新する
+         *
+         *     指定されたUUID一覧の書籍に対して、同じ変更を適用します。
+         *
+         *     更新可能な項目:
+         *     - title: タイトル
+         *     - series: シリーズ名
+         *     - seriesNo: シリーズ番号
+         *     - publisher: 出版社名
+         *     - genre: ジャンル
+         *     - libraryId: ライブラリID
+         *
+         *     Raises:
+         *         404: 指定された書籍が存在しない場合
+         */
         put: operations["update_books_api_books_put"];
         post?: never;
         delete?: never;
@@ -135,7 +236,19 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Delete Book */
+        /**
+         * 書籍削除
+         * @description 書籍を削除する
+         *
+         *     指定された書籍を完全に削除します。
+         *     書籍ファイル、ユーザーデータ、データベースレコードが全て削除されます。
+         *
+         *     Args:
+         *         book_uuid: 削除する書籍のUUID
+         *
+         *     Raises:
+         *         404: 指定された書籍が存在しない場合
+         */
         delete: operations["delete_book_api_books__book_uuid__delete"];
         options?: never;
         head?: never;
@@ -150,7 +263,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * 本のZipファイルダウンロード
+         * 書籍Zipファイルダウンロード
          * @description 指定された本のZipファイルをダウンロードする
          */
         get: operations["download_book_api_books__book_uuid__download_get"];
@@ -169,7 +282,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** キャッシュサイズの確認 */
+        /** キャッシュサイズ確認 */
         get: operations["get_media_books_cache_media_books_cache_get"];
         put?: never;
         post?: never;
@@ -186,7 +299,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 重複本の確認 */
+        /** 重複書籍確認 */
         get: operations["get_media_books_duplicate_media_books_duplicate_get"];
         put?: never;
         post?: never;
@@ -220,7 +333,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** ページ取得 */
+        /** ページ画像取得 */
         get: operations["media_books_uuid_page_media_books__uuid___page__get"];
         put?: never;
         post?: never;
@@ -243,7 +356,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** 本の一括変換タスク実行 */
+        /** 書籍一括変換タスク実行 */
         patch: operations["patch_media_books__media_books_patch"];
         trace?: never;
     };
@@ -261,7 +374,7 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * ライブラリのロードやエクスポート
+         * ライブラリロード・エクスポート（非推奨）
          * @deprecated
          * @description **[非推奨] このエンドポイントは非推奨です。代わりに POST /api/tasks を使用してください。**
          *
@@ -288,14 +401,23 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Book Tags
+         * 書籍のタグ一覧取得
          * @description 指定した書籍のタグ一覧を取得する
+         *
+         *     Raises:
+         *         404: 書籍が存在しない、または所有していない場合
          */
         get: operations["get_book_tags_api_books__uuid__tags_get"];
         put?: never;
         /**
-         * Add Book Tag
+         * タグ追加
          * @description 指定した書籍にタグを追加する
+         *
+         *     タグ名が既に存在する場合は既存のタグを使用し、
+         *     存在しない場合は新規作成します。
+         *
+         *     Raises:
+         *         404: 書籍が存在しない、または所有していない場合
          */
         post: operations["add_book_tag_api_books__uuid__tags_post"];
         delete?: never;
@@ -315,8 +437,11 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Remove Book Tag
-         * @description 指定した書籍から指定したタグを削除する（ボディなし）
+         * タグ削除
+         * @description 指定した書籍から指定したタグを削除する
+         *
+         *     Raises:
+         *         404: 書籍、タグが存在しない、またはタグが関連付けられていない場合
          */
         delete: operations["remove_book_tag_api_books__uuid__tags__tag_id__delete"];
         options?: never;
@@ -332,8 +457,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List Tags
-         * @description ユーザーが所有する書籍に関連付けられているタグの一覧を取得する
+         * タグ一覧取得
+         * @description タグ一覧を取得する
+         *
+         *     ユーザーが所有する書籍に関連付けられているタグのみを返します。
          */
         get: operations["list_tags_api_tags_get"];
         put?: never;
@@ -352,7 +479,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List Authors
+         * 著者一覧取得
          * @description 著者一覧を取得する
          *
          *     - name: 完全一致検索
@@ -366,7 +493,7 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Update Author
+         * 著者情報更新（旧形式・非推奨）
          * @deprecated
          * @description 著者情報を更新する（旧形式・非推奨）
          *
@@ -384,7 +511,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Author
+         * 著者詳細取得
          * @description 著者の詳細情報を取得する
          *
          *     - author_id: 著者ID
@@ -393,7 +520,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Delete Author
+         * 著者削除
          * @description 著者を削除する
          *
          *     書籍に紐づいている著者は削除できません。
@@ -402,7 +529,7 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Update Author By Id
+         * 著者情報更新
          * @description 著者情報を更新する
          *
          *     - name: 著者名
@@ -422,7 +549,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Add Book Author
+         * 書籍に著者を追加
          * @description 書籍に著者を追加する
          *
          *     - author_id: 既存の著者IDを指定
@@ -430,7 +557,7 @@ export interface paths {
          */
         post: operations["add_book_author_api_books__book_uuid__authors_post"];
         /**
-         * Remove Book Author
+         * 書籍から著者を削除
          * @description 書籍から著者を削除する
          *
          *     - author_id: 削除する著者ID
@@ -449,14 +576,25 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
-        /** 本のユーザデータ（レート）を一括更新 */
+        /**
+         * レート一括更新
+         * @description 書籍のユーザーデータ（レート）を一括更新する
+         *
+         *     指定された書籍の評価を一括で設定します。
+         *
+         *     Args:
+         *         model: 更新する書籍UUIDリストと評価値
+         *
+         *     Returns:
+         *         更新結果
+         */
         put: operations["change_user_data_api_books_user_data_put"];
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
         /**
-         * 開いているページ、読んだ回数の管理
+         * 閲覧状態更新
          * @description - 本を開いたとき status=open, page=0
          *     - 本を途中で閉じた時 status=pause, page=5
          *     - 本を読み終わったとき status=close, page=None
@@ -472,8 +610,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Version
+         * バージョン情報取得
          * @description 初期化済みか判定用
+         *
+         *     システムのバージョン情報と初期セットアップが完了しているかを取得します。
          */
         get: operations["get_version_api_version_get"];
         put?: never;
@@ -562,7 +702,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List Settings
+         * システム設定一覧取得
          * @description システム設定一覧を取得
          *
          *     - 管理者: 全設定を取得可能
@@ -572,7 +712,7 @@ export interface paths {
         get: operations["list_settings_api_system_settings_get"];
         put?: never;
         /**
-         * Create Setting
+         * 新規設定作成
          * @description 新規設定を作成（管理者のみ）
          */
         post: operations["create_setting_api_system_settings_post"];
@@ -590,7 +730,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Setting By Key
+         * 個別設定取得
          * @description 個別設定を取得
          *
          *     - 管理者: 全設定を取得可能
@@ -598,13 +738,13 @@ export interface paths {
          */
         get: operations["get_setting_by_key_api_system_settings__key__get"];
         /**
-         * Update Setting
+         * 設定更新
          * @description 設定を更新（管理者のみ）
          */
         put: operations["update_setting_api_system_settings__key__put"];
         post?: never;
         /**
-         * Delete Setting
+         * 設定削除
          * @description 設定を削除（管理者のみ）
          */
         delete: operations["delete_setting_api_system_settings__key__delete"];
@@ -623,7 +763,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Bulk Update Settings
+         * 設定一括更新
          * @description 設定を一括更新（管理者のみ）
          */
         post: operations["bulk_update_settings_api_system_settings_bulk_post"];
@@ -641,7 +781,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Settings By Category Endpoint
+         * カテゴリ別設定取得
          * @description カテゴリ別に設定を取得（型変換済みの値）
          *
          *     - 管理者: 全設定を取得可能
@@ -664,7 +804,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get All Settings Values
+         * 全設定取得（型変換済み）
          * @description 全設定を取得（型変換済みの値）
          *
          *     - 管理者: 全設定を取得可能
@@ -845,6 +985,16 @@ export interface components {
             /** Height */
             height: number;
         };
+        /**
+         * BookDeleteResponse
+         * @description 書籍削除レスポンス
+         */
+        BookDeleteResponse: {
+            /** Message */
+            message: string;
+            /** Uuid */
+            uuid: string;
+        };
         /** BookGet */
         BookGet: {
             /** Limit */
@@ -891,6 +1041,16 @@ export interface components {
             id: number;
             /** Name */
             name: string;
+        };
+        /**
+         * BookUpdateResponse
+         * @description 書籍更新レスポンス
+         */
+        BookUpdateResponse: {
+            /** Message */
+            message: string;
+            /** Updatedcount */
+            updatedCount: number;
         };
         /** BookUserDataBase */
         BookUserDataBase: {
@@ -948,6 +1108,14 @@ export interface components {
          * @enum {string}
          */
         LibraryPatchEnum: "export" | "load" | "export_uuid" | "fixmetadata" | "sim_all" | "rule" | "thumbnail_recreate" | "integrity_check";
+        /**
+         * MessageResponse
+         * @description 汎用メッセージレスポンス
+         */
+        MessageResponse: {
+            /** Message */
+            message: string;
+        };
         /**
          * PatchAuthor
          * @description 著者更新リクエスト（旧形式・非推奨）
@@ -1047,6 +1215,16 @@ export interface components {
             name: string;
         };
         /**
+         * TagResponse
+         * @description タグレスポンス
+         */
+        TagResponse: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+        };
+        /**
          * TaskCreate
          * @description タスク作成リクエスト
          */
@@ -1123,6 +1301,25 @@ export interface components {
             /** Token Type */
             token_type: string;
         };
+        /** UserCurrent */
+        UserCurrent: {
+            /** Id */
+            id: string;
+            /** Token */
+            token: string;
+            /** Isadmin */
+            isAdmin: boolean;
+        };
+        /**
+         * UserDataUpdateResponse
+         * @description ユーザーデータ更新レスポンス
+         */
+        UserDataUpdateResponse: {
+            /** Message */
+            message: string;
+            /** Updatedcount */
+            updatedCount: number;
+        };
         /** UserGet */
         UserGet: {
             /** Id */
@@ -1162,79 +1359,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    list_users_api_users_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserGet"][];
-                };
-            };
-        };
-    };
-    create_user_api_users_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UserPost"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    get_current_user_info_api_users_me__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserGet"];
-                };
-            };
-        };
-    };
     login_for_access_token_api_auth_post: {
         parameters: {
             query?: never;
@@ -1287,7 +1411,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["UserCurrent"];
                 };
             };
             /** @description Validation Error */
@@ -1317,6 +1441,79 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuthValidateResponse"];
+                };
+            };
+        };
+    };
+    list_users_api_users_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserGet"][];
+                };
+            };
+        };
+    };
+    create_user_api_users_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserPost"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserGet"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_current_user_info_api_users_me__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserGet"];
                 };
             };
         };
@@ -1407,7 +1604,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["BookUpdateResponse"];
                 };
             };
             /** @description Validation Error */
@@ -1438,7 +1635,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["BookDeleteResponse"];
                 };
             };
             /** @description Validation Error */
@@ -1684,7 +1881,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["TagResponse"][];
                 };
             };
             /** @description Validation Error */
@@ -1720,7 +1917,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["MessageResponse"];
                 };
             };
             /** @description Validation Error */
@@ -1754,7 +1951,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["MessageResponse"];
                 };
             };
             /** @description Validation Error */
@@ -1783,7 +1980,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["TagResponse"][];
                 };
             };
         };
@@ -2040,7 +2237,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["UserDataUpdateResponse"];
                 };
             };
             /** @description Validation Error */
@@ -2073,7 +2270,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["BookUserDataBase"][];
                 };
             };
             /** @description Validation Error */
