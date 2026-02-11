@@ -80,6 +80,24 @@
                     </v-btn>
                   </template>
                 </v-list-item>
+                <v-divider />
+                <v-list-item>
+                  <v-list-item-title>ライブラリ整合性チェック</v-list-item-title>
+                  <v-list-item-subtitle>
+                    ライブラリとファイルシステムの整合性をチェックします。時間がかかる場合があります。
+                  </v-list-item-subtitle>
+                  <template #append>
+                    <v-btn
+                      color="primary"
+                      :loading="isRunningIntegrityCheck"
+                      :disabled="isRunningIntegrityCheck"
+                      @click="runIntegrityCheck"
+                    >
+                      <v-icon class="mr-1">mdi-database-check</v-icon>
+                      実行
+                    </v-btn>
+                  </template>
+                </v-list-item>
               </v-list>
             </v-card-text>
           </v-card>
@@ -278,6 +296,7 @@ const selectedTab = ref<string>('')
 const editValues = ref<Record<string, string>>({})
 const isSaving = ref(false)
 const isRecreatingThumbnails = ref(false)
+const isRunningIntegrityCheck = ref(false)
 
 // 管理者チェック
 const isAdmin = computed(() => userDataStore.isAdmin)
@@ -382,6 +401,35 @@ const recreateThumbnails = async () => {
     console.error('サムネイル再作成エラー:', error)
   } finally {
     isRecreatingThumbnails.value = false
+  }
+}
+
+/**
+ * ライブラリ整合性チェック
+ */
+const runIntegrityCheck = async () => {
+  if (!confirm('ライブラリの整合性チェックを実行します。よろしいですか？\n\n※この処理には時間がかかる場合があります。')) {
+    return
+  }
+
+  isRunningIntegrityCheck.value = true
+  try {
+    const { error } = await apiClient.POST('/api/tasks', {
+      body: {
+        taskType: 'integrity_check'
+      }
+    })
+
+    if (error) {
+      throw new Error('整合性チェックの開始に失敗しました')
+    }
+
+    pushNotice('整合性チェックタスクを開始しました', 'success')
+  } catch (error) {
+    pushNotice('整合性チェックの開始に失敗しました', 'error')
+    console.error('整合性チェックエラー:', error)
+  } finally {
+    isRunningIntegrityCheck.value = false
   }
 }
 

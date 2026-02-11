@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "HinavAPI",
-    "version": "3.3.0"
+    "version": "3.6.0"
   },
   "servers": [
     {
@@ -11,110 +11,13 @@
     }
   ],
   "paths": {
-    "/api/users": {
-      "get": {
-        "tags": [
-          "User"
-        ],
-        "summary": "List Users",
-        "operationId": "list_users_api_users_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/UserGet"
-                  },
-                  "type": "array",
-                  "title": "Response List Users Api Users Get"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      },
-      "post": {
-        "tags": [
-          "User"
-        ],
-        "summary": "Create User",
-        "operationId": "create_user_api_users_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UserPost"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      }
-    },
-    "/api/users/me/": {
-      "get": {
-        "tags": [
-          "User"
-        ],
-        "summary": "Get Current User Info",
-        "operationId": "get_current_user_info_api_users_me__get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserGet"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
-      }
-    },
     "/api/auth": {
       "post": {
         "tags": [
           "Auth"
         ],
-        "summary": "Login For Access Token",
+        "summary": "ログイン",
+        "description": "ログインしてアクセストークンを取得する\n\nOAuth2 Password Flowに準拠した認証エンドポイント。\nユーザー名とパスワードを送信し、JWTアクセストークンを取得します。\n\nArgs:\n    form_data: OAuth2のフォームデータ（username, password）\n\nReturns:\n    アクセストークンとトークンタイプ\n\nRaises:\n    401: ユーザー名またはパスワードが間違っている場合",
         "operationId": "login_for_access_token_api_auth_post",
         "requestBody": {
           "content": {
@@ -155,7 +58,8 @@
         "tags": [
           "Auth"
         ],
-        "summary": "Api Auth Setup",
+        "summary": "初期セットアップ",
+        "description": "初回セットアップで管理者ユーザーを作成する\n\nシステムに初めてアクセスする際に使用します。\n既にユーザーが存在する場合はエラーを返します。\n作成されたユーザーは管理者権限を持ちます。\n\nArgs:\n    user: ユーザー情報（ID、パスワード）\n\nReturns:\n    作成された管理者ユーザー情報\n\nRaises:\n    400: ユーザーIDが空、または既に初期化済みの場合",
         "operationId": "api_auth_setup_api_auth_setup_post",
         "requestBody": {
           "content": {
@@ -172,7 +76,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/UserCurrent"
+                }
               }
             }
           },
@@ -194,7 +100,8 @@
         "tags": [
           "Auth"
         ],
-        "summary": "Validate Token",
+        "summary": "トークン検証",
+        "description": "JWTトークンを検証し、ユーザー情報を返す\n\n認証済みトークンの有効性を確認し、現在のユーザー情報を取得します。",
         "operationId": "validate_token_api_auth_validate_get",
         "responses": {
           "200": {
@@ -210,9 +117,110 @@
         },
         "security": [
           {
-            "OAuth2PasswordBearer": [
-              "user"
-            ]
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/users": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "ユーザー一覧取得",
+        "description": "ユーザー一覧を取得する\n\n管理者権限が必要です。",
+        "operationId": "list_users_api_users_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UserGet"
+                  },
+                  "type": "array",
+                  "title": "Response List Users Api Users Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "ユーザー作成",
+        "description": "新規ユーザーを作成する\n\n管理者権限が必要です。\n作成されたユーザーは非管理者として登録されます。\n\nArgs:\n    user: ユーザー情報（ID、パスワード）\n\nReturns:\n    作成されたユーザー情報\n\nRaises:\n    400: ユーザーIDが既に存在する場合",
+        "operationId": "create_user_api_users_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPost"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserGet"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/users/me/": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "現在のユーザー情報取得",
+        "description": "現在ログイン中のユーザー情報を取得する\n\n認証トークンから自身のユーザー情報を取得します。",
+        "operationId": "get_current_user_info_api_users_me__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserGet"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
           }
         ]
       }
@@ -220,9 +228,11 @@
     "/api/libraries": {
       "get": {
         "tags": [
+          "Book",
           "Library"
         ],
-        "summary": "List Libraries",
+        "summary": "ライブラリ一覧取得",
+        "description": "ライブラリ一覧を取得する\n\n各ライブラリに含まれる書籍数とともにライブラリ情報を取得します。",
         "operationId": "list_libraries_api_libraries_get",
         "responses": {
           "200": {
@@ -252,7 +262,8 @@
         "tags": [
           "Book"
         ],
-        "summary": "Search Books",
+        "summary": "書籍検索",
+        "description": "書籍を検索する\n\n様々な条件で書籍を検索し、ページネーション形式で結果を返します。\n管理者は全ての書籍を、一般ユーザーは自分の書籍と共有された書籍のみを検索できます。\n\n検索条件:\n- uuid: 書籍UUID（完全一致）\n- fileNameLike: ファイル名（部分一致）\n- cached: キャッシュ済みか\n- authorLike: 著者名（部分一致）\n- authorIsFavorite: お気に入り著者フィルタ\n- titleLike: タイトル（部分一致）\n- fullText: 全文検索（タイトル、ファイル名、著者名、タグ名）\n- rate: 評価（0は未評価）\n- tag: タグ名（完全一致）\n- sortKey: ソートキー（title, addDate, size, userData.lastOpenDate, authors）\n- sortDesc: 降順ソート",
         "operationId": "search_books_api_books_get",
         "security": [
           {
@@ -530,7 +541,8 @@
         "tags": [
           "Book"
         ],
-        "summary": "Update Books",
+        "summary": "書籍情報一括更新",
+        "description": "書籍情報を一括更新する\n\n指定されたUUID一覧の書籍に対して、同じ変更を適用します。\n\n更新可能な項目:\n- title: タイトル\n- series: シリーズ名\n- seriesNo: シリーズ番号\n- publisher: 出版社名\n- genre: ジャンル\n- libraryId: ライブラリID\n\nRaises:\n    404: 指定された書籍が存在しない場合",
         "operationId": "update_books_api_books_put",
         "security": [
           {
@@ -551,7 +563,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/BookUpdateResponse"
+                }
               }
             }
           },
@@ -573,7 +587,8 @@
         "tags": [
           "Book"
         ],
-        "summary": "Delete Book",
+        "summary": "書籍削除",
+        "description": "書籍を削除する\n\n指定された書籍を完全に削除します。\n書籍ファイル、ユーザーデータ、データベースレコードが全て削除されます。\n\nArgs:\n    book_uuid: 削除する書籍のUUID\n\nRaises:\n    404: 指定された書籍が存在しない場合",
         "operationId": "delete_book_api_books__book_uuid__delete",
         "security": [
           {
@@ -596,7 +611,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/BookDeleteResponse"
+                }
               }
             }
           },
@@ -618,7 +635,7 @@
         "tags": [
           "Book"
         ],
-        "summary": "本のZipファイルダウンロード",
+        "summary": "書籍Zipファイルダウンロード",
         "description": "指定された本のZipファイルをダウンロードする",
         "operationId": "download_book_api_books__book_uuid__download_get",
         "security": [
@@ -664,7 +681,7 @@
         "tags": [
           "Media"
         ],
-        "summary": "キャッシュサイズの確認",
+        "summary": "キャッシュサイズ確認",
         "operationId": "get_media_books_cache_media_books_cache_get",
         "responses": {
           "200": {
@@ -688,7 +705,7 @@
         "tags": [
           "Media"
         ],
-        "summary": "重複本の確認",
+        "summary": "重複書籍確認",
         "operationId": "get_media_books_duplicate_media_books_duplicate_get",
         "security": [
           {
@@ -784,7 +801,7 @@
         "tags": [
           "Media"
         ],
-        "summary": "ページ取得",
+        "summary": "ページ画像取得",
         "operationId": "media_books_uuid_page_media_books__uuid___page__get",
         "parameters": [
           {
@@ -843,7 +860,7 @@
         "tags": [
           "Media"
         ],
-        "summary": "本の一括変換タスク実行",
+        "summary": "書籍一括変換タスク実行",
         "operationId": "patch_media_books__media_books_patch",
         "requestBody": {
           "content": {
@@ -887,7 +904,7 @@
         "tags": [
           "Media"
         ],
-        "summary": "ライブラリのロードやエクスポート",
+        "summary": "ライブラリロード・エクスポート（非推奨）",
         "description": "**[非推奨] このエンドポイントは非推奨です。代わりに POST /api/tasks を使用してください。**\n\n各種バックグラウンドタスクを開始する\n\nstate:\n- load: ライブラリのロード\n- fixmetadata: メタデータの修正\n- export: ライブラリのエクスポート\n- export_uuid: UUID指定エクスポート\n- sim_all: 全体の類似度計算\n- rule: ルール適用\n- thumbnail_recreate: サムネイル再作成\n- integrity_check: 整合性チェック",
         "operationId": "patch_media_library_media_library_patch",
         "requestBody": {
@@ -933,8 +950,8 @@
         "tags": [
           "Tag"
         ],
-        "summary": "Add Book Tag",
-        "description": "指定した書籍にタグを追加する",
+        "summary": "タグ追加",
+        "description": "指定した書籍にタグを追加する\n\nタグ名が既に存在する場合は既存のタグを使用し、\n存在しない場合は新規作成します。\n\nRaises:\n    404: 書籍が存在しない、または所有していない場合",
         "operationId": "add_book_tag_api_books__uuid__tags_post",
         "security": [
           {
@@ -968,7 +985,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
               }
             }
           },
@@ -988,8 +1007,8 @@
         "tags": [
           "Tag"
         ],
-        "summary": "Get Book Tags",
-        "description": "指定した書籍のタグ一覧を取得する",
+        "summary": "書籍のタグ一覧取得",
+        "description": "指定した書籍のタグ一覧を取得する\n\nRaises:\n    404: 書籍が存在しない、または所有していない場合",
         "operationId": "get_book_tags_api_books__uuid__tags_get",
         "security": [
           {
@@ -1014,7 +1033,13 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TagResponse"
+                  },
+                  "title": "Response Get Book Tags Api Books  Uuid  Tags Get"
+                }
               }
             }
           },
@@ -1036,8 +1061,8 @@
         "tags": [
           "Tag"
         ],
-        "summary": "Remove Book Tag",
-        "description": "指定した書籍から指定したタグを削除する（ボディなし）",
+        "summary": "タグ削除",
+        "description": "指定した書籍から指定したタグを削除する\n\nRaises:\n    404: 書籍、タグが存在しない、またはタグが関連付けられていない場合",
         "operationId": "remove_book_tag_api_books__uuid__tags__tag_id__delete",
         "security": [
           {
@@ -1073,7 +1098,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                }
               }
             }
           },
@@ -1095,15 +1122,21 @@
         "tags": [
           "Tag"
         ],
-        "summary": "List Tags",
-        "description": "ユーザーが所有する書籍に関連付けられているタグの一覧を取得する",
+        "summary": "タグ一覧取得",
+        "description": "タグ一覧を取得する\n\nユーザーが所有する書籍に関連付けられているタグのみを返します。",
         "operationId": "list_tags_api_tags_get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TagResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Tags Api Tags Get"
+                }
               }
             }
           }
@@ -1120,7 +1153,7 @@
         "tags": [
           "Author"
         ],
-        "summary": "List Authors",
+        "summary": "著者一覧取得",
         "description": "著者一覧を取得する\n\n- name: 完全一致検索\n- name_like: 部分一致検索\n- is_favorite: お気に入りフィルタ（True/False/None）",
         "operationId": "list_authors_api_authors_get",
         "security": [
@@ -1209,7 +1242,7 @@
         "tags": [
           "Author"
         ],
-        "summary": "Update Author",
+        "summary": "著者情報更新（旧形式・非推奨）",
         "description": "著者情報を更新する（旧形式・非推奨）\n\nこのエンドポイントは後方互換性のために残されています。\n新規実装では PATCH /api/authors/{author_id} を使用してください。",
         "operationId": "update_author_api_authors_patch",
         "deprecated": true,
@@ -1255,7 +1288,7 @@
         "tags": [
           "Author"
         ],
-        "summary": "Get Author",
+        "summary": "著者詳細取得",
         "description": "著者の詳細情報を取得する\n\n- author_id: 著者ID",
         "operationId": "get_author_api_authors__author_id__get",
         "security": [
@@ -1301,7 +1334,7 @@
         "tags": [
           "Author"
         ],
-        "summary": "Update Author By Id",
+        "summary": "著者情報更新",
         "description": "著者情報を更新する\n\n- name: 著者名\n- is_favorite: お気に入り設定\n- description: 説明",
         "operationId": "update_author_by_id_api_authors__author_id__patch",
         "security": [
@@ -1357,7 +1390,7 @@
         "tags": [
           "Author"
         ],
-        "summary": "Delete Author",
+        "summary": "著者削除",
         "description": "著者を削除する\n\n書籍に紐づいている著者は削除できません。",
         "operationId": "delete_author_api_authors__author_id__delete",
         "security": [
@@ -1401,9 +1434,10 @@
     "/api/books/{book_uuid}/authors": {
       "post": {
         "tags": [
-          "Author"
+          "Author",
+          "Book"
         ],
-        "summary": "Add Book Author",
+        "summary": "書籍に著者を追加",
         "description": "書籍に著者を追加する\n\n- author_id: 既存の著者IDを指定\n- author_name: 著者名を指定（存在しない場合は新規作成）",
         "operationId": "add_book_author_api_books__book_uuid__authors_post",
         "security": [
@@ -1455,9 +1489,10 @@
       },
       "delete": {
         "tags": [
-          "Author"
+          "Author",
+          "Book"
         ],
-        "summary": "Remove Book Author",
+        "summary": "書籍から著者を削除",
         "description": "書籍から著者を削除する\n\n- author_id: 削除する著者ID",
         "operationId": "remove_book_author_api_books__book_uuid__authors_delete",
         "security": [
@@ -1513,7 +1548,8 @@
         "tags": [
           "User data"
         ],
-        "summary": "本のユーザデータ（レート）を一括更新",
+        "summary": "レート一括更新",
+        "description": "書籍のユーザーデータ（レート）を一括更新する\n\n指定された書籍の評価を一括で設定します。\n\nArgs:\n    model: 更新する書籍UUIDリストと評価値\n\nReturns:\n    更新結果",
         "operationId": "change_user_data_api_books_user_data_put",
         "requestBody": {
           "content": {
@@ -1529,7 +1565,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/UserDataUpdateResponse"
+                }
               }
             }
           },
@@ -1554,7 +1592,7 @@
         "tags": [
           "User data"
         ],
-        "summary": "開いているページ、読んだ回数の管理",
+        "summary": "閲覧状態更新",
         "description": "- 本を開いたとき status=open, page=0\n- 本を途中で閉じた時 status=pause, page=5\n- 本を読み終わったとき status=close, page=None",
         "operationId": "signal_book_status_api_books_user_data_patch",
         "requestBody": {
@@ -1571,7 +1609,13 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BookUserDataBase"
+                  },
+                  "type": "array",
+                  "title": "Response Signal Book Status Api Books User Data Patch"
+                }
               }
             }
           },
@@ -1598,8 +1642,8 @@
         "tags": [
           "Mixin"
         ],
-        "summary": "Get Version",
-        "description": "初期化済みか判定用",
+        "summary": "バージョン情報取得",
+        "description": "初期化済みか判定用\n\nシステムのバージョン情報と初期セットアップが完了しているかを取得します。",
         "operationId": "get_version_api_version_get",
         "responses": {
           "200": {
@@ -1848,7 +1892,7 @@
         "tags": [
           "System"
         ],
-        "summary": "List Settings",
+        "summary": "システム設定一覧取得",
         "description": "システム設定一覧を取得\n\n- 管理者: 全設定を取得可能\n- 一般ユーザー: is_public=true の設定のみ取得可能\n- category パラメータでフィルタリング可能",
         "operationId": "list_settings_api_system_settings_get",
         "security": [
@@ -1901,7 +1945,7 @@
         "tags": [
           "System"
         ],
-        "summary": "Create Setting",
+        "summary": "新規設定作成",
         "description": "新規設定を作成（管理者のみ）",
         "operationId": "create_setting_api_system_settings_post",
         "security": [
@@ -1948,7 +1992,7 @@
         "tags": [
           "System"
         ],
-        "summary": "Get Setting By Key",
+        "summary": "個別設定取得",
         "description": "個別設定を取得\n\n- 管理者: 全設定を取得可能\n- 一般ユーザー: is_public=true の設定のみ取得可能",
         "operationId": "get_setting_by_key_api_system_settings__key__get",
         "security": [
@@ -1994,7 +2038,7 @@
         "tags": [
           "System"
         ],
-        "summary": "Update Setting",
+        "summary": "設定更新",
         "description": "設定を更新（管理者のみ）",
         "operationId": "update_setting_api_system_settings__key__put",
         "security": [
@@ -2050,7 +2094,7 @@
         "tags": [
           "System"
         ],
-        "summary": "Delete Setting",
+        "summary": "設定削除",
         "description": "設定を削除（管理者のみ）",
         "operationId": "delete_setting_api_system_settings__key__delete",
         "security": [
@@ -2096,7 +2140,7 @@
         "tags": [
           "System"
         ],
-        "summary": "Bulk Update Settings",
+        "summary": "設定一括更新",
         "description": "設定を一括更新（管理者のみ）",
         "operationId": "bulk_update_settings_api_system_settings_bulk_post",
         "requestBody": {
@@ -2141,7 +2185,7 @@
         "tags": [
           "System"
         ],
-        "summary": "Get Settings By Category Endpoint",
+        "summary": "カテゴリ別設定取得",
         "description": "カテゴリ別に設定を取得（型変換済みの値）\n\n- 管理者: 全設定を取得可能\n- 一般ユーザー: is_public=true の設定のみ取得可能",
         "operationId": "get_settings_by_category_endpoint_api_system_settings_category__category__get",
         "security": [
@@ -2187,7 +2231,7 @@
         "tags": [
           "System"
         ],
-        "summary": "Get All Settings Values",
+        "summary": "全設定取得（型変換済み）",
         "description": "全設定を取得（型変換済みの値）\n\n- 管理者: 全設定を取得可能\n- 一般ユーザー: is_public=true の設定のみ取得可能",
         "operationId": "get_all_settings_values_api_system_settings_all_values_get",
         "responses": {
@@ -2630,6 +2674,25 @@
         ],
         "title": "BookCacheCreate"
       },
+      "BookDeleteResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "uuid": {
+            "type": "string",
+            "title": "Uuid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "uuid"
+        ],
+        "title": "BookDeleteResponse",
+        "description": "書籍削除レスポンス"
+      },
       "BookGet": {
         "properties": {
           "limit": {
@@ -2800,6 +2863,25 @@
           "name"
         ],
         "title": "BookTag"
+      },
+      "BookUpdateResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "updatedCount": {
+            "type": "integer",
+            "title": "Updatedcount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "updatedCount"
+        ],
+        "title": "BookUpdateResponse",
+        "description": "書籍更新レスポンス"
       },
       "BookUserDataBase": {
         "properties": {
@@ -2980,6 +3062,20 @@
           "integrity_check"
         ],
         "title": "LibraryPatchEnum"
+      },
+      "MessageResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "MessageResponse",
+        "description": "汎用メッセージレスポンス"
       },
       "PatchAuthor": {
         "properties": {
@@ -3185,6 +3281,25 @@
         ],
         "title": "TagCreate",
         "description": "タグ作成スキーマ"
+      },
+      "TagResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "TagResponse",
+        "description": "タグレスポンス"
       },
       "TaskCreate": {
         "properties": {
@@ -3398,6 +3513,48 @@
         ],
         "title": "TokenRFC6749Response"
       },
+      "UserCurrent": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "isAdmin": {
+            "type": "boolean",
+            "title": "Isadmin"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "token",
+          "isAdmin"
+        ],
+        "title": "UserCurrent"
+      },
+      "UserDataUpdateResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "updatedCount": {
+            "type": "integer",
+            "title": "Updatedcount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "updatedCount"
+        ],
+        "title": "UserDataUpdateResponse",
+        "description": "ユーザーデータ更新レスポンス"
+      },
       "UserGet": {
         "properties": {
           "id": {
@@ -3512,33 +3669,48 @@
   },
   "tags": [
     {
-      "name": "Auth"
+      "name": "Auth",
+      "description": "認証・認可機能。JWT認証、ログイン、トークン検証、初期セットアップを提供します"
     },
     {
-      "name": "Mixin"
+      "name": "Mixin",
+      "description": "共通機能。システムバージョン情報、初期化状態の確認を行います"
     },
     {
-      "name": "User"
+      "name": "User",
+      "description": "ユーザー管理。ユーザーの作成、一覧取得、現在のユーザー情報取得を提供します"
     },
     {
       "name": "Library",
-      "description": "本は必ずライブラリに所属する"
+      "description": "ライブラリ管理。書籍を分類・管理するためのライブラリ機能を提供します。各書籍は必ず1つのライブラリに所属します"
     },
     {
       "name": "Book",
-      "description": "本は必ず１人のユーザが所有する"
+      "description": "書籍管理。書籍の検索、更新、削除、ダウンロード機能を提供します。高度なフィルタリング・ソート・ページネーション機能を含みます"
     },
     {
       "name": "Author",
-      "description": "本は著者を0以上持ちnullの場合もある"
+      "description": "著者管理。著者情報の管理、書籍との関連付けを行います。お気に入り著者の設定、著者別書籍数の集計などの機能を提供します"
+    },
+    {
+      "name": "Tag",
+      "description": "タグ管理。書籍の分類・整理のためのタグ機能を提供します"
+    },
+    {
+      "name": "User data",
+      "description": "ユーザーデータ管理。書籍の評価、閲覧履歴、読書進捗などのユーザー固有データを管理します"
+    },
+    {
+      "name": "Media",
+      "description": "メディア処理。画像キャッシュ、サムネイル、ページ画像の配信、重複検出機能を提供します。動的な画像リサイズとキャッシング機構を含みます"
     },
     {
       "name": "Task",
-      "description": "バックグラウンドタスクの管理"
+      "description": "タスク管理。ライブラリインポート、エクスポート、類似度計算、整合性チェックなど長時間実行タスクの管理機能を提供します"
     },
     {
       "name": "System",
-      "description": "システム設定の管理"
+      "description": "システム設定管理。動的に追加・変更可能なKey-Value型の設定ストレージ。カテゴリ別管理、型変換、公開設定などの機能を提供します"
     }
   ]
 }
