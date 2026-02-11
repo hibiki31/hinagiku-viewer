@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 
 from mixins.schema import BaseSchema
 
@@ -27,6 +27,20 @@ class TaskListResponse(BaseSchema):
     limit: int
     offset: int
     rows: list[TaskSchema]
+
+
+class TaskCreate(BaseSchema):
+    """タスク作成リクエスト"""
+    task_type: Literal[
+        "load",
+        "fixmetadata",
+        "export",
+        "export_uuid",
+        "sim_all",
+        "rule",
+        "thumbnail_recreate",
+        "integrity_check"
+    ]
 
 
 class TaskCreateResponse(BaseSchema):

@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "HinavAPI",
-    "version": "3.0.1"
+    "version": "3.2.0"
   },
   "servers": [
     {
@@ -2930,7 +2930,8 @@
           "fixmetadata",
           "sim_all",
           "rule",
-          "thumbnail_recreate"
+          "thumbnail_recreate",
+          "integrity_check"
         ],
         "title": "LibraryPatchEnum"
       },

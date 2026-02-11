@@ -164,19 +164,32 @@ def patch_media_books_(
     return { "status": "ok", "model": model }
 
 
-@app.patch("/media/library", tags=["Media"], summary="ライブラリのロードやエクスポート")
+@app.patch("/media/library", tags=["Media"], summary="ライブラリのロードやエクスポート", deprecated=True)
 def patch_media_library(
         model: LibraryPatch,
         db: Session = Depends(get_db),
         current_user:UserCurrent = Depends(get_current_user)
     ):
     """
-    - state=load ライブラリのロード
-    - state=export ライブラリのエクスポート
+    **[非推奨] このエンドポイントは非推奨です。代わりに POST /api/tasks を使用してください。**
+
+    各種バックグラウンドタスクを開始する
+
+    state:
+    - load: ライブラリのロード
+    - fixmetadata: メタデータの修正
+    - export: ライブラリのエクスポート
+    - export_uuid: UUID指定エクスポート
+    - sim_all: 全体の類似度計算
+    - rule: ルール適用
+    - thumbnail_recreate: サムネイル再作成
+    - integrity_check: 整合性チェック
     """
+    logger.warning("DEPRECATED: /media/library PATCH is deprecated. Use POST /api/tasks instead.")
+
     for i in library_pool:
         if i.poll() is None:
-            return { "status": "allredy" }
+            return { "status": "already", "deprecated": True }
 
     # タスクレコード作成
     task_id = str(uuid4())
@@ -202,4 +215,4 @@ def patch_media_library(
     elif model.state == "integrity_check":
         library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "integrity_check", task_id]))
 
-    return { "status": "ok", "taskId": task_id }
+    return { "status": "ok", "taskId": task_id, "deprecated": True }
