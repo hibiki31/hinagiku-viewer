@@ -17,7 +17,10 @@ from tasks.utility import create_task
 from users.router import get_current_user
 from users.schemas import UserCurrent
 
-app = APIRouter()
+app = APIRouter(
+    prefix="/media",
+    tags=["Media"]
+)
 logger = setup_logger(__name__)
 
 
@@ -25,7 +28,7 @@ converter_pool = []
 library_pool = []
 
 
-@app.get("/media/books/cache", tags=["Media"], summary="キャッシュサイズの確認")
+@app.get("/books/cache", summary="キャッシュサイズ確認")
 def get_media_books_cache(
         current_user:UserCurrent = Depends(get_current_user)
     ):
@@ -43,7 +46,7 @@ def get_media_books_cache(
     return {"original_mb": original_size/1024/1024, "convert_mb": convert_size/1024/1024}
 
 
-@app.get("/media/books/duplicate", tags=["Media"], summary="重複本の確認")
+@app.get("/books/duplicate", summary="重複書籍確認")
 def get_media_books_duplicate(
         db: Session = Depends(get_db),
         current_user:UserCurrent = Depends(get_current_user),
@@ -108,7 +111,7 @@ def get_media_books_duplicate(
 
 
 
-@app.get("/media/books/{uuid}", tags=["Media"], summary="サムネイル取得")
+@app.get("/books/{uuid}", summary="サムネイル取得")
 def get_media_books_uuid(
         uuid: str
     ):
@@ -121,7 +124,7 @@ def get_media_books_uuid(
     return FileResponse(file_path)
 
 
-@app.get("/media/books/{uuid}/{page}", tags=["Media"], summary="ページ取得")
+@app.get("/books/{uuid}/{page}", summary="ページ画像取得")
 def media_books_uuid_page(
         uuid: str,
         page: int,
@@ -144,7 +147,7 @@ def media_books_uuid_page(
     return FileResponse(path=cache_file)
 
 
-@app.patch("/media/books", tags=["Media"], summary="本の一括変換タスク実行")
+@app.patch("/books", summary="書籍一括変換タスク実行")
 def patch_media_books_(
         model: BookCacheCreate,
         current_user:UserCurrent = Depends(get_current_user)
@@ -164,7 +167,7 @@ def patch_media_books_(
     return { "status": "ok", "model": model }
 
 
-@app.patch("/media/library", tags=["Media"], summary="ライブラリのロードやエクスポート", deprecated=True)
+@app.patch("/library", summary="ライブラリロード・エクスポート（非推奨）", deprecated=True)
 def patch_media_library(
         model: LibraryPatch,
         db: Session = Depends(get_db),

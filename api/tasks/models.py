@@ -7,7 +7,7 @@ from mixins.database import Base
 class TaskModel(Base):
     """
     バックグラウンドタスク管理テーブル
-    
+
     長時間実行されるタスク（ライブラリ追加、重複検索など）の
     ステータスと進捗を管理する。
     """

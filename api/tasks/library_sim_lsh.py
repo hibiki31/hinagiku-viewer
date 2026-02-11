@@ -204,7 +204,7 @@ def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel, task_id: 
     2. 各書籍について候補を抽出
     3. 候補のみ詳細比較（ハミング距離計算）
     4. マルチハッシュ戦略で判定
-    
+
     Args:
         task_id: タスクID
     """

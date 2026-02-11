@@ -14,14 +14,17 @@ from tasks.utility import create_task
 from users.router import get_current_user
 from users.schemas import UserCurrent
 
-app = APIRouter()
+app = APIRouter(
+    prefix="/api",
+    tags=["Task"]
+)
 logger = setup_logger(__name__)
 
 # バックグラウンドタスク実行中のプロセスを管理
 task_pool = []
 
 
-@app.post("/api/tasks", tags=["Task"], response_model=TaskCreateResponse, summary="タスク開始")
+@app.post("/tasks", response_model=TaskCreateResponse, summary="タスク開始")
 async def create_background_task(
     model: TaskCreate,
     db: Session = Depends(get_db),
@@ -79,7 +82,7 @@ async def create_background_task(
     return {"status": "ok", "task_id": task_id}
 
 
-@app.get("/api/tasks", tags=["Task"], response_model=TaskListResponse, summary="タスク一覧取得")
+@app.get("/tasks", response_model=TaskListResponse, summary="タスク一覧取得")
 async def list_tasks(
     db: Session = Depends(get_db),
     current_user: UserCurrent = Depends(get_current_user),
@@ -126,7 +129,7 @@ async def list_tasks(
     }
 
 
-@app.get("/api/tasks/{task_id}", tags=["Task"], response_model=TaskSchema, summary="タスク詳細取得")
+@app.get("/tasks/{task_id}", response_model=TaskSchema, summary="タスク詳細取得")
 async def get_task(
     task_id: str,
     db: Session = Depends(get_db),
@@ -150,7 +153,7 @@ async def get_task(
     return task
 
 
-@app.delete("/api/tasks/{task_id}", tags=["Task"], summary="タスクキャンセル（未実装）")
+@app.delete("/tasks/{task_id}", summary="タスクキャンセル（未実装）")
 async def cancel_task(
     task_id: str,
     db: Session = Depends(get_db),

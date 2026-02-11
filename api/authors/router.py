@@ -12,11 +12,14 @@ from users.schemas import UserCurrent
 
 from .schemas import *
 
-app = APIRouter()
+app = APIRouter(
+    prefix="/api",
+    tags=["Author"]
+)
 logger = setup_logger(__name__)
 
 
-@app.get("/api/authors", tags=["Author"], response_model=List[AuthorGet])
+@app.get("/authors", response_model=List[AuthorGet], summary="著者一覧取得")
 async def list_authors(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user),
@@ -59,7 +62,7 @@ async def list_authors(
     return query.all()
 
 
-@app.get("/api/authors/{author_id}", tags=["Author"], response_model=AuthorDetail)
+@app.get("/authors/{author_id}", response_model=AuthorDetail, summary="著者詳細取得")
 async def get_author(
         author_id: int,
         db: Session = Depends(get_db),
@@ -92,7 +95,7 @@ async def get_author(
     }
 
 
-@app.post("/api/books/{book_uuid}/authors", tags=["Author"])
+@app.post("/books/{book_uuid}/authors", tags=["Book"], summary="書籍に著者を追加")
 def add_book_author(
         request_model: BookAuthorPost,
         book_uuid: str,
@@ -139,7 +142,7 @@ def add_book_author(
     return db.query(BookModel).filter(BookModel.uuid == book_uuid).one_or_none()
 
 
-@app.delete("/api/books/{book_uuid}/authors", tags=["Author"])
+@app.delete("/books/{book_uuid}/authors", tags=["Book"], summary="書籍から著者を削除")
 def remove_book_author(
         request_model: BookAuthorDelete,
         book_uuid: str,
@@ -181,7 +184,7 @@ def remove_book_author(
     return db.query(BookModel).filter(BookModel.uuid == book_uuid).one_or_none()
 
 
-@app.patch("/api/authors/{author_id}", tags=["Author"], response_model=AuthorDetail)
+@app.patch("/authors/{author_id}", response_model=AuthorDetail, summary="著者情報更新")
 def update_author_by_id(
         author_id: int,
         request_model: AuthorUpdate,
@@ -241,7 +244,7 @@ def update_author_by_id(
     }
 
 
-@app.patch("/api/authors", tags=["Author"], deprecated=True)
+@app.patch("/authors", deprecated=True, summary="著者情報更新（旧形式・非推奨）")
 def update_author(
         request_model: PatchAuthor,
         db: Session = Depends(get_db),
@@ -269,7 +272,7 @@ def update_author(
     return author_model
 
 
-@app.delete("/api/authors/{author_id}", tags=["Author"])
+@app.delete("/authors/{author_id}", summary="著者削除")
 def delete_author(
         author_id: int,
         db: Session = Depends(get_db),

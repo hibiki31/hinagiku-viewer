@@ -23,7 +23,7 @@ app = APIRouter(
 )
 
 
-@app.get("/settings", response_model=SystemSettingsListResponse)
+@app.get("/settings", response_model=SystemSettingsListResponse, summary="システム設定一覧取得")
 async def list_settings(
     category: str | None = None,
     db: Session = Depends(get_db),
@@ -31,7 +31,7 @@ async def list_settings(
 ):
     """
     システム設定一覧を取得
-    
+
     - 管理者: 全設定を取得可能
     - 一般ユーザー: is_public=true の設定のみ取得可能
     - category パラメータでフィルタリング可能
@@ -56,7 +56,7 @@ async def list_settings(
     )
 
 
-@app.get("/settings/{key}", response_model=SystemSettingSchema)
+@app.get("/settings/{key}", response_model=SystemSettingSchema, summary="個別設定取得")
 async def get_setting_by_key(
     key: str,
     db: Session = Depends(get_db),
@@ -64,7 +64,7 @@ async def get_setting_by_key(
 ):
     """
     個別設定を取得
-    
+
     - 管理者: 全設定を取得可能
     - 一般ユーザー: is_public=true の設定のみ取得可能
     """
@@ -82,7 +82,7 @@ async def get_setting_by_key(
     return SystemSettingSchema.model_validate(setting)
 
 
-@app.post("/settings", response_model=SystemSettingSchema)
+@app.post("/settings", response_model=SystemSettingSchema, summary="新規設定作成")
 async def create_setting(
     data: SystemSettingCreateSchema,
     db: Session = Depends(get_db),
@@ -119,7 +119,7 @@ async def create_setting(
     return SystemSettingSchema.model_validate(new_setting)
 
 
-@app.put("/settings/{key}", response_model=SystemSettingSchema)
+@app.put("/settings/{key}", response_model=SystemSettingSchema, summary="設定更新")
 async def update_setting(
     key: str,
     data: SystemSettingValueSchema,
@@ -140,7 +140,7 @@ async def update_setting(
         raise HTTPException(status_code=404, detail=str(e)) from e
 
 
-@app.delete("/settings/{key}")
+@app.delete("/settings/{key}", summary="設定削除")
 async def delete_setting(
     key: str,
     db: Session = Depends(get_db),
@@ -165,7 +165,7 @@ async def delete_setting(
     return {"message": f"設定 '{key}' を削除しました"}
 
 
-@app.post("/settings/bulk")
+@app.post("/settings/bulk", summary="設定一括更新")
 async def bulk_update_settings(
     data: SystemSettingBulkUpdateSchema,
     db: Session = Depends(get_db),
@@ -202,7 +202,7 @@ async def bulk_update_settings(
     }
 
 
-@app.get("/settings/category/{category}")
+@app.get("/settings/category/{category}", summary="カテゴリ別設定取得")
 async def get_settings_by_category_endpoint(
     category: str,
     db: Session = Depends(get_db),
@@ -210,7 +210,7 @@ async def get_settings_by_category_endpoint(
 ):
     """
     カテゴリ別に設定を取得（型変換済みの値）
-    
+
     - 管理者: 全設定を取得可能
     - 一般ユーザー: is_public=true の設定のみ取得可能
     """
@@ -222,14 +222,14 @@ async def get_settings_by_category_endpoint(
     return settings
 
 
-@app.get("/settings/all/values")
+@app.get("/settings/all/values", summary="全設定取得（型変換済み）")
 async def get_all_settings_values(
     db: Session = Depends(get_db),
     current_user: UserModel = Depends(get_current_user),
 ):
     """
     全設定を取得（型変換済みの値）
-    
+
     - 管理者: 全設定を取得可能
     - 一般ユーザー: is_public=true の設定のみ取得可能
     """

@@ -11,15 +11,15 @@ from system.models import SystemSettingsModel
 def get_setting(db: Session, key: str, default: Any = None) -> Any:
     """
     設定値を取得（型変換済み）
-    
+
     Args:
         db: DBセッション
         key: 設定キー
         default: デフォルト値（設定が存在しない場合）
-    
+
     Returns:
         型変換された設定値、または default
-    
+
     Example:
         >>> quality = get_setting(db, 'thumbnail_quality', default=85)
         >>> isinstance(quality, int)
@@ -48,16 +48,16 @@ def get_setting(db: Session, key: str, default: Any = None) -> Any:
 def set_setting(db: Session, key: str, value: Any, user_id: str | None = None) -> SystemSettingsModel:
     """
     設定値を更新
-    
+
     Args:
         db: DBセッション
         key: 設定キー
         value: 設定値（自動的に文字列に変換）
         user_id: 更新者のユーザーID
-    
+
     Returns:
         更新された SystemSettingsModel
-    
+
     Raises:
         ValueError: 指定されたキーの設定が存在しない場合
     """
@@ -84,12 +84,12 @@ def set_setting(db: Session, key: str, value: Any, user_id: str | None = None) -
 def get_settings_by_category(db: Session, category: str, include_private: bool = False) -> dict[str, Any]:
     """
     カテゴリ別に設定を取得
-    
+
     Args:
         db: DBセッション
         category: カテゴリ名
         include_private: 非公開設定も含めるか（管理者用）
-    
+
     Returns:
         {key: value} 形式の辞書（型変換済み）
     """
@@ -110,11 +110,11 @@ def get_settings_by_category(db: Session, category: str, include_private: bool =
 def get_all_settings(db: Session, include_private: bool = False) -> dict[str, Any]:
     """
     全設定を取得
-    
+
     Args:
         db: DBセッション
         include_private: 非公開設定も含めるか（管理者用）
-    
+
     Returns:
         {key: value} 形式の辞書（型変換済み）
     """

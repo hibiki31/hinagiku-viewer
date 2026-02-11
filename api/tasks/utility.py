@@ -22,7 +22,7 @@ def update_task_status(
 ) -> None:
     """
     タスクのステータスを更新する
-    
+
     Args:
         db: データベースセッション
         task_id: タスクID
@@ -47,9 +47,8 @@ def update_task_status(
         task.status = status
         if status == "running" and not task.started_at:
             task.started_at = datetime.datetime.now()
-        elif status in ["completed", "failed", "cancelled"]:
-            if not task.completed_at:
-                task.completed_at = datetime.datetime.now()
+        elif status in ["completed", "failed", "cancelled"] and not task.completed_at:
+            task.completed_at = datetime.datetime.now()
 
     # 進捗情報更新
     if progress is not None:
@@ -80,13 +79,13 @@ def create_task(
 ) -> TaskModel:
     """
     新規タスクを作成する
-    
+
     Args:
         db: データベースセッション
         task_id: タスクID (UUID)
         task_type: タスク種別
         user_id: 実行ユーザーID
-    
+
     Returns:
         作成されたTaskModel
     """

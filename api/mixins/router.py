@@ -16,13 +16,15 @@ class Version(BaseSchema):
     version: str
 
 
-@app.get("/version", response_model=Version)
+@app.get("/version", response_model=Version, summary="バージョン情報取得")
 def get_version(
         db: Session = Depends(get_db)
     ):
-    '''
+    """
     初期化済みか判定用
-    '''
+
+    システムのバージョン情報と初期セットアップが完了しているかを取得します。
+    """
     initialized = (db.query(UserModel).all() != [])
 
     return {"initialized": initialized, "version": API_VERSION}

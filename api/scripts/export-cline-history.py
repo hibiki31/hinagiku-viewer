@@ -90,7 +90,7 @@ def extract_task_info(task_dir: str, task_id: str) -> Optional[Dict]:
                 content = f.read()
                 # JSONデコーダーを使って最初のオブジェクトのみを取得
                 decoder = json.JSONDecoder()
-                meta, idx = decoder.raw_decode(content)
+                meta, _idx = decoder.raw_decode(content)
 
             if meta.get("model_usage"):
                 model_id = meta["model_usage"][0].get("model_id", "")
@@ -197,8 +197,8 @@ def generate_markdown(tasks: List[Dict]) -> str:
     """JSONのタスクリストからMarkdownを生成"""
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     total_cost = sum(t.get("cost", 0) for t in tasks)
-    models = sorted(set(t.get("model", "") for t in tasks if t.get("model")))
-    versions = sorted(set(t.get("cline_version", "") for t in tasks if t.get("cline_version")))
+    models = sorted({t.get("model", "") for t in tasks if t.get("model")})
+    versions = sorted({t.get("cline_version", "") for t in tasks if t.get("cline_version")})
 
     lines = [
         "# Cline タスク履歴",

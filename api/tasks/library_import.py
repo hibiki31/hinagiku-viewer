@@ -53,7 +53,7 @@ class PreBookClass:
 def main(db, user_id, task_id: Optional[str] = None):
     """
     ライブラリ追加処理
-    
+
     Args:
         db: データベースセッション
         user_id: ユーザーID

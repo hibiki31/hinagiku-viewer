@@ -7,7 +7,7 @@ from mixins.database import Base
 class SystemSettingsModel(Base):
     """
     システム設定テーブル（Key-Value型）
-    
+
     動的に設定を追加・変更可能な汎用設定ストレージ。
     マイグレーション不要で新規設定項目を追加できる。
     """

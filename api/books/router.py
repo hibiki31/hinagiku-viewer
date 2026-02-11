@@ -19,7 +19,10 @@ from users.schemas import UserCurrent
 from .models import *
 from .schemas import *
 
-app = APIRouter()
+app = APIRouter(
+    prefix="/api",
+    tags=["Book"]
+)
 logger = setup_logger(__name__)
 
 
@@ -29,7 +32,7 @@ exception_notfund = HTTPException(
 )
 
 
-@app.get("/api/libraries", tags=["Library"], response_model=List[GetLibrary])
+@app.get("/libraries", tags=["Library"], response_model=List[GetLibrary], summary="ライブラリ一覧取得")
 async def list_libraries(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user)
@@ -52,7 +55,7 @@ async def list_libraries(
     return query.all()
 
 
-@app.get("/api/books", tags=["Book"], response_model=BookGet)
+@app.get("/books", response_model=BookGet, summary="書籍検索")
 async def search_books(
         db: Session = Depends(get_db),
         current_user: UserCurrent = Depends(get_current_user),
@@ -202,7 +205,7 @@ async def search_books(
 
 
 
-@app.put("/api/books", tags=["Book"], response_model=BookUpdateResponse)
+@app.put("/books", response_model=BookUpdateResponse, summary="書籍情報一括更新")
 def update_books(
         db: Session = Depends(get_db),
         model: BookPut = None,
@@ -264,7 +267,7 @@ def update_books(
     logger.info(f"書籍更新: {updated_count}件, user={current_user.id}")
     return BookUpdateResponse(message=f"{updated_count}件の書籍を更新しました", updated_count=updated_count)
 
-@app.delete("/api/books/{book_uuid}", tags=["Book"], response_model=BookDeleteResponse)
+@app.delete("/books/{book_uuid}", response_model=BookDeleteResponse, summary="書籍削除")
 def delete_book(
         book_uuid: str,
         db: Session = Depends(get_db),
@@ -299,7 +302,7 @@ def delete_book(
     return BookDeleteResponse(message="書籍を削除しました", uuid=book_uuid)
 
 
-@app.get("/api/books/{book_uuid}/download", tags=["Book"], summary="本のZipファイルダウンロード")
+@app.get("/books/{book_uuid}/download", summary="書籍Zipファイルダウンロード")
 def download_book(
         book_uuid: str,
         db: Session = Depends(get_db),
