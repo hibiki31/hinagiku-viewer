@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "HinavAPI",
-    "version": "3.2.0"
+    "version": "3.3.0"
   },
   "servers": [
     {
@@ -888,7 +888,7 @@
           "Media"
         ],
         "summary": "ライブラリのロードやエクスポート",
-        "description": "- state=load ライブラリのロード\n- state=export ライブラリのエクスポート",
+        "description": "**[非推奨] このエンドポイントは非推奨です。代わりに POST /api/tasks を使用してください。**\n\n各種バックグラウンドタスクを開始する\n\nstate:\n- load: ライブラリのロード\n- fixmetadata: メタデータの修正\n- export: ライブラリのエクスポート\n- export_uuid: UUID指定エクスポート\n- sim_all: 全体の類似度計算\n- rule: ルール適用\n- thumbnail_recreate: サムネイル再作成\n- integrity_check: 整合性チェック",
         "operationId": "patch_media_library_media_library_patch",
         "requestBody": {
           "content": {
@@ -920,6 +920,7 @@
             }
           }
         },
+        "deprecated": true,
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1615,6 +1616,51 @@
       }
     },
     "/api/tasks": {
+      "post": {
+        "tags": [
+          "Task"
+        ],
+        "summary": "タスク開始",
+        "description": "各種バックグラウンドタスクを開始する\n\ntask_type:\n- load: ライブラリのロード\n- fixmetadata: メタデータの修正\n- export: ライブラリのエクスポート\n- export_uuid: UUID指定エクスポート\n- sim_all: 全体の類似度計算\n- rule: ルール適用\n- thumbnail_recreate: サムネイル再作成\n- integrity_check: 整合性チェック",
+        "operationId": "create_background_task_api_tasks_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskCreateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
       "get": {
         "tags": [
           "Task"
@@ -3139,6 +3185,49 @@
         ],
         "title": "TagCreate",
         "description": "タグ作成スキーマ"
+      },
+      "TaskCreate": {
+        "properties": {
+          "taskType": {
+            "type": "string",
+            "enum": [
+              "load",
+              "fixmetadata",
+              "export",
+              "export_uuid",
+              "sim_all",
+              "rule",
+              "thumbnail_recreate",
+              "integrity_check"
+            ],
+            "title": "Tasktype"
+          }
+        },
+        "type": "object",
+        "required": [
+          "taskType"
+        ],
+        "title": "TaskCreate",
+        "description": "タスク作成リクエスト"
+      },
+      "TaskCreateResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "taskId": {
+            "type": "string",
+            "title": "Taskid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "taskId"
+        ],
+        "title": "TaskCreateResponse",
+        "description": "タスク作成レスポンス"
       },
       "TaskListResponse": {
         "properties": {

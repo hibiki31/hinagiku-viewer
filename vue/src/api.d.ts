@@ -262,8 +262,20 @@ export interface paths {
         head?: never;
         /**
          * ライブラリのロードやエクスポート
-         * @description - state=load ライブラリのロード
-         *     - state=export ライブラリのエクスポート
+         * @deprecated
+         * @description **[非推奨] このエンドポイントは非推奨です。代わりに POST /api/tasks を使用してください。**
+         *
+         *     各種バックグラウンドタスクを開始する
+         *
+         *     state:
+         *     - load: ライブラリのロード
+         *     - fixmetadata: メタデータの修正
+         *     - export: ライブラリのエクスポート
+         *     - export_uuid: UUID指定エクスポート
+         *     - sim_all: 全体の類似度計算
+         *     - rule: ルール適用
+         *     - thumbnail_recreate: サムネイル再作成
+         *     - integrity_check: 整合性チェック
          */
         patch: operations["patch_media_library_media_library_patch"];
         trace?: never;
@@ -491,7 +503,21 @@ export interface paths {
          */
         get: operations["list_tasks_api_tasks_get"];
         put?: never;
-        post?: never;
+        /**
+         * タスク開始
+         * @description 各種バックグラウンドタスクを開始する
+         *
+         *     task_type:
+         *     - load: ライブラリのロード
+         *     - fixmetadata: メタデータの修正
+         *     - export: ライブラリのエクスポート
+         *     - export_uuid: UUID指定エクスポート
+         *     - sim_all: 全体の類似度計算
+         *     - rule: ルール適用
+         *     - thumbnail_recreate: サムネイル再作成
+         *     - integrity_check: 整合性チェック
+         */
+        post: operations["create_background_task_api_tasks_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -921,7 +947,7 @@ export interface components {
          * LibraryPatchEnum
          * @enum {string}
          */
-        LibraryPatchEnum: "export" | "load" | "export_uuid" | "fixmetadata" | "sim_all" | "rule" | "thumbnail_recreate";
+        LibraryPatchEnum: "export" | "load" | "export_uuid" | "fixmetadata" | "sim_all" | "rule" | "thumbnail_recreate" | "integrity_check";
         /**
          * PatchAuthor
          * @description 著者更新リクエスト（旧形式・非推奨）
@@ -1019,6 +1045,27 @@ export interface components {
         TagCreate: {
             /** Name */
             name: string;
+        };
+        /**
+         * TaskCreate
+         * @description タスク作成リクエスト
+         */
+        TaskCreate: {
+            /**
+             * Tasktype
+             * @enum {string}
+             */
+            taskType: "load" | "fixmetadata" | "export" | "export_uuid" | "sim_all" | "rule" | "thumbnail_recreate" | "integrity_check";
+        };
+        /**
+         * TaskCreateResponse
+         * @description タスク作成レスポンス
+         */
+        TaskCreateResponse: {
+            /** Status */
+            status: string;
+            /** Taskid */
+            taskId: string;
         };
         /**
          * TaskListResponse
@@ -2081,6 +2128,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaskListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_background_task_api_tasks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskCreateResponse"];
                 };
             };
             /** @description Validation Error */

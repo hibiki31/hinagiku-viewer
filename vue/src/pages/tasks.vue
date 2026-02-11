@@ -163,6 +163,7 @@ const taskTypeOptions = [
   { title: 'メタデータ修正', value: 'fixmetadata' },
   { title: 'ルール適用', value: 'rule' },
   { title: 'サムネイル再作成', value: 'thumbnail_recreate' },
+  { title: '整合性チェック', value: 'integrity_check' },
 ]
 
 // タスク一覧取得

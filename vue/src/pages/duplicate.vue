@@ -450,8 +450,8 @@ const deleteDialog = reactive({
  */
 const serachDuplicate = async () => {
   try {
-    const { error } = await apiClient.PATCH('/media/library', {
-      body: { state: 'sim_all' }
+    const { error } = await apiClient.POST('/api/tasks', {
+      body: { taskType: 'sim_all' }
     })
     if (error) throw error
     pushNotice('重複の検索を開始しました', 'success')

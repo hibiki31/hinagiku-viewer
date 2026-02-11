@@ -509,8 +509,8 @@ const scrollToUUID = () => {
 
 const loadLibrary = async () => {
   try {
-    const { error } = await apiClient.PATCH("/media/library", {
-      body: { state: "load" },
+    const { error } = await apiClient.POST("/api/tasks", {
+      body: { taskType: "load" },
     });
     if (error) throw error;
     pushNotice("ライブラリのリロードを開始", "success");

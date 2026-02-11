@@ -366,9 +366,9 @@ const recreateThumbnails = async () => {
 
   isRecreatingThumbnails.value = true
   try {
-    const { error } = await apiClient.PATCH('/media/library', {
+    const { error } = await apiClient.POST('/api/tasks', {
       body: {
-        state: 'thumbnail_recreate'
+        taskType: 'thumbnail_recreate'
       }
     })
 
