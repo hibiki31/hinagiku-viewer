@@ -29,9 +29,66 @@ async def list_books(db: Session = Depends(get_db), params: BookSearchParams = D
 - 以降のリクエスト: Cookie自動送信 → JWT検証 → ユーザー情報取得
 - トークン有効期限: 30日（`ACCESS_TOKEN_EXPIRE_MINUTES`）
 
-## タスクパターン
-- `worker.py`: 無限ループでポーリング（10秒間隔）
-- タスク種別: import, export, delete, fixmetadata, sim, rule, cache
+## タスクパターン（バックグラウンド処理）
+
+### タスク実装の基本フロー
+1. **タスクファイル作成**: `tasks/task_name.py` に `main(db, task_id=None)` 関数を実装
+2. **進捗管理**: `tasks.utility.update_task_status()` で進捗・ステータス更新
+3. **スキーマ追加**: `books/schemas.py` の `LibraryPatchEnum` にタスク種別を追加
+4. **ルーター登録**: `media/router.py` の `patch_media_library()` にタスク起動処理を追加
+5. **Worker登録**: `worker.py` にタスク実行処理を追加
+
+### タスク実装例（参考: `tasks/library_integrity_check.py`）
+```python
+from tasks.utility import update_task_status
+
+def main(db: Session, task_id: Optional[str] = None):
+    try:
+        if task_id:
+            update_task_status(db, task_id, status="running", progress=0, message="処理開始")
+        
+        # メイン処理
+        for idx, item in enumerate(items):
+            # 処理...
+            if task_id:
+                progress = int((idx / total) * 100)
+                update_task_status(db, task_id, progress=progress, current_item=idx, message=f"{idx}/{total}完了")
+        
+        if task_id:
+            update_task_status(db, task_id, status="completed", progress=100, message="完了")
+    except Exception as e:
+        logger.error(f"エラー: {e}", exc_info=True)
+        if task_id:
+            update_task_status(db, task_id, status="failed", error_message=str(e))
+        raise
+```
+
+### タスク起動（サブプロセス）
+```python
+# media/router.py
+from uuid import uuid4
+from tasks.utility import create_task
+
+task_id = str(uuid4())
+create_task(db=db, task_id=task_id, task_type="task_name", user_id=current_user.id)
+library_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "task_name", task_id]))
+```
+
+### Worker登録
+```python
+# worker.py
+from tasks.task_name import main as task_task_name
+
+if args[1] == "task_name":
+    task_id = args[2] if len(args) > 2 else None
+    logger.info(f'ワーカでタスク開始 (task_id={task_id})')
+    task_task_name(db=db, task_id=task_id)
+    logger.info('ワーカでタスク完了')
+```
+
+### 既存タスク
+- `load`: ライブラリ追加、`export`: エクスポート、`sim_all`: 重複検索
+- `thumbnail_recreate`: サムネイル再作成、`integrity_check`: 整合性確認
 - 並列度: `CONVERT_THREAD`（CPUコア数）
 
 ## エラーハンドリング
