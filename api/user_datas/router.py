@@ -5,13 +5,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import and_
 from sqlalchemy.orm import Session, exc
 
+from auth.router import get_current_user
+from auth.schemas import UserCurrent
 from books.models import BookUserMetaDataModel
 from mixins.database import get_db
 from mixins.log import setup_logger
 from mixins.parser import get_model_dict
 from user_datas.schemas import UserDataUpdateResponse
-from users.router import get_current_user
-from users.schemas import UserCurrent
 
 from .schemas import *
 

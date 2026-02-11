@@ -10,6 +10,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from auth.router import app as auth_router
 from authors.router import app as authors_router
 from books.router import app as books_router
 from media.router import app as media_router
@@ -91,6 +92,7 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+app.include_router(router=auth_router)
 app.include_router(router=users_router)
 app.include_router(router=books_router)
 app.include_router(router=media_router)

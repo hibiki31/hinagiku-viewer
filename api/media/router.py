@@ -7,6 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, aliased
 
+from auth.router import get_current_user
+from auth.schemas import UserCurrent
 from books.models import BookModel, BookUserMetaDataModel, DuplicationModel
 from books.schemas import BookCacheCreate, LibraryPatch
 from mixins.convertor import create_book_page_cache, image_convertor
@@ -14,8 +16,6 @@ from mixins.database import get_db
 from mixins.log import setup_logger
 from settings import APP_ROOT, CONVERT_THREAD, DATA_ROOT
 from tasks.utility import create_task
-from users.router import get_current_user
-from users.schemas import UserCurrent
 
 app = APIRouter(
     prefix="/media",

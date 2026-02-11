@@ -5,14 +5,14 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from auth.router import get_current_user
+from auth.schemas import UserCurrent
 from mixins.database import get_db
 from mixins.log import setup_logger
 from settings import APP_ROOT
 from tasks.models import TaskModel
 from tasks.schemas import TaskCreate, TaskCreateResponse, TaskListResponse, TaskSchema
 from tasks.utility import create_task
-from users.router import get_current_user
-from users.schemas import UserCurrent
 
 app = APIRouter(
     prefix="/api",

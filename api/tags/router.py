@@ -4,13 +4,13 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Path
 from sqlalchemy.orm import Session, exc
 
+from auth.router import get_current_user
+from auth.schemas import UserCurrent
 from books.models import BookModel, TagsModel
 from mixins.database import get_db
 from mixins.log import setup_logger
 from mixins.schema import MessageResponse
 from tags.schemas import TagCreate, TagResponse
-from users.router import get_current_user
-from users.schemas import UserCurrent
 
 app = APIRouter(prefix="/api", tags=["Tag"])
 logger = setup_logger(__name__)

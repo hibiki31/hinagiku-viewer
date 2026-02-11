@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from auth.router import get_current_user
 from mixins.database import get_db
 from mixins.log import setup_logger
 from system.models import SystemSettingsModel
@@ -13,7 +14,6 @@ from system.schemas import (
 )
 from system.utility import get_all_settings, get_settings_by_category, set_setting
 from users.models import UserModel
-from users.router import get_current_user
 
 logger = setup_logger(__name__)
 

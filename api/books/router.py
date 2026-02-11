@@ -7,14 +7,14 @@ from fastapi.responses import FileResponse
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, aliased
 
+from auth.router import get_current_user
+from auth.schemas import UserCurrent
 from books.schemas import BookDeleteResponse, BookUpdateResponse
 from mixins.database import get_db
 from mixins.log import setup_logger
 from mixins.parser import book_result_mapper
 from settings import DATA_ROOT
 from tasks.library_delete import main as library_delete
-from users.router import get_current_user
-from users.schemas import UserCurrent
 
 from .models import *
 from .schemas import *
