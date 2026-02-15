@@ -35,27 +35,45 @@ def main(db: Session, task_id: Optional[str] = None):
         if total == 0:
             logger.info("対象書籍がありません")
             if task_id:
-                update_task_status(db, task_id, status="completed", progress=100, message="対象書籍がありません")
+                update_task_status(
+                    db, task_id,
+                    status="completed",
+                    progress=100,
+                    current_step="完了",
+                    current_item=0,
+                    message="対象書籍がありません"
+                )
             return
 
         logger.info(f"整合性確認開始: 対象書籍数 {total}")
 
         if task_id:
-            update_task_status(db, task_id, progress=5, total_items=total, message=f"{total}冊の整合性を確認")
+            update_task_status(
+                db, task_id,
+                progress=5,
+                current_step="整合性確認中",
+                total_items=total,
+                message=f"{total}冊の整合性を確認"
+            )
 
         missing_count = 0
         duplicate_count = 0
         normal_count = 0
+        skip_count = 0
 
         for idx, book in enumerate(all_books, 1):
             # Zipファイルのパスを構築
             file_path = Path(f"{DATA_ROOT}/book_library/{book.uuid}.zip")
 
-            # ファイルが存在する場合はスキップ（stateをクリア）
+            # ファイルが存在する場合
             if file_path.exists():
                 if book.state in ["missing_file", "duplicate_missing_file"]:
+                    # 異常状態から正常に修復
                     book.state = None
                     normal_count += 1
+                else:
+                    # すでに正常状態（何もしない）
+                    skip_count += 1
             else:
                 # ファイルが存在しない場合、同じSHA1の別の書籍を検索
                 duplicate_books = db.query(BookModel).filter(
@@ -98,6 +116,7 @@ def main(db: Session, task_id: Optional[str] = None):
             f"ファイルロスト {missing_count}件 / "
             f"重複登録（ファイル欠損） {duplicate_count}件 / "
             f"修復 {normal_count}件 / "
+            f"スキップ {skip_count}件 / "
             f"合計 {total}件"
         )
 
@@ -107,7 +126,9 @@ def main(db: Session, task_id: Optional[str] = None):
                 task_id,
                 status="completed",
                 progress=100,
-                message=f"完了: ロスト{missing_count}件/重複{duplicate_count}件/修復{normal_count}件"
+                current_step="完了",
+                current_item=total,
+                message=f"完了: ロスト{missing_count}件/重複{duplicate_count}件/修復{normal_count}件/スキップ{skip_count}件"
             )
 
     except Exception as e:
