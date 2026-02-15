@@ -2,7 +2,7 @@
 
 ## 概要
 
-- **実行**: FastAPIが `subprocess.Popen` で `worker.py` を起動
+- **実行**: FastAPIが `tasks/router.py` で `worker.py` を起動する
 - **進捗管理**: `tasks.utility.update_task_status()` でDB更新
 
 ## 基本構造
@@ -99,6 +99,9 @@ update_task_status(db, task_id, status="completed", progress=100,
 # 失敗
 update_task_status(db, task_id, status="failed", error_message=str(e))
 ```
+
+- current_stepは、初期化、処理A、処理B、完了など必ず更新せよ。
+- 完了時は、status、current_item、current_step、progressを必ず更新せよ。
 
 ## 完了メッセージフォーマット
 
