@@ -95,6 +95,12 @@ class BookCacheCreate(BaseSchema):
     uuid: str
     height: int
 
+class BookStateEnum(str, Enum):
+    """書籍状態Enum"""
+    missing_file = "missing_file"  # ファイルロスト
+    duplicate_missing_file = "duplicate_missing_file"  # 重複登録（ファイル欠損）
+
+
 class LibraryPatchEnum(str, Enum):
     export = "export"
     load = "load"
@@ -132,7 +138,7 @@ class BookSearchParams(BaseSchema):
     genre_id: Optional[str] = None
     library_id: int = 1
     tag: Optional[str] = None
-    state: Optional[str] = None
+    state: Optional[BookStateEnum] = None
     limit: int = 50
     offset: int = 0
     sort_key: str = "authors"
