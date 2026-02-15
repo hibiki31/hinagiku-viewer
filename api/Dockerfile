@@ -38,4 +38,5 @@ WORKDIR /opt/app
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--config", "/opt/app/mixins/gnicorn_config.py"]
+# データベースマイグレーション実行後、gunicornを起動
+CMD ["sh", "-c", "alembic upgrade head && gunicorn --config /opt/app/mixins/gnicorn_config.py"]
