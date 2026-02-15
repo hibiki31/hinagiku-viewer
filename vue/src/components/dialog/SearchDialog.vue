@@ -254,9 +254,9 @@
               class="mb-4"
             />
 
-            <v-text-field
+            <v-select
               v-model="searchQuery.state"
-              spellcheck="false"
+              :items="stateOptions"
               label="状態フィルター"
               placeholder="書籍の状態で絞り込み"
               prepend-inner-icon="mdi-state-machine"
@@ -264,7 +264,17 @@
               clearable
               hide-details="auto"
               class="mb-4"
-            />
+              item-title="label"
+              item-value="value"
+            >
+              <template #item="{ props, item }">
+                <v-list-item v-bind="props">
+                  <template #prepend>
+                    <v-icon :color="item.raw.color">{{ item.raw.icon }}</v-icon>
+                  </template>
+                </v-list-item>
+              </template>
+            </v-select>
 
             <v-divider class="my-4" />
 
@@ -353,6 +363,22 @@ const authorSuggestions = ref<AuthorGet[]>([])
 const authorLoading = ref(false)
 const authorSearchInput = ref<string | undefined>(undefined)
 let authorSearchTimeout: ReturnType<typeof setTimeout> | null = null
+
+// ステータス選択肢の定義
+const stateOptions = [
+  {
+    label: 'ファイル欠損',
+    value: 'missing_file',
+    icon: 'mdi-file-alert',
+    color: 'error'
+  },
+  {
+    label: '重複・ファイル欠損',
+    value: 'duplicate_missing_file',
+    icon: 'mdi-file-remove',
+    color: 'warning'
+  }
+]
 
 interface ExtendedSearchQuery {
   // 既存のパラメータ
