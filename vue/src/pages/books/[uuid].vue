@@ -795,6 +795,17 @@ watch(nowPage, () => {
   localStorage.openBookPage = nowPage.value
 })
 
+// 画質設定（customHeight, showWindwSize）が変更されたら画像を再読み込み
+watch(
+  () => [settings.customHeight, settings.showWindwSize],
+  () => {
+    // 既存の画像をクリア
+    pageBlob.value = pageBlob.value.map(() => null)
+    // 現在のページから再読み込み
+    getDLoadingPage()
+  }
+)
+
 watch(
   settings,
   () => {
