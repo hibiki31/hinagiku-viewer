@@ -1,18 +1,5 @@
-import time
+# 共通ユーティリティ
+# DebugTimerはmixins/convertorに統一。後方互換性のため再エクスポート
+from mixins.convertor import DebugTimer
 
-from mixins.log import setup_logger
-
-logger = setup_logger(__name__)
-
-
-class DebugTimer:
-    def __init__(self):
-        self.time = time()
-    def rap(self, message, level='debug'):
-        now_time = time()
-        run_time = (now_time - self.time) * 1000
-        if level == 'info':
-            logger.debug(f'{run_time:.1f}ms - {message}')
-        else:
-            logger.debug(f'{run_time:.1f}ms - {message}')
-        self.time = now_time
+__all__ = ["DebugTimer"]

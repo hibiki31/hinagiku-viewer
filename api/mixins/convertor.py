@@ -38,12 +38,29 @@ class DebugTimer:
         return run_time
 
 
+# ZIP内で対象とする画像拡張子
+IMAGE_EXTENSIONS = {".png", ".jpeg", ".jpg"}
+
+
 class NotContentZipError(Exception):
     """zipファイル内に画像ファイルが存在しません"""
 
 
-def debug():
-    pass
+def list_images_in_zip(zip_file: zipfile.ZipFile) -> list[str]:
+    """ZIP内の画像ファイル一覧をソート済みで返す
+
+    Args:
+        zip_file: 開かれたZipFileオブジェクト
+
+    Returns:
+        ソート済みの画像ファイルパスリスト
+    """
+    file_list = [
+        p for p in zip_file.namelist()
+        if Path(p).suffix.lower() in IMAGE_EXTENSIONS
+    ]
+    file_list.sort()
+    return file_list
 
 
 def get_hash(path):
@@ -113,7 +130,7 @@ def make_thumbnail(send_book, book_uuid, db: Session):
     exclude_filenames = [name.strip() for name in exclude_filenames_str.split(',') if name.strip()]
 
     with zipfile.ZipFile(send_book) as existing_zip:
-        zip_content = [p for p in existing_zip.namelist() if Path(p).suffix.lower() in [".png", ".jpeg", ".jpg"]]
+        zip_content = list_images_in_zip(existing_zip)
 
         # 除外ファイルをフィルタリング
         if exclude_filenames:
@@ -131,9 +148,8 @@ def make_thumbnail(send_book, book_uuid, db: Session):
                     filtered_content.append(file_path)
             zip_content = filtered_content
 
-        # ページ数取得
+        # ページ数取得（list_images_in_zipでソート済み）
         page_len = len(zip_content)
-        zip_content.sort()
         # サムネイル作成
         if page_len == 0:
             raise NotContentZipError
@@ -156,29 +172,21 @@ def make_thumbnail(send_book, book_uuid, db: Session):
         return page_len, None, None, None
 
 
-def task_convert(book_uuid, to_height=1080, mode=3):
-    timer = DebugTimer()
-    # キャッシュ先にフォルダ作成
-    Path(f"{DATA_ROOT}/book_cache/{book_uuid}/").mkdir(parents=True, exist_ok=True)
+def unzip_original(book_uuid: str) -> list[str]:
+    """ZIPファイルを展開し、画像ファイルをoriginal_XXXX形式にリネームして返す
 
-    # 解凍
-    original_images = unzip_original(book_uuid=book_uuid)
-    original_images.sort()
+    Args:
+        book_uuid: 書籍UUID
 
-    # 変換
-    for index, original_image in enumerate(original_images):
-        convert_path = f"{DATA_ROOT}/book_cache/{book_uuid}/{to_height}_{str(index+1).zfill(4)}.jpg"
-        image_convertor(original_image, convert_path, to_height=to_height, quality=85)
-    timer.lap(f"変換終了: {book_uuid}")
-
-
-def unzip_original(book_uuid):
+    Returns:
+        リネーム後の画像ファイルパスリスト（ソート済み）
+    """
     original_images = []
     with zipfile.ZipFile(f'{DATA_ROOT}/book_library/{book_uuid}.zip') as existing_zip:
         existing_zip.extractall(f"{DATA_ROOT}/book_cache/{book_uuid}/tmp")
 
     tmp_path = Path(f"{DATA_ROOT}/book_cache/{book_uuid}/tmp")
-    file_list = [p for p in tmp_path.rglob("*") if p.suffix.lower() in [".png", ".jpeg", ".jpg"]]
+    file_list = [p for p in tmp_path.rglob("*") if p.suffix.lower() in IMAGE_EXTENSIONS]
     file_list.sort()
 
     for index, temp_file_path in enumerate(file_list):
@@ -191,132 +199,41 @@ def unzip_original(book_uuid):
     return original_images
 
 
-def unzip_single_file(book_uuid):
-    original_images = []
+def create_book_page_cache(book_uuid: str, page: int, to_height: int, quality: int) -> None:
+    """ZIPから指定ページを読み込み、リサイズしてキャッシュに保存する
 
-    with zipfile.ZipFile(f'{DATA_ROOT}/book_library/{book_uuid}.zip') as existing_zip:
-        # zip内の画像パスをリスト化
-        file_list_in_zip = existing_zip.namelist()
-        file_list_in_zip = [p for p in file_list_in_zip if Path(p).suffix.lower() in [".png", ".jpeg", ".jpg"]]
-        file_list_in_zip.sort()
+    Args:
+        book_uuid: 書籍UUID
+        page: ページ番号（1始まり）
+        to_height: リサイズ後の高さ
+        quality: JPEG品質（1-100）
 
-        for index, file_name in enumerate(file_list_in_zip):
-            file_ext = Path(file_name).suffix.lower()
-            convert_path = f"{DATA_ROOT}/book_cache/{book_uuid}/original_{str(index+1).zfill(4)}{file_ext}"
-            convert_tmep = f"{DATA_ROOT}/book_cache/{book_uuid}/original_{str(index+1).zfill(4)}.book_temp{file_ext}"
-            existing_zip.extract(file_name, convert_tmep)
-
-            original_images.append(convert_path)
-
-    return original_images
-
-
-def zip_to_image(existing_zip, file_name, to_height, convert_tmep, convert_path):
-    # 指定されたページだけ読み込んでPILに
-    img_src = Image.open(BytesIO(existing_zip.read(file_name))).convert('RGB')
-
-    # 縦横計算
-    width, height = img_src.size
-    if height < to_height:
-        new_height = height
-        new_width = width
-    else:
-        new_height = int(to_height)
-        new_width = int(to_height / height * width)
-
-    # 変換
-    new_img = img_src.resize((new_width, new_height), Image.LANCZOS)
-    new_img.save(convert_tmep, format='JPEG')
-    shutil.move(convert_tmep, convert_path)
-    logger.debug(convert_path)
-
-
-def direct_book_page(book_uuid, page, to_height, quality):
-    timer = DebugTimer()
-    try:
-        with zipfile.ZipFile(f'{DATA_ROOT}/book_library/{book_uuid}.zip') as existing_zip:
-            # 関係あるファイルパスのリストに変更
-            file_list_in_zip = existing_zip.namelist()
-            file_list_in_zip = [p for p in file_list_in_zip if Path(p).suffix.lower() in [".png", ".jpeg", ".jpg"]]
-            file_list_in_zip.sort()
-
-            if page > len(file_list_in_zip):
-                raise HTTPException(
-                    status_code=404,
-                    detail="ページが存在しません",
-                )
-            timer.lap("リストをソート")
-
-            # 指定されたページだけ読み込んでPILに
-            img_src = Image.open(BytesIO(existing_zip.read(file_list_in_zip[page-1]))).convert('RGB')
-            timer.lap("ZIPをREADしてPILに")
-
-            # 縦横計算
-            width, height = img_src.size
-            if height < to_height:
-                new_height = height
-                new_width = width
-            else:
-                new_height = int(to_height)
-                new_width = int(to_height / height * width)
-
-            # 空の入れ物用意
-            img_dst = BytesIO()
-            # 変換
-            new_img = img_src.resize((new_width, new_height), Image.LANCZOS)
-            new_img.save(img_dst, format='JPEG')
-            img_dst.seek(0)
-            timer.lap("変換")
-
-            return img_dst
-    except FileNotFoundError:
-        raise HTTPException(
-            status_code=404,
-            detail="本が存在しません",
-        ) from None
-
-def create_book_page_cache(book_uuid, page, to_height, quality):
+    Raises:
+        FileNotFoundError: ZIPファイルが存在しない場合
+        HTTPException: ページが存在しない場合
+    """
     timer = DebugTimer()
     # キャッシュ先にフォルダ作成
     Path(f"{DATA_ROOT}/book_cache/{book_uuid}/").mkdir(parents=True, exist_ok=True)
 
-
     with zipfile.ZipFile(f'{DATA_ROOT}/book_library/{book_uuid}.zip') as existing_zip:
-        # 関係あるファイルパスのリストに変更
-        file_list_in_zip = existing_zip.namelist()
-        file_list_in_zip = [p for p in file_list_in_zip if Path(p).suffix.lower() in [".png", ".jpeg", ".jpg"]]
-        file_list_in_zip.sort()
+        file_list_in_zip = list_images_in_zip(existing_zip)
 
         if page > len(file_list_in_zip):
             raise HTTPException(
                 status_code=404,
                 detail="ページが存在しません",
             )
-        timer.lap("リストをソート")
+        timer.lap("ZIPファイル一覧取得・ソート")
 
         # 指定されたページだけ読み込んでPILに
-        img_src = Image.open(BytesIO(existing_zip.read(file_list_in_zip[page-1]))).convert('RGB')
-        timer.lap("ZIPをREADしてPILに")
+        img_src = Image.open(BytesIO(existing_zip.read(file_list_in_zip[page - 1]))).convert('RGB')
+        timer.lap("ZIPからページ読み込み")
 
-        # 縦横計算
-        width, height = img_src.size
-        if height < to_height:
-            new_height = height
-            new_width = width
-        else:
-            new_height = int(to_height)
-            new_width = int(to_height / height * width)
-
-        # Tempパスを定義
-        dst_path = Path(f"{DATA_ROOT}/book_cache/{book_uuid}/{to_height}_{str(page).zfill(4)}.jpg")
-        temp_file = dst_path.stem
-        temp_ext = dst_path.suffix
-
-        new_img = img_src.resize((new_width, new_height), Image.LANCZOS)
-        temp_path = dst_path.parent / f'{temp_file}.page_temp{temp_ext}'
-        new_img.save(str(temp_path), quality=quality)
-        shutil.move(str(temp_path), str(dst_path))
-        timer.lap("変換")
+        # image_convertorを使ってリサイズ・保存（重複ロジック排除）
+        dst_path = f"{DATA_ROOT}/book_cache/{book_uuid}/{to_height}_{str(page).zfill(4)}.jpg"
+        image_convertor(src_path=img_src, dst_path=dst_path, to_height=to_height, quality=quality)
+        timer.lap("変換・保存")
 
 
 
@@ -357,5 +274,3 @@ def image_convertor(src_path, dst_path, to_height, quality):
     shutil.move(str(temp_path), dst_path)
 
 
-if __name__ == "__main__":
-    debug()

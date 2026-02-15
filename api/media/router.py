@@ -3,7 +3,7 @@ import subprocess
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session, aliased
 
@@ -23,9 +23,24 @@ app = APIRouter(
 )
 logger = setup_logger(__name__)
 
+# UUIDの正規表現パターン（パストラバーサル対策）
+UUID_PATTERN = re.compile(r'^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$')
+
+# 画像高さの制限値
+MIN_HEIGHT = 100
+MAX_HEIGHT = 4320
+
+# キャッシュ済み画像のHTTPキャッシュ期間（秒）: 7日
+CACHE_MAX_AGE = 604800
 
 converter_pool = []
 library_pool = []
+
+
+def _validate_uuid(uuid: str) -> None:
+    """UUIDの形式を検証（パストラバーサル対策）"""
+    if not UUID_PATTERN.match(uuid):
+        raise HTTPException(status_code=400, detail="不正なUUID形式です")
 
 
 @app.get("/books/cache", summary="キャッシュサイズ確認")
@@ -115,36 +130,56 @@ def get_media_books_duplicate(
 def get_media_books_uuid(
         uuid: str
     ):
+    _validate_uuid(uuid)
     file_path = f"{DATA_ROOT}/book_thum/{uuid}.jpg"
     if not Path(file_path).exists():
         raise HTTPException(
             status_code=404,
             detail="ファイルが存在しません",
         )
-    return FileResponse(file_path)
+    return FileResponse(
+        file_path,
+        headers={"Cache-Control": f"public, max-age={CACHE_MAX_AGE}"},
+    )
 
 
 @app.get("/books/{uuid}/{page}", summary="ページ画像取得")
 def media_books_uuid_page(
         uuid: str,
         page: int,
-        height: int = 1080,
+        height: int = Query(default=1080, ge=MIN_HEIGHT, le=MAX_HEIGHT,
+                            description=f"画像の高さ（{MIN_HEIGHT}〜{MAX_HEIGHT}）"),
     ):
+    _validate_uuid(uuid)
+    if page < 1:
+        raise HTTPException(status_code=400, detail="pageは1以上を指定してください")
 
     cache_file = f"{DATA_ROOT}/book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
     original_pattern = f"original_{str(page).zfill(4)}*"
 
     if Path(cache_file).exists():
-        logger.debug(f"完全キャッシュから読み込み{uuid} {page}")
+        logger.debug(f"完全キャッシュから読み込み {uuid} p.{page}")
     else:
         # Path.globでマッチするファイルを検索
         matched_files = list(Path(f"{DATA_ROOT}/book_cache/{uuid}").glob(original_pattern))
         if matched_files:
-            logger.debug(f"部分キャッシュから読み込み{uuid} {page}")
+            logger.debug(f"部分キャッシュから読み込み {uuid} p.{page}")
             image_convertor(str(matched_files[0]), cache_file, to_height=height, quality=85)
         else:
-            create_book_page_cache(uuid, page, height, 85)
-    return FileResponse(path=cache_file)
+            try:
+                create_book_page_cache(uuid, page, height, 85)
+            except FileNotFoundError:
+                raise HTTPException(
+                    status_code=404, detail="書籍のZIPファイルが見つかりません"
+                ) from None
+
+    if not Path(cache_file).exists():
+        raise HTTPException(status_code=500, detail="キャッシュファイルの生成に失敗しました")
+
+    return FileResponse(
+        path=cache_file,
+        headers={"Cache-Control": f"public, max-age={CACHE_MAX_AGE}"},
+    )
 
 
 @app.patch("/books", summary="書籍一括変換タスク実行")
