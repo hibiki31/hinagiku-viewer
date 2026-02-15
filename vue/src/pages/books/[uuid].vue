@@ -836,6 +836,12 @@ onMounted(async () => {
     console.error('書籍情報取得エラー:', error)
   }
 
+  // 設定を先に読み込む（画像ロード前に設定を適用するため）
+  loadSettings()
+
+  // userShowTowPageを初期化（設定から読み込んだ値をセット）
+  userShowTowPage.value = settings.showTowPage
+
   // 書籍情報取得後に画像ロード開始
   getDLoadingPage()
 
@@ -845,11 +851,6 @@ onMounted(async () => {
       status: 'open'
     }
   })
-
-  loadSettings()
-
-  // userShowTowPageを初期化（設定から読み込んだ値をセット）
-  userShowTowPage.value = settings.showTowPage
 
   // ウィンドウリサイズイベントリスナーを追加
   window.addEventListener('resize', handleResize)
