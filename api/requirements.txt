@@ -1,8 +1,7 @@
-bcrypt==5.0.0
+pwdlib[argon2]==0.3.0
 
 matplotlib
 opencv-contrib-python==4.13.0.92
-passlib==1.7.4
 imagehash==4.3.2
 PyJWT==2.11.0
 httpx==0.28.1

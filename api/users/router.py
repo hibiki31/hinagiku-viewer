@@ -1,11 +1,10 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from passlib.context import CryptContext
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from auth.router import get_current_user
+from auth.router import get_current_user, get_password_hash
 from auth.schemas import UserCurrent, UserPost
 from mixins.database import get_db
 from mixins.log import setup_logger
@@ -14,13 +13,6 @@ from users.schemas import UserGet
 
 logger = setup_logger(__name__)
 app = APIRouter(prefix="/api", tags=["User"])
-
-
-# パスワードハッシュ化の設定
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto"
-)
 
 
 @app.get("/users", summary="ユーザー一覧取得", response_model=List[UserGet])
@@ -73,7 +65,7 @@ def create_user(
     """
     db.add(UserModel(
         id=user.id,
-        password=pwd_context.hash(user.password),
+        password=get_password_hash(user.password),
         is_admin=False
         ))
 

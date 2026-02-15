@@ -4,7 +4,8 @@ from typing import Optional
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from passlib.context import CryptContext
+from pwdlib import PasswordHash
+from pwdlib.hashers.argon2 import Argon2Hasher
 from sqlalchemy.orm import Session
 
 from auth.schemas import AuthValidateResponse, TokenRFC6749Response, UserCurrent, UserPost
@@ -22,11 +23,35 @@ ALGORITHM = "HS256"
 # 30日で失効
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 30
 
-# パスワードハッシュ化の設定
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto"
-)
+# パスワードハッシュ化の設定（Argon2使用）
+pwd_context = PasswordHash([Argon2Hasher()])
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """
+    パスワードを検証する
+
+    Args:
+        plain_password: プレーンテキストのパスワード
+        hashed_password: ハッシュ化されたパスワード
+
+    Returns:
+        パスワードが一致する場合True
+    """
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+def get_password_hash(password: str) -> str:
+    """
+    パスワードをハッシュ化する
+
+    Args:
+        password: ハッシュ化するパスワード
+
+    Returns:
+        ハッシュ化されたパスワード
+    """
+    return pwd_context.hash(password)
 # oAuth2の設定
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="api/auth",
@@ -97,7 +122,7 @@ def login_for_access_token(
     except Exception:
         raise HTTPException(status_code=401, detail="Incorrect username or password") from None
 
-    if not pwd_context.verify(form_data.password, user.password):
+    if not verify_password(form_data.password, user.password):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
 
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -149,7 +174,7 @@ async def api_auth_setup(
     # ユーザ追加
     db.add(UserModel(
         id=user.id,
-        password=pwd_context.hash(user.password),
+        password=get_password_hash(user.password),
         is_admin=True
     ))
     db.commit()
