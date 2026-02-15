@@ -4,7 +4,7 @@ services:
   app:
     build:
       context: ..
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     volumes:
       - ../../:/workspace:cached
       - /mnt/optssd/docker_data/hinav-book-thum:/opt/product_thum:ro
