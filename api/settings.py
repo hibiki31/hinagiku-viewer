@@ -2,7 +2,7 @@ import os
 import re
 import secrets
 
-API_VERSION = '3.9.0'
+API_VERSION = '3.9.1'
 
 SQLALCHEMY_DATABASE_URL = os.getenv('SQLALCHEMY_DATABASE_URL', 'postgresql://postgres:password@localhost:5432/mydatabase')
 DATA_ROOT = re.sub(r"/$", "", os.getenv('DATA_ROOT', '/opt/data/'))
