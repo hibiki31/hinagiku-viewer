@@ -12,7 +12,7 @@ yarn run dev
 ```
 npx openapi-typescript https://hinav.hinagiku.me/api/openapi.json -o ./src/api.d.ts
 npx openapi-typescript http://172.21.0.3:8000/api/openapi.json -o ./src/api.d.ts
-npx openapi-typescript ../openapi.json -o ./src/api.d.ts
+npx openapi-typescript ../api/openapi.json -o ./src/api.d.ts
 ```
 
 

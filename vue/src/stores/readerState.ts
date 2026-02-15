@@ -136,7 +136,7 @@ export const useReaderStateStore = defineStore('readerState', {
               authorIsFavorite: query.authorIsFavorite ?? undefined,
               seriesId: query.seriesId || undefined,
               tag: query.tag || undefined,
-              state: query.state || undefined,
+              state: (query.state === 'missing_file' || query.state === 'duplicate_missing_file') ? query.state : undefined,
               uuid: query.uuid || undefined,
             }
           }

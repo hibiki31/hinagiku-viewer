@@ -430,6 +430,7 @@
                       density="compact"
                       variant="outlined"
                       hide-details
+                      :disabled="readerSettings?.showWindowSize"
                       @update:model-value="handleCustomHeightChange"
                     />
                   </v-col>

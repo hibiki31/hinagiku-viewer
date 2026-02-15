@@ -1035,6 +1035,12 @@ export interface components {
             /** Libraryid */
             libraryId?: number | null;
         };
+        /**
+         * BookStateEnum
+         * @description 書籍状態Enum
+         * @enum {string}
+         */
+        BookStateEnum: "missing_file" | "duplicate_missing_file";
         /** BookTag */
         BookTag: {
             /** Id */
@@ -1342,6 +1348,10 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
         /** Version */
         Version: {
@@ -1553,7 +1563,7 @@ export interface operations {
                 genreId?: string | null;
                 libraryId?: number;
                 tag?: string | null;
-                state?: string | null;
+                state?: components["schemas"]["BookStateEnum"] | null;
                 limit?: number;
                 offset?: number;
                 sortKey?: string;
@@ -1766,6 +1776,7 @@ export interface operations {
     media_books_uuid_page_media_books__uuid___page__get: {
         parameters: {
             query?: {
+                /** @description 画像の高さ（100〜4320） */
                 height?: number;
             };
             header?: never;

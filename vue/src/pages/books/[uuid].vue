@@ -499,7 +499,7 @@ const settings = reactive({
   showTowPage: false,
   showBaseWidth: false,
   showWindwSize: false,
-  customHeight: 1024,
+  customHeight: 1920,
   windowHeight: Math.round(window.innerHeight * window.devicePixelRatio),
   windowWidth: window.innerWidth,
   shouldExpandImage: false // 画像を拡大すべきかどうか
@@ -591,10 +591,11 @@ const getDLoadingPage = async () => {
 
   nowLoading.value += 1
 
-  let heightParam = settings.customHeight
-  if (settings.showWindwSize) {
-    heightParam = settings.windowHeight
-  }
+  // 画面サイズで表示がONの場合はウィンドウの高さを使用、OFFの場合はカスタム高さを使用
+  let heightParam = settings.showWindwSize
+    ? settings.windowHeight
+    : settings.customHeight
+
   // APIは整数を期待しているため、確実に整数化
   heightParam = Math.round(heightParam)
 
