@@ -56,37 +56,38 @@ def main(db: Session, task_id: Optional[str] = None):
                 if book.state in ["missing_file", "duplicate_missing_file"]:
                     book.state = None
                     normal_count += 1
-                continue
-
-            # ファイルが存在しない場合、同じSHA1の別の書籍を検索
-            duplicate_books = db.query(BookModel).filter(
-                and_(
-                    BookModel.sha1 == book.sha1,
-                    BookModel.uuid != book.uuid
-                )
-            ).all()
-
-            if duplicate_books:
-                # 重複登録がある場合
-                book.state = "duplicate_missing_file"
-                duplicate_count += 1
-                logger.warning(f"[{idx}/{total}] 重複登録（ファイル欠損）: {book.uuid} (SHA1: {book.sha1}, 重複数: {len(duplicate_books)})")
             else:
-                # ファイル完全ロスト
-                book.state = "missing_file"
-                missing_count += 1
-                logger.error(f"[{idx}/{total}] ファイルロスト: {book.uuid} (SHA1: {book.sha1}, タイトル: {book.title})")
+                # ファイルが存在しない場合、同じSHA1の別の書籍を検索
+                duplicate_books = db.query(BookModel).filter(
+                    and_(
+                        BookModel.sha1 == book.sha1,
+                        BookModel.uuid != book.uuid
+                    )
+                ).all()
 
-            # 進捗更新（5%刻み）
-            if task_id and idx % max(1, total // 20) == 0:
-                progress = 5 + int((idx / total) * 90)
-                update_task_status(
-                    db,
-                    task_id,
-                    progress=progress,
-                    current_item=idx,
-                    message=f"{idx}/{total}冊確認（ロスト: {missing_count}, 重複: {duplicate_count}, 修復: {normal_count}）"
-                )
+                if duplicate_books:
+                    # 重複登録がある場合
+                    book.state = "duplicate_missing_file"
+                    duplicate_count += 1
+                    logger.warning(f"[{idx}/{total}] 重複登録（ファイル欠損）: {book.uuid} (SHA1: {book.sha1}, 重複数: {len(duplicate_books)})")
+                else:
+                    # ファイル完全ロスト
+                    book.state = "missing_file"
+                    missing_count += 1
+                    logger.error(f"[{idx}/{total}] ファイルロスト: {book.uuid} (SHA1: {book.sha1}, タイトル: {book.title})")
+
+            # 進捗更新（100冊ごと、または1%ごと、または最後の書籍）
+            if task_id:
+                update_interval = min(100, max(1, total // 100))  # 1%刻みまたは100冊ごと
+                if idx % update_interval == 0 or idx == total:
+                    progress = 5 + int((idx / total) * 90)
+                    update_task_status(
+                        db,
+                        task_id,
+                        progress=progress,
+                        current_item=idx,
+                        message=f"{idx}/{total}冊確認（ロスト: {missing_count}, 重複: {duplicate_count}, 修復: {normal_count}）"
+                    )
 
         # 変更をコミット
         db.commit()
