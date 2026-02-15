@@ -1,4 +1,23 @@
 # hinagiku-viewer
 
-This is a web application that can manage and display self-prepared books managed by Zip.
-It supports both desktop and mobile devices.
+Zipファイルで管理された書籍（電子書籍・コミック等）を一元管理し、メタデータの表示・検索・閲覧ができるWebアプリケーション。
+デスクトップおよびモバイルデバイスの両方に対応しています。
+
+## 特徴
+
+- 📚 **書籍管理**: Zipファイルインポート（監視フォルダ自動取り込み）、ライブラリ管理
+- 🏷️ **メタデータ管理**: 著者・タグ・ジャンル・出版社・シリーズの管理（多対多対応）
+- 🔍 **重複検出**: SHA1ハッシュ + aHash（知覚的ハッシュ）による類似書籍検出
+- 🔎 **高度な検索**: 全文検索、複数条件フィルタリング、ソート、ページネーション
+- 🔒 **認証・権限**: JWT + OAuth2 Password Flow、スコープベース権限、ライブラリ共有
+- ⚙️ **バックグラウンド処理**: DBベースタスクキュー（インポート/エクスポート/重複チェック等）
+- 📱 **レスポンシブUI**: デスクトップ・タブレット・モバイル対応
+
+## 運用コマンド
+
+### パスワードリセット
+
+```bash
+docker compose exec -it api bash
+python3 scripts/reset_password.py <ユーザー名> <新しいパスワード>
+```
