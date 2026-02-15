@@ -17,7 +17,7 @@ gunicorn==25.1.0
 # DB関係
 alembic==1.18.4
 SQLAlchemy==2.0.46
-psycopg2==2.9.11
+psycopg2-binary==2.9.11
 
 # 画像処理
 Pillow==12.1.1
