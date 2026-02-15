@@ -1,1 +1,41 @@
+# Git関連
+.git/
+.gitignore
+
+# Python関連
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# テスト・開発ファイル
+tests/
+memory-bank/
+scripts/
+*.log
+.env
+
+# IDEファイル
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# データディレクトリ（ローカル開発用）
 /.data-dev/
+.data/
+
+# ドキュメント
+README.md
+*.md
+
+# その他
+.DS_Store
+Thumbs.db
+.dockerignore
+Dockerfile
+docker-compose.yml
