@@ -9,6 +9,7 @@ from zipfile import BadZipFile
 
 import PIL
 from sqlalchemy import and_
+from sqlalchemy.orm import Session
 
 from books.models import (
     AuthorModel,
@@ -50,7 +51,7 @@ class PreBookClass:
         self.series_no = None
         self.rate = None
 
-def main(db, user_id, task_id: Optional[str] = None):
+def main(db: Session, user_id: int, task_id: Optional[str] = None):
     """
     ライブラリ追加処理
 
@@ -76,35 +77,70 @@ def main(db, user_id, task_id: Optional[str] = None):
         send_books_list = [str(p) for p in send_books_path.rglob("*") if p.suffix.lower() == ".zip"]
 
         total_books = len(send_books_list)
-        if total_books != 0:
-            logger.info(str(total_books) + "件の本をライブラリに追加します")
+
+        if total_books == 0:
             if task_id:
-                update_task_status(db, task_id, progress=5, total_items=total_books, message=f"{total_books}件の本を追加します")
-        else:
-            if task_id:
-                update_task_status(db, task_id, status="completed", progress=100, message="追加対象の本がありません")
+                update_task_status(
+                    db, task_id,
+                    status="completed",
+                    progress=100,
+                    current_step="完了",
+                    current_item=0,
+                    message="対象なし"
+                )
             return
 
-        for idx, send_book in enumerate(send_books_list):
+        logger.info(f"{total_books}件の本をライブラリに追加します")
+        if task_id:
+            update_task_status(
+                db, task_id,
+                progress=5,
+                current_step="書籍追加中",
+                total_items=total_books,
+                message=f"{total_books}件の本を追加します"
+            )
+
+        # カウンター初期化
+        success_count = 0
+        error_count = 0
+
+        # 進捗更新間隔
+        update_interval = min(100, max(1, total_books // 100))
+
+        for idx, send_book in enumerate(send_books_list, 1):
             try:
                 book_import(send_book, user_model, db)
-
-                # 進捗更新
-                if task_id:
-                    progress = 5 + int((idx + 1) / total_books * 90)
-                    update_task_status(db, task_id, progress=progress, current_item=idx + 1, message=f"{idx + 1}/{total_books}冊追加完了")
+                success_count += 1
 
             except (PIL.Image.DecompressionBombError, NotContentZipError, BadZipFile, zlib.error) as e:
-                logger.error(f'{send_book} ファイルに問題があるためインポート処理を中止 {e}')
-                shutil.move(send_book, f'{DATA_ROOT}/book_fail/{Path(send_book).name}')
+                logger.error(f"[{idx}/{total_books}] ファイルエラー: {send_book} - {e}")
+                try:
+                    shutil.move(send_book, f'{DATA_ROOT}/book_fail/{Path(send_book).name}')
+                except Exception as move_error:
+                    logger.error(f"ファイル移動エラー: {move_error}")
+                error_count += 1
 
             except Exception as e:
-                logger.critical(e, exc_info=True)
-                logger.critical(f'{send_book} 補足できないエラーが発生したためインポート処理を中止')
+                logger.error(f"[{idx}/{total_books}] 予期しないエラー: {send_book} - {e}", exc_info=True)
+                error_count += 1
+
+            # 進捗更新
+            if task_id and (idx % update_interval == 0 or idx == total_books):
+                progress = 5 + int((idx / total_books) * 90)
+                update_task_status(db, task_id, progress=progress, current_item=idx)
 
         # 完了
         if task_id:
-            update_task_status(db, task_id, status="completed", progress=100, current_step="完了", message=f"{total_books}件の本を追加しました")
+            update_task_status(
+                db, task_id,
+                status="completed",
+                progress=100,
+                current_step="完了",
+                current_item=total_books,
+                message=f"完了: 成功{success_count}件/エラー{error_count}件"
+            )
+
+        logger.info(f"ライブラリ追加完了: 成功{success_count}件/エラー{error_count}件")
 
     except Exception as e:
         logger.error(f"ライブラリ追加エラー: {e}", exc_info=True)
@@ -112,7 +148,15 @@ def main(db, user_id, task_id: Optional[str] = None):
             update_task_status(db, task_id, status="failed", error_message=str(e))
         raise
 
-def book_import(send_book, user_model, db):
+def book_import(send_book: str, user_model: UserModel, db: Session) -> None:
+    """
+    個別の書籍インポート処理
+
+    Args:
+        send_book: 送信された書籍ファイルのパス
+        user_model: ユーザーモデル
+        db: データベースセッション
+    """
     # モデル定義
     pre_model = PreBookClass()
     send_book_path = Path(send_book)
@@ -239,7 +283,17 @@ def book_import(send_book, user_model, db):
     Path("/tmp/hinav/").mkdir()
 
 
-def book_model_mapper_json(model:BookModel, json):
+def book_model_mapper_json(model: PreBookClass, json: dict) -> PreBookClass:
+    """
+    JSONメタデータから書籍モデルにマッピング
+
+    Args:
+        model: 書籍プリモデル
+        json: JSONメタデータ
+
+    Returns:
+        マッピングされた書籍プリモデル
+    """
 
     model.title = json['title']
     model.uuid = json['uuid']
@@ -258,7 +312,17 @@ def book_model_mapper_json(model:BookModel, json):
 
     return model
 
-def book_model_mapper_file(model, file_name_purse):
+def book_model_mapper_file(model: PreBookClass, file_name_purse: ParseResult) -> PreBookClass:
+    """
+    ファイル名から書籍モデルにマッピング
+
+    Args:
+        model: 書籍プリモデル
+        file_name_purse: パースされたファイル名情報
+
+    Returns:
+        マッピングされた書籍プリモデル
+    """
 
     model.title = file_name_purse.title
     model.author = file_name_purse.author
