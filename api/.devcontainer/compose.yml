@@ -15,6 +15,7 @@ services:
       APP_ROOT: /workspace/api
       IS_DEV: true
       DEBUG_LOG: true
+      SECRET_KEY: 54795a8aeea928c6a134d6075299b46905ec03b1077117e3bfbea8eaee0f38a4
 
   db:
     image: postgres:latest

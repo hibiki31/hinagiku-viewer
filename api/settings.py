@@ -12,4 +12,4 @@ DEBUG_LOG = bool(os.getenv('DEBUG_LOG', ''))
 GNICORN_WORKERS = 4
 
 CONVERT_THREAD = int(os.cpu_count())
-SECRET_KEY = 'DEV_KEY' if IS_DEV else os.getenv('SECRET_KEY', secrets.token_urlsafe(128))
+SECRET_KEY = os.getenv('SECRET_KEY', secrets.token_urlsafe(128))
