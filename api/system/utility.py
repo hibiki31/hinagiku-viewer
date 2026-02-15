@@ -32,14 +32,16 @@ def get_setting(db: Session, key: str, default: Any = None) -> Any:
     # 型変換
     try:
         if setting.data_type == 'int':
-            return int(setting.value)
-        if setting.data_type == 'float':
-            return float(setting.value)
-        if setting.data_type == 'bool':
-            return setting.value.lower() in ('true', '1', 'yes')
-        if setting.data_type == 'json':
-            return json.loads(setting.value)
-        return setting.value
+            result = int(setting.value)
+        elif setting.data_type == 'float':
+            result = float(setting.value)
+        elif setting.data_type == 'bool':
+            result = setting.value.lower() in ('true', '1', 'yes')
+        elif setting.data_type == 'json':
+            result = json.loads(setting.value)
+        else:
+            result = setting.value
+        return result
     except (ValueError, json.JSONDecodeError):
         # 型変換に失敗した場合はデフォルト値を返す
         return default

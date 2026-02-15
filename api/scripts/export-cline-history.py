@@ -18,31 +18,27 @@ Cline タスク履歴をエクスポートするスクリプト
 
 import datetime
 import json
-import os
 from pathlib import Path
 from typing import Dict, List, Optional
 
-CLINE_TASKS_DIR = os.path.expanduser(
-    "~/.vscode-server/data/User/globalStorage/saoudrizwan.claude-dev/tasks"
-)
-CLINE_TASKS_DIR_ALT = os.path.expanduser(
-    "~/.vscode/extensions/saoudrizwan.claude-dev-*/globalStorage/tasks"
-)
+CLINE_TASKS_DIR = Path.home() / ".vscode-server/data/User/globalStorage/saoudrizwan.claude-dev/tasks"
+CLINE_TASKS_DIR_ALT = Path.home() / ".vscode/extensions"
 
 BASE_DIR = Path(__file__).parent.parent / "scripts"
 JSON_FILE = BASE_DIR / "cline-history.json"
 MD_FILE = BASE_DIR / "cline-history.md"
 
 
-def find_tasks_dir() -> Optional[str]:
+def find_tasks_dir() -> Optional[Path]:
     """Clineのタスクディレクトリを探す"""
-    if os.path.isdir(CLINE_TASKS_DIR):
+    if CLINE_TASKS_DIR.is_dir():
         return CLINE_TASKS_DIR
 
-    import glob
-    alt_dirs = glob.glob(CLINE_TASKS_DIR_ALT)
-    if alt_dirs:
-        return alt_dirs[0]
+    # 代替パスを探す（saoudrizwan.claude-dev-* のディレクトリ）
+    for ext_dir in CLINE_TASKS_DIR_ALT.glob("saoudrizwan.claude-dev-*"):
+        tasks_dir = ext_dir / "globalStorage" / "tasks"
+        if tasks_dir.is_dir():
+            return tasks_dir
 
     return None
 
@@ -51,8 +47,7 @@ def load_history_json() -> List[Dict]:
     """既存のJSONファイルから履歴を読み込む"""
     if not JSON_FILE.exists():
         return []
-    with open(JSON_FILE, encoding="utf-8") as f:
-        data = json.load(f)
+    data = json.loads(JSON_FILE.read_text(encoding="utf-8"))
     return data.get("tasks", [])
 
 
@@ -66,31 +61,27 @@ def save_history_json(tasks: List[Dict]) -> None:
         "tasks": tasks,
     }
     JSON_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(JSON_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    JSON_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def extract_task_info(task_dir: str, task_id: str) -> Optional[Dict]:
+def extract_task_info(task_dir: Path, task_id: str) -> Optional[Dict]:
     """Clineのタスクディレクトリから情報を抽出"""
-    ui_file = os.path.join(task_dir, "ui_messages.json")
-    metadata_file = os.path.join(task_dir, "task_metadata.json")
+    ui_file = task_dir / "ui_messages.json"
+    metadata_file = task_dir / "task_metadata.json"
 
-    if not os.path.exists(ui_file):
+    if not ui_file.exists():
         return None
 
-    with open(ui_file, encoding="utf-8") as f:
-        msgs = json.load(f)
+    msgs = json.loads(ui_file.read_text(encoding="utf-8"))
 
     model_id = ""
     cline_version = ""
-    if os.path.exists(metadata_file):
+    if metadata_file.exists():
         try:
-            with open(metadata_file, encoding="utf-8") as f:
-                # ファイル全体を読み込んで最初の完全なJSONオブジェクトのみをデコード
-                content = f.read()
-                # JSONデコーダーを使って最初のオブジェクトのみを取得
-                decoder = json.JSONDecoder()
-                meta, _idx = decoder.raw_decode(content)
+            content = metadata_file.read_text(encoding="utf-8")
+            # JSONデコーダーを使って最初のオブジェクトのみを取得
+            decoder = json.JSONDecoder()
+            meta, _idx = decoder.raw_decode(content)
 
             if meta.get("model_usage"):
                 model_id = meta["model_usage"][0].get("model_id", "")
@@ -154,11 +145,10 @@ def fetch_new_tasks() -> List[Dict]:
 
     print(f"タスクディレクトリ: {tasks_dir}")
     results = []
-    for task_id in sorted(os.listdir(tasks_dir)):
-        task_path = os.path.join(tasks_dir, task_id)
-        if not os.path.isdir(task_path):
+    for task_path in sorted(tasks_dir.iterdir()):
+        if not task_path.is_dir():
             continue
-        info = extract_task_info(task_path, task_id)
+        info = extract_task_info(task_path, task_path.name)
         if info:
             results.append(info)
     return results
