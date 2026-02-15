@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-02-10T16:36:48.121425+00:00",
-  "task_count": 46,
-  "total_cost": 26.3563,
+  "updated_at": "2026-02-15T20:18:24.563944+00:00",
+  "task_count": 54,
+  "total_cost": 31.4892,
   "tasks": [
     {
       "id": "1770568553080",
@@ -552,6 +552,102 @@
       "tokens_out": 7529,
       "cache_writes": 78344,
       "cache_reads": 438982,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770785448958",
+      "date": "2026-02-11 04:50:48",
+      "title": "APIのバージョンとWEBクライアントのバージョンを比較して不整合を通知していますが、メジャーバージョンが違うときのみ通知を出すよう修正せよ。",
+      "cost": 0.2129,
+      "tokens_in": 90,
+      "tokens_out": 4003,
+      "cache_writes": 32363,
+      "cache_reads": 104170,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770788690262",
+      "date": "2026-02-11 05:44:50",
+      "title": "/media/library PATCHのエンドポイントはタイピングミスと、ステータスに何を渡せばよいか、OpenAPI仕様に記載されない点が問題です。改善してください。",
+      "cost": 0.6292,
+      "tokens_in": 145,
+      "tokens_out": 12979,
+      "cache_writes": 65721,
+      "cache_reads": 625352,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770789616542",
+      "date": "2026-02-11 06:00:16",
+      "title": "api側で/media/library PTACHの仕様変更がありました。適切に対応してください。",
+      "cost": 1.3518,
+      "tokens_in": 180,
+      "tokens_out": 10368,
+      "cache_writes": 224993,
+      "cache_reads": 1173227,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770790473547",
+      "date": "2026-02-11 06:14:33",
+      "title": "サイドバーの実装がindexと重複リストで、共通化されていません。それのせいで、バージョン表示の部分がindexに追従できていません。バージョン表示部分、サイドバーのフッターなどはコンポーネント化するべきではないですか。",
+      "cost": 0.5056,
+      "tokens_in": 120,
+      "tokens_out": 9951,
+      "cache_writes": 59695,
+      "cache_reads": 440376,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770792066722",
+      "date": "2026-02-11 06:41:06",
+      "title": "/api/tasks POSTでライブラリ整合性チェックのタスク実行ができるように/settings 管理タスク で実行できるようにせよ。",
+      "cost": 0.3522,
+      "tokens_in": 100,
+      "tokens_out": 6066,
+      "cache_writes": 45287,
+      "cache_reads": 303528,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1770792318519",
+      "date": "2026-02-11 06:45:18",
+      "title": "API側で不明瞭だったレスポンスに型が付きました。更新内容を確認し、対応してください。",
+      "cost": 0.5829,
+      "tokens_in": 170,
+      "tokens_out": 12193,
+      "cache_writes": 51880,
+      "cache_reads": 683029,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1771181017578",
+      "date": "2026-02-15 18:43:37",
+      "title": "本の検索を行う際、ステータス候補について、OpenAPI仕様に明記されました。UIに選択肢を付けてください。",
+      "cost": 0.5188,
+      "tokens_in": 90,
+      "tokens_out": 4654,
+      "cache_writes": 78773,
+      "cache_reads": 510917,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1771185598376",
+      "date": "2026-02-15 19:59:58",
+      "title": "リーダーの設定にページ縦サイズがありますが、この値は画面サイズで表示がFlaseだった時に画像の取得サイズに指定する値です。うまく機能していないので修正してください。また画面サイズで表示がTrueの場合は使用されない値になるのでdisable属性を付けてください。また適切にlocalstorageに設定が保存されるようにしてください。",
+      "cost": 0.9795,
+      "tokens_in": 220,
+      "tokens_out": 11867,
+      "cache_writes": 110996,
+      "cache_reads": 1282042,
       "model": "claude-sonnet-4-5-20250929",
       "cline_version": "3.57.1"
     }

@@ -529,6 +529,31 @@
               <v-divider class="my-4" />
 
               <v-list-subheader>
+                <v-icon size="small" class="mr-2" color="error">
+                  mdi-delete-alert
+                </v-icon>
+                危険な操作
+              </v-list-subheader>
+              <v-list-item>
+                <v-list-item-title>
+                  <v-btn
+                    block
+                    color="error"
+                    variant="tonal"
+                    prepend-icon="mdi-delete"
+                    @click="deleteConfirmDialog = true"
+                  >
+                    本を削除する
+                  </v-btn>
+                </v-list-item-title>
+                <v-list-item-subtitle class="text-caption text-error mt-1">
+                  ⚠️ この操作は取り消せません。本のファイルとすべてのデータが完全に削除されます。
+                </v-list-item-subtitle>
+              </v-list-item>
+
+              <v-divider class="my-4" />
+
+              <v-list-subheader>
                 <v-icon size="small" class="mr-2">
                   mdi-file-code
                 </v-icon>
@@ -603,6 +628,60 @@
         </v-btn>
       </v-card-actions>
     </v-card>
+
+    <!-- 削除確認ダイアログ -->
+    <v-dialog v-model="deleteConfirmDialog" max-width="500">
+      <v-card>
+        <v-card-title class="d-flex align-center pa-4 bg-error">
+          <v-icon class="mr-2" color="white">
+            mdi-alert-circle
+          </v-icon>
+          <span class="text-white">本の削除</span>
+        </v-card-title>
+        <v-card-text class="pt-4">
+          <v-alert type="error" variant="tonal" class="mb-4">
+            <div class="text-subtitle-2 mb-2">
+              ⚠️ この操作は取り消せません
+            </div>
+            <div class="text-body-2">
+              以下の本のファイルとすべてのデータが完全に削除されます：
+            </div>
+          </v-alert>
+          <div class="pa-3 bg-grey-lighten-4 rounded">
+            <div class="text-subtitle-1 font-weight-bold mb-1">
+              {{ bookData.title || '(タイトルなし)' }}
+            </div>
+            <div class="text-caption text-medium-emphasis">
+              ファイル名: {{ bookData.importFileName }}
+            </div>
+            <div class="text-caption text-medium-emphasis">
+              UUID: {{ bookData.uuid }}
+            </div>
+          </div>
+          <div class="mt-4 text-body-2">
+            本当に削除してもよろしいですか？
+          </div>
+        </v-card-text>
+        <v-card-actions class="pa-4">
+          <v-spacer />
+          <v-btn
+            variant="text"
+            @click="deleteConfirmDialog = false"
+          >
+            キャンセル
+          </v-btn>
+          <v-btn
+            color="error"
+            variant="flat"
+            prepend-icon="mdi-delete"
+            :loading="deleteLoading"
+            @click="handleDeleteBook"
+          >
+            削除する
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-dialog>
 </template>
 
@@ -638,6 +717,7 @@ const emit = defineEmits<{
   goToFirstPage: []
   goToLibrary: []
   authorClick: [author: { id: number | null; name: string | null }]
+  bookDeleted: [uuid: string]
 }>()
 
 const dialogState = ref(false)
@@ -650,6 +730,8 @@ const tagNames = ref<string[]>([])
 const addAuthorDialogState = ref(false)
 const newAuthorName = ref('')
 const downloadLoading = ref(false)
+const deleteConfirmDialog = ref(false)
+const deleteLoading = ref(false)
 
 const bookData = reactive<Partial<BookBase>>({
   uuid: undefined,
@@ -1066,6 +1148,41 @@ const handleDownload = async () => {
     pushNotice('ダウンロードに失敗しました', 'error')
   } finally {
     downloadLoading.value = false
+  }
+}
+
+const handleDeleteBook = async () => {
+  if (!bookData.uuid) {
+    pushNotice('本のUUIDが取得できません', 'error')
+    return
+  }
+
+  deleteLoading.value = true
+
+  try {
+    const { error } = await apiClient.DELETE('/api/books/{book_uuid}', {
+      params: {
+        path: {
+          book_uuid: bookData.uuid
+        }
+      }
+    })
+    if (error) throw error
+
+    pushNotice('本を削除しました', 'success')
+
+    // 削除イベントを発火
+    emit('bookDeleted', bookData.uuid)
+    emit('search')
+
+    // ダイアログを閉じる
+    deleteConfirmDialog.value = false
+    dialogState.value = false
+  } catch (error) {
+    console.error('削除エラー:', error)
+    pushNotice('本の削除に失敗しました', 'error')
+  } finally {
+    deleteLoading.value = false
   }
 }
 
