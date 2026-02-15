@@ -1,6 +1,6 @@
 services:
   api:
-    image: hinav-api:product
+    image: hibiki31/hinav-api:latest
     restart: always
     hostname: hinav-api
     volumes:
@@ -19,10 +19,10 @@ services:
       # データベースやログファイル
       - "${APP_DIR}:/opt/data/app_data/"
     environment:
-      SQLALCHEMY_DATABASE_URL: "postgresql://postgres:password@hinav-db:5432/mydatabase"
+      SQLALCHEMY_DATABASE_URL: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@hinav-db:5432/${POSTGRES_DB}"
       SECRET_KEY: "${SECRET_KEY}"
   web:
-    image: hinav-web:product
+    image: hibiki31/hinav-web:latest
     restart: always
     ports:
       - 8080:80
@@ -34,8 +34,8 @@ services:
     volumes:
       - hinav-db:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_DB: mydatabase
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
 volumes:
   hinav-db:
