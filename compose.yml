@@ -1,0 +1,41 @@
+services:
+  api:
+    image: hinav-api:product
+    restart: always
+    hostname: hinav-api
+    volumes:
+      # キャッシュの作成場所
+      - "${CACHE_DIR}:/opt/data/book_cache/"
+      # サムネイルの作成先
+      - "${THUM_DIR}:/opt/data/book_thum/"
+      # ライブラリ
+      - "${LIBRARY_DIR}:/opt/data/book_library/"
+      # ZIPのインポート監視フォルダ
+      - "${SEND_DIR}:/opt/data/book_send/"
+      # ZIPのエクスポート先
+      - "${EXPORT_DIR}:/opt/data/book_export/"
+      # 失敗したZIP
+      - "${FAIL_DIR}:/opt/data/book_fail/"
+      # データベースやログファイル
+      - "${APP_DIR}:/opt/data/app_data/"
+    environment:
+      SQLALCHEMY_DATABASE_URL: "postgresql://postgres:password@hinav-db:5432/mydatabase"
+      SECRET_KEY: "${SECRET_KEY}"
+  web:
+    image: hinav-web:product
+    restart: always
+    ports:
+      - 8080:80
+    hostname: hinav-web
+  db:
+    image: postgres:13.5
+    restart: unless-stopped
+    hostname: hinav-db
+    volumes:
+      - hinav-db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: mydatabase
+      POSTGRES_PASSWORD: password
+volumes:
+  hinav-db:
