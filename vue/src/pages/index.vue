@@ -504,13 +504,13 @@ const openInNewTab = (item: BookBase) => {
 };
 
 const createCache = (book: BookBase) => {
-  pushNotice("キャッシュの作成をリクエスト", "info");
-  apiClient.PATCH("/media/books", {
-    body: {
-      uuid: book.uuid,
-      height: Math.round(window.innerHeight * window.devicePixelRatio),
-    },
-  });
+  // pushNotice("キャッシュの作成をリクエスト", "info");
+  // apiClient.PATCH("/media/books", {
+  //   body: {
+  //     uuid: book.uuid,
+  //     height: Math.round(window.innerHeight * window.devicePixelRatio),
+  //   },
+  // });
 };
 
 const toDuplicateView = () => {
