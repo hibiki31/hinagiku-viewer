@@ -119,13 +119,16 @@ def process_hash_batch(args: Tuple[List[str], int, int]) -> List[Dict]:
     return results
 
 
-def compute_multi_hash(db: Session, mode: str = "missing", task_id: Optional[str] = None):
+def compute_multi_hash(db: Session, mode: str = "missing", task_id: Optional[str] = None) -> Dict[str, int]:
     """
     マルチハッシュ（ahash, phash, dhash）を計算
 
     Args:
         mode: "missing" = 未計算のみ, "all" = 全件再計算
         task_id: タスクID
+
+    Returns:
+        {"success": 成功件数, "error": エラー件数, "skip": スキップ件数}
     """
     # 対象書籍を取得
     if mode == "all":
@@ -143,29 +146,42 @@ def compute_multi_hash(db: Session, mode: str = "missing", task_id: Optional[str
 
     if len(books) == 0:
         logger.info("計算対象なし")
-        return
+        if task_id:
+            update_task_status(db, task_id, progress=30, current_step="ハッシュ計算", current_item=0, total_items=0, message="計算対象なし")
+        return {"success": 0, "error": 0, "skip": 0}
+
+    if task_id:
+        update_task_status(db, task_id, progress=5, current_step="ハッシュ計算", total_items=len(books), message=f"{len(books)}冊のハッシュを計算中")
+
+    success_count = 0
+    error_count = 0
 
     # 少数の場合はシングルスレッド
     if len(books) <= 16:
-        for idx, book in enumerate(books):
+        for idx, book in enumerate(books, 1):
             ahash, phash, dhash = get_hash_from_thumbnail(book.uuid)
             if ahash:
                 db_book = db.query(BookModel).filter(BookModel.uuid == book.uuid).one()
                 db_book.ahash = ahash
                 db_book.phash = phash
                 db_book.dhash = dhash
-                logger.info(f"{book.uuid}: ahash={ahash}, phash={phash}, dhash={dhash}")
-                if task_id and idx % 5 == 0:
-                    progress = 10 + int((idx / len(books)) * 20)
-                    update_task_status(db, task_id, progress=progress, current_item=idx, message=f"ハッシュ計算: {idx}/{len(books)}冊")
+                logger.debug(f"{book.uuid}: ahash={ahash}, phash={phash}, dhash={dhash}")
+                success_count += 1
+            else:
+                error_count += 1
+
+            if task_id and (idx % 5 == 0 or idx == len(books)):
+                progress = 5 + int((idx / len(books)) * 25)
+                update_task_status(db, task_id, progress=progress, current_item=idx, message=f"ハッシュ計算: {idx}/{len(books)}冊")
         db.commit()
-        return
+        logger.info(f"ハッシュ計算完了: 成功{success_count}件/エラー{error_count}件")
+        return {"success": success_count, "error": error_count, "skip": 0}
 
     # 大量の場合はマルチプロセス
     size = len(books)
     batch_size = max(100, size // CONVERT_THREAD)
 
-    logger.info(f"{CONVERT_THREAD}スレッドで{size}冊のハッシュを計算（バッチサイズ: {batch_size}）")
+    logger.info(f"{CONVERT_THREAD}プロセスで{size}冊のハッシュを計算（バッチサイズ: {batch_size}）")
 
     # バッチ作成
     batches = []
@@ -178,24 +194,28 @@ def compute_multi_hash(db: Session, mode: str = "missing", task_id: Optional[str
 
     # 結果を統合
     all_results = [item for batch in results for item in batch]
-    logger.info(f"{len(all_results)}件のハッシュを取得、DBに書き込み中...")
+    success_count = len(all_results)
+    error_count = len(books) - success_count
+
+    logger.info(f"{success_count}件のハッシュを取得、DBに書き込み中...")
 
     # DB更新
-    for idx, result in enumerate(all_results):
+    for idx, result in enumerate(all_results, 1):
         book = db.query(BookModel).filter(BookModel.uuid == result["uuid"]).one()
         book.ahash = result["ahash"]
         book.phash = result["phash"]
         book.dhash = result["dhash"]
 
-        if task_id and idx % 100 == 0:
-            progress = 10 + int((idx / len(all_results)) * 20)
+        if task_id and (idx % 100 == 0 or idx == len(all_results)):
+            progress = 5 + int((idx / len(all_results)) * 25)
             update_task_status(db, task_id, progress=progress, current_item=idx, message=f"ハッシュDB保存: {idx}/{len(all_results)}件")
 
     db.commit()
-    logger.info("DBへの書き込み完了")
+    logger.info(f"ハッシュ計算完了: 成功{success_count}件/エラー{error_count}件")
+    return {"success": success_count, "error": error_count, "skip": 0}
 
 
-def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel, task_id: Optional[str] = None):
+def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel, task_id: Optional[str] = None) -> Dict[str, int]:
     """
     LSHアルゴリズムで重複を検出
 
@@ -207,8 +227,11 @@ def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel, task_id: 
 
     Args:
         task_id: タスクID
+
+    Returns:
+        {"groups": グループ数, "pairs": ペア数, "books": 重複書籍数}
     """
-    logger.info("=== LSH重複検出開始 ===")
+    logger.info("LSH重複検出開始")
 
     # 設定値
     ahash_threshold = settings.ahash_threshold
@@ -235,12 +258,14 @@ def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel, task_id: 
 
     if book_count == 0:
         logger.warning("ハッシュが計算された書籍がありません")
-        return
+        if task_id:
+            update_task_status(db, task_id, progress=100, current_step="重複検出", current_item=0, total_items=0, message="対象書籍なし")
+        return {"groups": 0, "pairs": 0, "books": 0}
 
     # LSHインデックス構築（ahashベース）
     logger.info("LSHインデックス構築中...")
     if task_id:
-        update_task_status(db, task_id, progress=30, current_step="LSHインデックス構築中", message=f"{book_count}冊のインデックスを構築中")
+        update_task_status(db, task_id, progress=30, current_step="LSHインデックス構築", total_items=book_count, message=f"{book_count}冊のインデックスを構築中")
 
     lsh_ahash = LSHIndex(num_bands=lsh_bands, band_size=lsh_band_size)
 
@@ -260,16 +285,17 @@ def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel, task_id: 
     # 候補ペア抽出
     logger.info("候補ペア抽出中...")
     if task_id:
-        update_task_status(db, task_id, progress=40, current_step="候補ペア抽出中", message="類似書籍の候補を抽出中")
+        update_task_status(db, task_id, progress=40, current_step="候補ペア抽出", current_item=0, total_items=book_count, message="類似書籍の候補を抽出中")
 
     candidate_pairs = set()
 
-    for idx, book in enumerate(books):
+    for idx, book in enumerate(books, 1):
         if idx % 1000 == 0:
             logger.info(f"進捗: {idx}/{book_count}冊処理")
-            if task_id:
-                progress = 40 + int((idx / book_count) * 20)
-                update_task_status(db, task_id, progress=progress, current_item=idx, total_items=book_count, message=f"候補抽出: {idx}/{book_count}冊")
+
+        if task_id and (idx % 1000 == 0 or idx == book_count):
+            progress = 40 + int((idx / book_count) * 20)
+            update_task_status(db, task_id, progress=progress, current_item=idx, message=f"候補抽出: {idx}/{book_count}冊")
 
         uuid = book.uuid
         # LSHで候補抽出
@@ -286,16 +312,18 @@ def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel, task_id: 
     # 詳細比較
     logger.info("詳細比較中...")
     if task_id:
-        update_task_status(db, task_id, progress=60, current_step="詳細比較中", total_items=len(candidate_pairs), message=f"{len(candidate_pairs)}ペアを詳細比較中")
+        update_task_status(db, task_id, progress=60, current_step="詳細比較", current_item=0, total_items=len(candidate_pairs), message=f"{len(candidate_pairs)}ペアを詳細比較中")
 
     duplicates = []
+    pairs_checked = len(candidate_pairs)
 
-    for idx, (uuid1, uuid2) in enumerate(candidate_pairs):
-        if idx % 10000 == 0 and idx > 0:
-            logger.info(f"詳細比較進捗: {idx}/{len(candidate_pairs)}ペア")
-            if task_id:
-                progress = 60 + int((idx / len(candidate_pairs)) * 20)
-                update_task_status(db, task_id, progress=progress, current_item=idx, message=f"詳細比較: {idx}/{len(candidate_pairs)}ペア")
+    for idx, (uuid1, uuid2) in enumerate(candidate_pairs, 1):
+        if idx % 10000 == 0:
+            logger.info(f"詳細比較進捗: {idx}/{pairs_checked}ペア")
+
+        if task_id and (idx % 10000 == 0 or idx == pairs_checked):
+            progress = 60 + int((idx / pairs_checked) * 20)
+            update_task_status(db, task_id, progress=progress, current_item=idx, message=f"詳細比較: {idx}/{pairs_checked}ペア")
 
         h1 = hash_map[uuid1]
         h2 = hash_map[uuid2]
@@ -326,10 +354,13 @@ def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel, task_id: 
             duplicates.append((uuid1, uuid2, min_score))
             logger.debug(f"重複検出: {uuid1} <-> {uuid2} (scores: a={ahash_score}, p={phash_score}, d={dhash_score})")
 
-    logger.info(f"重複ペア数: {len(duplicates)}ペア")
+    duplicate_pairs_count = len(duplicates)
+    logger.info(f"重複ペア数: {duplicate_pairs_count}ペア")
 
     # Union-Find で重複グループを構築
     logger.info("重複グループ構築中...")
+    if task_id:
+        update_task_status(db, task_id, progress=80, current_step="グループ構築", message="重複グループを構築中")
     parent = {}
 
     def find(x):
@@ -358,13 +389,14 @@ def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel, task_id: 
     # DBに保存
     logger.info("DBに保存中...")
     if task_id:
-        update_task_status(db, task_id, progress=85, current_step="DB保存中", message=f"{len(groups)}グループをDBに保存中")
+        update_task_status(db, task_id, progress=85, current_step="DB保存", message=f"{len(groups)}グループをDBに保存中")
 
     # 既存の重複データを削除
     db.query(DuplicationModel).delete()
     db.commit()
 
     # 新しい重複データを保存
+    duplicate_books = set()
     for _group_root, pairs in groups.items():
         group_id = str(uuid4())
 
@@ -373,6 +405,8 @@ def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel, task_id: 
         for uuid1, uuid2, _ in pairs:
             uuids_in_group.add(uuid1)
             uuids_in_group.add(uuid2)
+
+        duplicate_books.update(uuids_in_group)
 
         # 全ペアを保存
         for uuid1, uuid2, score in pairs:
@@ -384,7 +418,15 @@ def find_duplicates_lsh(db: Session, settings: DuplicateSettingsModel, task_id: 
             ))
 
     db.commit()
-    logger.info("=== LSH重複検出完了 ===")
+
+    result = {
+        "groups": len(groups),
+        "pairs": duplicate_pairs_count,
+        "books": len(duplicate_books)
+    }
+
+    logger.info(f"LSH重複検出完了: {result['groups']}グループ/{result['pairs']}ペア/{result['books']}冊")
+    return result
 
 
 def main(db: Session, mode: str = "all", task_id: Optional[str] = None):
@@ -400,7 +442,7 @@ def main(db: Session, mode: str = "all", task_id: Optional[str] = None):
     try:
         # タスク開始
         if task_id:
-            update_task_status(db, task_id, status="running", progress=0, current_step="初期化中", message="設定を読み込み中")
+            update_task_status(db, task_id, status="running", progress=0, current_step="初期化", message="設定を読み込み中")
 
         # 設定を取得
         settings = db.query(DuplicateSettingsModel).filter(DuplicateSettingsModel.id == 1).first()
@@ -417,22 +459,31 @@ def main(db: Session, mode: str = "all", task_id: Optional[str] = None):
             )
 
         # ステップ1: ハッシュ計算
-        if task_id:
-            update_task_status(db, task_id, progress=5, current_step="ハッシュ計算中", message="書籍のハッシュを計算中")
-
         if mode == "all":
-            compute_multi_hash(db, mode="all", task_id=task_id)
+            hash_result = compute_multi_hash(db, mode="all", task_id=task_id)
         else:
-            compute_multi_hash(db, mode="missing", task_id=task_id)
+            hash_result = compute_multi_hash(db, mode="missing", task_id=task_id)
 
         # ステップ2: 重複検出
-        find_duplicates_lsh(db, settings, task_id=task_id)
+        dup_result = find_duplicates_lsh(db, settings, task_id=task_id)
 
         # 完了
         if task_id:
-            update_task_status(db, task_id, status="completed", progress=100, current_step="完了", message="重複検出が完了しました")
+            total_books = hash_result["success"] + hash_result["error"]
+            message = (
+                f"完了: ハッシュ計算{hash_result['success']}件成功/{hash_result['error']}件エラー, "
+                f"重複{dup_result['groups']}グループ/{dup_result['pairs']}ペア/{dup_result['books']}冊"
+            )
+            update_task_status(
+                db, task_id,
+                status="completed",
+                progress=100,
+                current_step="完了",
+                current_item=total_books,
+                message=message
+            )
 
-        logger.info("全処理完了")
+        logger.info(f"全処理完了: ハッシュ{hash_result['success']}/{hash_result['error']}, 重複{dup_result['groups']}グループ")
 
     except Exception as e:
         logger.error(f"重複検出エラー: {e}", exc_info=True)
