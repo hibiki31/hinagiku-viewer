@@ -35,7 +35,7 @@ FastAPI + PostgreSQL のエキスパートエンジニアとして対応する�
 
 - ドメイン別モジュール分割: `{domain}/models.py`, `router.py`, `schemas.py`
 - 共通ユーティリティ: `mixins/`
-- バックグラウンドタスク: `tasks/` + `worker.py`（DBベースのタスクキュー）
+- バックグラウンドタスク: `tasks/` + `worker.py` (実装する際はtasks/README.mdを必ず参照)
 - 依存性注入: `Depends(get_db)`, `Depends(get_current_user)`
 
 ## 既知の注意点

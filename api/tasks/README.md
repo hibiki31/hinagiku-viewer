@@ -90,8 +90,10 @@ update_task_status(db, task_id, status="running", progress=0, message="初期化
 # 進捗
 update_task_status(db, task_id, progress=50, current_item=500)
 
-# 完了（結果を分類して明記）
+# 完了（結果を分類して明記、状態をすべて更新する）
 update_task_status(db, task_id, status="completed", progress=100,
+    current_item=len(all_items),
+    current_step="完了"
     message=f"完了: 成功{success}件/エラー{error}件/スキップ{skip}件")
 
 # 失敗
