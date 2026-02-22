@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
 from typing import List, Literal, Optional
 
@@ -62,6 +62,8 @@ class BookBase(BaseSchema):
     import_file_name: str
     add_date: datetime
     file_date: datetime
+    publication_date: date | None = None
+    model_number: str | None = None
     user_data: BookUserDataBase
 
 
@@ -82,6 +84,8 @@ class BookPut(BaseSchema):
     publisher: Optional[str] = None
     genre: Optional[str] = None
     library_id: Optional[int] = None
+    publication_date: Optional[date] = None
+    model_number: Optional[str] = None
 
 class BookUserMetaDataPut(BaseSchema):
     uuids: List[str]

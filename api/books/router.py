@@ -262,6 +262,12 @@ def update_books(
         if model.genre is not None:
             book.genre = model.genre
 
+        if model.publication_date is not None:
+            book.publication_date = model.publication_date
+
+        if model.model_number is not None:
+            book.model_number = model.model_number
+
         updated_count += 1
 
     db.commit()

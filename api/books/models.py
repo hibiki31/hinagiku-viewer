@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String, Table
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, Numeric, String, Table
 from sqlalchemy.orm import relationship
 
 from mixins.database import Base
@@ -91,6 +91,8 @@ class BookModel(Base):
     # ソフトメタデータ
     title = Column(String)
     series_no = Column(Integer)
+    publication_date = Column(Date, nullable=True)
+    model_number = Column(String, nullable=True)
 
     # ソフトメタデータ 多対一
     library_id = Column(Integer, ForeignKey('libraries.id'), nullable=False)
