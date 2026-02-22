@@ -33,6 +33,7 @@ interface ReaderStateState {
   booksCount: number
   readerPage: number
   showListMode: boolean
+  thumbnailAspectRatioWide: boolean
   openBook: OpenBook
   searchQuery: SearchQuery
 }
@@ -42,6 +43,7 @@ const baseState: ReaderStateState = {
   booksCount: 0,
   readerPage: 1,
   showListMode: false,
+  thumbnailAspectRatioWide: false,
   openBook: {
     userData: {
       rate: null,
@@ -107,6 +109,10 @@ export const useReaderStateStore = defineStore('readerState', {
 
     setShowListMode(showListMode: boolean) {
       this.showListMode = showListMode
+    },
+
+    setThumbnailAspectRatioWide(isWide: boolean) {
+      this.thumbnailAspectRatioWide = isWide
     },
 
     async serachBooks(resetOffset: boolean = false) {

@@ -4,11 +4,11 @@
       v-for="item in booksList"
       :id="item.uuid"
       :key="item.uuid"
-      cols="4"
-      xs="4"
-      sm="3"
-      md="2"
-      lg="1"
+      :cols="thumbnailCols.cols"
+      :xs="thumbnailCols.xs"
+      :sm="thumbnailCols.sm"
+      :md="thumbnailCols.md"
+      :lg="thumbnailCols.lg"
       class="pt-5"
     >
       <v-card
@@ -22,7 +22,7 @@
           </v-icon>
         </div>
         <v-img
-          aspect-ratio="0.7"
+          :aspect-ratio="thumbnailAspectRatio"
           cover
           :src="getCoverURL(item.uuid)"
           @contextmenu.prevent="$emit('openMenu', item)"
@@ -42,6 +42,16 @@ type BookBase = components['schemas']['BookBase']
 
 const readerStateStore = useReaderStateStore()
 const { getCoverURL } = useGetCoverURL()
+
+const thumbnailAspectRatio = computed(() =>
+  readerStateStore.thumbnailAspectRatioWide ? 1.5 : 0.7
+)
+
+const thumbnailCols = computed(() =>
+  readerStateStore.thumbnailAspectRatioWide
+    ? { cols: 6, xs: 6, sm: 4, md: 3, lg: 2 }
+    : { cols: 4, xs: 4, sm: 3, md: 2, lg: 1 }
+)
 
 defineEmits<{
   toReaderPage: [item: BookBase]

@@ -115,6 +115,7 @@
       </v-list-item>
     </v-list>
 
+
     <!-- 操作メニュー -->
     <v-list nav density="comfortable">
       <v-list-subheader>操作</v-list-subheader>
@@ -135,25 +136,52 @@
     <v-divider />
 
     <!-- 表示設定 -->
-    <v-list nav density="comfortable">
+    <v-list nav density="compact">
       <v-list-subheader>表示設定</v-list-subheader>
-      <v-list-item>
+      <v-list-item class="px-2">
         <v-switch
           :model-value="showListMode"
-          label="リスト表示"
           color="primary"
-          density="comfortable"
+          density="compact"
           hide-details
           @update:model-value="
             (value) => readerStateStore.setShowListMode(!!value)
           "
         >
           <template #prepend>
-            <v-icon>
+            <v-icon size="small">
               {{
                 showListMode ? "mdi-view-list" : "mdi-view-grid"
               }}
             </v-icon>
+          </template>
+          <template #label>
+            <span class="text-body-2">リスト表示</span>
+          </template>
+        </v-switch>
+      </v-list-item>
+
+      <v-list-item v-if="!showListMode" class="px-2">
+        <v-switch
+          :model-value="thumbnailAspectRatioWide"
+          color="primary"
+          density="compact"
+          hide-details
+          @update:model-value="
+            (value) => readerStateStore.setThumbnailAspectRatioWide(!!value)
+          "
+        >
+          <template #prepend>
+            <v-icon size="small">
+              {{
+                thumbnailAspectRatioWide
+                  ? "mdi-rectangle-outline"
+                  : "mdi-rectangle"
+              }}
+            </v-icon>
+          </template>
+          <template #label>
+            <span class="text-body-2">横長サムネイル</span>
           </template>
         </v-switch>
       </v-list-item>
@@ -291,6 +319,7 @@ const sortKeyOptions = [
 const searchQuery = computed(() => readerStateStore.searchQuery);
 const booksCount = computed(() => readerStateStore.booksCount);
 const showListMode = computed(() => readerStateStore.showListMode);
+const thumbnailAspectRatioWide = computed(() => readerStateStore.thumbnailAspectRatioWide);
 const maxPage = computed(() =>
   Math.ceil(booksCount.value / searchQuery.value.limit),
 );
