@@ -74,7 +74,7 @@ def get_media_books_duplicate(
     book_model_2 = aliased(BookModel)
     book2_userdata = aliased(BookUserMetaDataModel)
 
-
+    # duplication_idでソートして順序を固定する
     duplication_books = db.query(
         DuplicationModel.duplication_id,
         DuplicationModel.score,
@@ -94,9 +94,7 @@ def get_media_books_duplicate(
         book1_userdata, book_model_1.uuid==book1_userdata.book_uuid
     ).outerjoin(
         book2_userdata, book_model_2.uuid==book2_userdata.book_uuid
-    )
-
-    # print(duplication_books.statement.compile())
+    ).order_by(DuplicationModel.duplication_id)
 
     res = {}
 
@@ -112,8 +110,6 @@ def get_media_books_duplicate(
             res[duplication_id].append({"uuid": book1_uuid, "file": book1_file, "size": book1_size, "rate": book1_rate, "score": score})
             res[duplication_id].append({"uuid": book2_uuid, "file": book2_file, "size": book2_size, "rate": book2_rate, "score": score})
 
-
-
     res_list = []
     for key, value in res.items():
         res_list.append({
@@ -121,8 +117,14 @@ def get_media_books_duplicate(
             "books": value
         })
 
+    total = len(res_list)
 
-    return res_list[offset:offset+limit]
+    return {
+        "count": total,
+        "page_size": limit,
+        "offset": offset,
+        "items": res_list[offset:offset + limit],
+    }
 
 
 
