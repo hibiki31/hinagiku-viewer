@@ -382,7 +382,7 @@ const processAllPages = async () => {
             tag: searchQuery.tag ?? undefined,
             state: searchQuery.state as components['schemas']['BookStateEnum'] | undefined,
             limit,
-            offset: page * limit,
+            offset: 0, // 常に0から取得（処理済みの書籍は検索結果から消えるため）
             sortKey: searchQuery.sortKey,
             sortDesc: searchQuery.sortDesc
           }
