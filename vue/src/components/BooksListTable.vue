@@ -8,7 +8,12 @@
       density="compact"
     >
       <template #[`item.title`]="{ item }">
-        <div>{{ item.title }}</div>
+        <div
+          style="cursor: pointer; user-select: none;"
+          @click="emit('openMenu', item)"
+        >
+          {{ item.title }}
+        </div>
       </template>
       <template #[`item.publisher`]="{ item }">
         {{ item.publisher?.name }}
@@ -29,6 +34,12 @@
       </template>
       <template #[`item.addDate`]="{ item }">
         {{ convertDateFormat(item.addDate) }}
+      </template>
+      <template #[`item.publicationDate`]="{ item }">
+        {{ item.publicationDate || '-' }}
+      </template>
+      <template #[`item.modelNumber`]="{ item }">
+        {{ item.modelNumber || '-' }}
       </template>
       <template #[`item.userData.rate`]="{ item }">
         {{ item.userData?.rate || '-' }}
@@ -60,9 +71,10 @@ const headers = [
   { title: 'title', key: 'title' },
   { title: 'authors', key: 'authors', sortable: false },
   { title: 'publisher', key: 'publisher.name' },
+  { title: 'modelNumber', key: 'modelNumber', width: 120 },
+  { title: 'publicationDate', key: 'publicationDate', width: 120 },
   { title: 'rate', key: 'userData.rate', width: 60 },
   { title: 'addDate', key: 'addDate', width: 110 },
-  { title: 'last', key: 'userData.lastOpenDate', width: 110 },
   { title: 'size', key: 'size', width: 80 },
   { title: 'page', key: 'page', width: 60 },
   { title: 'actions', key: 'actions', sortable: false, width: 100 }
