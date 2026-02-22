@@ -82,6 +82,8 @@ def get_media_books_duplicate(
         book_model_2.uuid,
         book_model_1.size,
         book_model_2.size,
+        book_model_1.page,
+        book_model_2.page,
         book_model_1.import_file_name,
         book_model_2.import_file_name,
         book1_userdata.rate,
@@ -98,17 +100,17 @@ def get_media_books_duplicate(
 
     res = {}
 
-    for (duplication_id, score, book1_uuid, book2_uuid, book1_size, book2_size, book1_file, book2_file, book1_rate, book2_rate) in duplication_books.all():
+    for (duplication_id, score, book1_uuid, book2_uuid, book1_size, book2_size, book1_page, book2_page, book1_file, book2_file, book1_rate, book2_rate) in duplication_books.all():
         if duplication_id in res:
             duplication_uuids = [x["uuid"] for x in res[duplication_id]]
             if book1_uuid not in duplication_uuids:
-                res[duplication_id].append({"uuid": book1_uuid, "file": book1_file, "size": book1_size, "rate": book1_rate, "score": score})
+                res[duplication_id].append({"uuid": book1_uuid, "file": book1_file, "size": book1_size, "page": book1_page, "rate": book1_rate, "score": score})
             if book2_uuid not in duplication_uuids:
-                res[duplication_id].append({"uuid": book2_uuid, "file": book2_file, "size": book2_size, "rate": book2_rate, "score": score})
+                res[duplication_id].append({"uuid": book2_uuid, "file": book2_file, "size": book2_size, "page": book2_page, "rate": book2_rate, "score": score})
         else:
             res[duplication_id] = []
-            res[duplication_id].append({"uuid": book1_uuid, "file": book1_file, "size": book1_size, "rate": book1_rate, "score": score})
-            res[duplication_id].append({"uuid": book2_uuid, "file": book2_file, "size": book2_size, "rate": book2_rate, "score": score})
+            res[duplication_id].append({"uuid": book1_uuid, "file": book1_file, "size": book1_size, "page": book1_page, "rate": book1_rate, "score": score})
+            res[duplication_id].append({"uuid": book2_uuid, "file": book2_file, "size": book2_size, "page": book2_page, "rate": book2_rate, "score": score})
 
     res_list = []
     for key, value in res.items():
