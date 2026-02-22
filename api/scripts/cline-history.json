@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-02-15T19:08:09.329984+00:00",
-  "task_count": 49,
-  "total_cost": 32.5414,
+  "updated_at": "2026-02-22T16:51:47.902524+00:00",
+  "task_count": 55,
+  "total_cost": 36.5643,
   "tasks": [
     {
       "id": "1770721923907",
@@ -590,6 +590,78 @@
       "cache_reads": 1110248,
       "model": "claude-sonnet-4-5-20250929",
       "cline_version": "3.57.1"
+    },
+    {
+      "id": "1771183867736",
+      "date": "2026-02-15 19:31:07",
+      "title": "README.mdを更新してください。",
+      "cost": 0.13,
+      "tokens_in": 30,
+      "tokens_out": 3979,
+      "cache_writes": 16983,
+      "cache_reads": 21816,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.62.0"
+    },
+    {
+      "id": "1771184128352",
+      "date": "2026-02-15 19:35:28",
+      "title": "/mediaのエンドポイントでは、アクセスがあったときにzipファイルから画像を生成して返しています。今の実装を詳細に分析し、改善案を提案せよ。",
+      "cost": 1.4303,
+      "tokens_in": 200,
+      "tokens_out": 18658,
+      "cache_writes": 90194,
+      "cache_reads": 798370,
+      "model": "claude-opus-4-6",
+      "cline_version": "3.62.0"
+    },
+    {
+      "id": "1771762408299",
+      "date": "2026-02-22 12:13:28",
+      "title": "現在、クライアントに配信するのはjpg形式であるが、webp形式を検討したい。",
+      "cost": 0.2391,
+      "tokens_in": 50,
+      "tokens_out": 5230,
+      "cache_writes": 38296,
+      "cache_reads": 56310,
+      "model": "claude-sonnet-4-6",
+      "cline_version": "3.66.0"
+    },
+    {
+      "id": "1771763576369",
+      "date": "2026-02-22 12:32:56",
+      "title": "books/router.pyで未評価の検索をrate=0で行っていますが、想定通りの挙動をしません。検索結果が0になります。データベースの中身を確認しつつ対応せよ。",
+      "cost": 0.2892,
+      "tokens_in": 110,
+      "tokens_out": 5667,
+      "cache_writes": 33959,
+      "cache_reads": 254957,
+      "model": "claude-sonnet-4-6",
+      "cline_version": "3.66.0"
+    },
+    {
+      "id": "1771764361331",
+      "date": "2026-02-22 12:46:01",
+      "title": "media/router.pyの重複書籍確認で、結果のソートを行うようにしてください。順序が毎回変わるため。また、返すデータとしてページサイズも返すようにしてください。",
+      "cost": 1.0319,
+      "tokens_in": 300,
+      "tokens_out": 13329,
+      "cache_writes": 134829,
+      "cache_reads": 1084826,
+      "model": "claude-sonnet-4-6",
+      "cline_version": "3.66.0"
+    },
+    {
+      "id": "1771777995111",
+      "date": "2026-02-22 16:33:15",
+      "title": "tasks/library_sim_lsh.pyを参考にして、sha254ハッシュが同じ本を削除するタスクを実装してください。",
+      "cost": 0.9024,
+      "tokens_in": 230,
+      "tokens_out": 13033,
+      "cache_writes": 113980,
+      "cache_reads": 929297,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.66.0"
     }
   ]
 }
