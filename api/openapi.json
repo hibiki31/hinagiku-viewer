@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "HinavAPI",
-    "version": "3.10.4"
+    "version": "3.11.0"
   },
   "servers": [
     {
@@ -1671,7 +1671,7 @@
           "Task"
         ],
         "summary": "タスク開始",
-        "description": "各種バックグラウンドタスクを開始する\n\ntask_type:\n- load: ライブラリのロード\n- fixmetadata: メタデータの修正\n- export: ライブラリのエクスポート\n- export_uuid: UUID指定エクスポート\n- sim_all: 全体の類似度計算\n- rule: ルール適用\n- thumbnail_recreate: サムネイル再作成\n- integrity_check: 整合性チェック",
+        "description": "各種バックグラウンドタスクを開始する\n\ntask_type:\n- load: ライブラリのロード\n- fixmetadata: メタデータの修正\n- export: ライブラリのエクスポート\n- export_uuid: UUID指定エクスポート\n- sim_all: 全体の類似度計算\n- rule: ルール適用\n- thumbnail_recreate: サムネイル再作成\n- integrity_check: 整合性チェック\n- sha1_delete_duplicates: SHA1ハッシュ重複削除",
         "operationId": "create_background_task_api_tasks_post",
         "security": [
           {

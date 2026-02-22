@@ -99,6 +99,24 @@
                   </v-btn>
                 </template>
               </v-list-item>
+              <v-divider />
+              <v-list-item>
+                <v-list-item-title>重複ファイル削除</v-list-item-title>
+                <v-list-item-subtitle>
+                  SHA1ハッシュが重複しているファイルを削除します。時間がかかる場合があります。
+                </v-list-item-subtitle>
+                <template #append>
+                  <v-btn
+                    color="error"
+                    :loading="isDeletingDuplicates"
+                    :disabled="isDeletingDuplicates"
+                    @click="deleteDuplicates"
+                  >
+                    <v-icon class="mr-1">mdi-delete-sweep</v-icon>
+                    実行
+                  </v-btn>
+                </template>
+              </v-list-item>
             </v-list>
           </v-card-text>
         </v-card>
@@ -297,6 +315,7 @@ const editValues = ref<Record<string, string>>({})
 const isSaving = ref(false)
 const isRecreatingThumbnails = ref(false)
 const isRunningIntegrityCheck = ref(false)
+const isDeletingDuplicates = ref(false)
 
 // 管理者チェック
 const isAdmin = computed(() => userDataStore.isAdmin)
@@ -430,6 +449,36 @@ const runIntegrityCheck = async () => {
     console.error('整合性チェックエラー:', error)
   } finally {
     isRunningIntegrityCheck.value = false
+  }
+}
+
+/**
+ * 重複ファイル削除
+ */
+const deleteDuplicates = async () => {
+  if (!confirm('SHA1ハッシュが重複しているファイルを削除します。よろしいですか？\n\n※この処理には時間がかかる場合があり、削除されたファイルは復元できません。')) {
+    return
+  }
+
+  isDeletingDuplicates.value = true
+  try {
+    const { error } = await apiClient.POST('/api/tasks', {
+      body: {
+        // NOTE: API型定義にまだ含まれていないが、APIドキュメントには記載されているタスクタイプ
+        taskType: 'sha1_delete_duplicates' as unknown as 'load'
+      }
+    })
+
+    if (error) {
+      throw new Error('重複ファイル削除の開始に失敗しました')
+    }
+
+    pushNotice('重複ファイル削除タスクを開始しました', 'success')
+  } catch (error) {
+    pushNotice('重複ファイル削除の開始に失敗しました', 'error')
+    console.error('重複ファイル削除エラー:', error)
+  } finally {
+    isDeletingDuplicates.value = false
   }
 }
 

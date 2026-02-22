@@ -39,7 +39,8 @@ class TaskCreate(BaseSchema):
         "sim_all",
         "rule",
         "thumbnail_recreate",
-        "integrity_check"
+        "integrity_check",
+        "sha1_delete_duplicates"
     ]
 
 

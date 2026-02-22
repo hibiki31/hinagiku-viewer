@@ -656,6 +656,7 @@ export interface paths {
          *     - rule: ルール適用
          *     - thumbnail_recreate: サムネイル再作成
          *     - integrity_check: 整合性チェック
+         *     - sha1_delete_duplicates: SHA1ハッシュ重複削除
          */
         post: operations["create_background_task_api_tasks_post"];
         delete?: never;

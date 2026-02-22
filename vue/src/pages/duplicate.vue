@@ -8,6 +8,16 @@
     <v-chip v-if="!isLoading && totalCount > 0" class="mr-2" color="info">
       {{ totalCount }} グループ
     </v-chip>
+    <v-btn
+      v-if="selectedBooks.length > 0"
+      color="error"
+      variant="flat"
+      class="mr-2"
+      @click="confirmBulkDelete"
+    >
+      <v-icon class="mr-1">mdi-delete</v-icon>
+      選択を削除 ({{ selectedBooks.length }})
+    </v-btn>
     <v-btn icon variant="plain" @click="reload()">
       <v-icon>mdi-reload</v-icon>
     </v-btn>
@@ -72,6 +82,14 @@
         >
           <v-expansion-panel-title>
             <div class="d-flex align-center ga-3">
+              <v-checkbox
+                :model-value="isGroupAllSelected(group)"
+                :indeterminate="isGroupPartiallySelected(group)"
+                hide-details
+                density="compact"
+                @click.stop
+                @update:model-value="(val) => toggleGroupSelection(group, !!val)"
+              />
               <v-icon color="warning">
                 mdi-alert-circle
               </v-icon>
@@ -134,8 +152,14 @@
                     <!-- 本の情報 -->
                     <v-col cols="7">
                       <v-card-text class="pa-2">
-                        <div class="text-subtitle-2 font-weight-bold mb-1 text-truncate-2">
-                          {{ book.title || '（タイトルなし）' }}
+                        <div class="d-flex align-center mb-2">
+                          <v-checkbox
+                            :model-value="isBookSelected(book.uuid)"
+                            hide-details
+                            density="compact"
+                            color="primary"
+                            @update:model-value="(val) => toggleBookSelection(book.uuid, !!val)"
+                          />
                         </div>
 
                         <div v-if="book.authors && book.authors.length > 0" class="mb-1">
@@ -203,18 +227,10 @@
                           </div>
                         </div>
 
-                        <v-tooltip location="top">
-                          <template #activator="{ props: tooltipProps }">
-                            <div
-                              v-bind="tooltipProps"
-                              class="text-caption text-grey mt-2 text-truncate"
-                            >
-                              <v-icon size="x-small">mdi-file</v-icon>
-                              {{ book.file }}
-                            </div>
-                          </template>
-                          <span>{{ book.file }}</span>
-                        </v-tooltip>
+                        <div class="text-caption text-grey mt-2 filename-display">
+                          <v-icon size="x-small">mdi-file</v-icon>
+                          {{ book.file }}
+                        </div>
                       </v-card-text>
                     </v-col>
                   </v-row>
@@ -260,6 +276,38 @@
       </v-row>
     </v-container>
   </v-main>
+
+  <!-- 一括削除確認ダイアログ -->
+  <v-dialog v-model="bulkDeleteDialog.show" max-width="600">
+    <v-card>
+      <v-card-title class="d-flex align-center bg-error text-white">
+        <v-icon class="mr-2">mdi-alert</v-icon>
+        一括削除確認
+      </v-card-title>
+      <v-card-text class="pt-4">
+        <div class="mb-3">
+          <strong>選択した {{ selectedBooks.length }} 冊の本を削除してもよろしいですか？</strong>
+        </div>
+        <v-alert type="warning" variant="tonal" density="compact">
+          この操作は取り消せません
+        </v-alert>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="bulkDeleteDialog.show = false">
+          キャンセル
+        </v-btn>
+        <v-btn
+          color="error"
+          variant="flat"
+          :loading="bulkDeleteDialog.loading"
+          @click="executeBulkDelete"
+        >
+          {{ selectedBooks.length }}冊削除する
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 
   <!-- 削除確認ダイアログ -->
   <v-dialog v-model="deleteDialog.show" max-width="500">
@@ -372,6 +420,88 @@ const deleteDialog = reactive({
   loading: false,
   book: null as DuplicateBook | null
 })
+
+// 一括削除用の選択状態
+const selectedBooks = ref<string[]>([])
+
+// 一括削除ダイアログ
+const bulkDeleteDialog = reactive({
+  show: false,
+  loading: false
+})
+
+// チェックボックス操作
+const isBookSelected = (uuid: string) => {
+  return selectedBooks.value.includes(uuid)
+}
+
+const toggleBookSelection = (uuid: string, selected: boolean) => {
+  if (selected) {
+    if (!selectedBooks.value.includes(uuid)) {
+      selectedBooks.value.push(uuid)
+    }
+  } else {
+    selectedBooks.value = selectedBooks.value.filter(id => id !== uuid)
+  }
+}
+
+const isGroupAllSelected = (group: DuplicateGroup) => {
+  return group.books.every(book => selectedBooks.value.includes(book.uuid))
+}
+
+const isGroupPartiallySelected = (group: DuplicateGroup) => {
+  const selectedCount = group.books.filter(book => selectedBooks.value.includes(book.uuid)).length
+  return selectedCount > 0 && selectedCount < group.books.length
+}
+
+const toggleGroupSelection = (group: DuplicateGroup, selected: boolean) => {
+  if (selected) {
+    // グループの全ての本を選択
+    group.books.forEach(book => {
+      if (!selectedBooks.value.includes(book.uuid)) {
+        selectedBooks.value.push(book.uuid)
+      }
+    })
+  } else {
+    // グループの全ての本を選択解除
+    const uuids = group.books.map(book => book.uuid)
+    selectedBooks.value = selectedBooks.value.filter(id => !uuids.includes(id))
+  }
+}
+
+const confirmBulkDelete = () => {
+  bulkDeleteDialog.show = true
+}
+
+const executeBulkDelete = async () => {
+  bulkDeleteDialog.loading = true
+  try {
+    // 各本を順次削除
+    const deletePromises = selectedBooks.value.map(uuid =>
+      apiClient.DELETE('/api/books/{book_uuid}', {
+        params: { path: { book_uuid: uuid } }
+      })
+    )
+
+    const results = await Promise.allSettled(deletePromises)
+    const successCount = results.filter(r => r.status === 'fulfilled').length
+    const failCount = results.filter(r => r.status === 'rejected').length
+
+    if (failCount > 0) {
+      pushNotice(`${successCount}件削除しました（${failCount}件失敗）`, 'warn')
+    } else {
+      pushNotice(`${successCount}件削除しました`, 'success')
+    }
+
+    selectedBooks.value = []
+    bulkDeleteDialog.show = false
+    await reload()
+  } catch {
+    pushNotice('削除に失敗しました', 'error')
+  } finally {
+    bulkDeleteDialog.loading = false
+  }
+}
 
 const serachDuplicate = async () => {
   try {
@@ -550,6 +680,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.filename-display {
+  word-break: break-all;
+  white-space: normal;
+  line-height: 1.4;
 }
 
 .v-theme--dark .book-card {
