@@ -5,7 +5,7 @@
 <template>
   <!-- AppBarへの更新ボタン注入 -->
   <Teleport to="#appbar-actions">
-    <v-btn icon :loading="loading" @click="loadTasks">
+    <v-btn icon variant="plain" :loading="loading" @click="loadTasks">
       <v-icon>mdi-refresh</v-icon>
     </v-btn>
   </Teleport>

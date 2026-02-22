@@ -10,6 +10,7 @@
       :disabled="!hasChanges || isSaving"
       :loading="isSaving"
       icon
+      variant="plain"
       @click="saveAllChanges"
     >
       <v-icon>mdi-content-save</v-icon>

@@ -44,12 +44,12 @@
       single-line
       variant="underlined"
       density="compact"
-      style="max-width: 200px"
+      style="max-width: 300px; min-width: 200px"
     />
-    <v-btn icon @click="searchDialogRef?.openDialog()">
+    <v-btn icon variant="plain" @click="searchDialogRef?.openDialog()">
       <v-icon>mdi-magnify</v-icon>
     </v-btn>
-    <v-btn icon @click="reload()">
+    <v-btn icon variant="plain" @click="reload()">
       <v-icon>mdi-reload</v-icon>
     </v-btn>
   </Teleport>

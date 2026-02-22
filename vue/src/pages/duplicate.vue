@@ -8,7 +8,7 @@
     <v-chip v-if="!isLoading && booksList.length > 0" class="mr-2" color="info">
       {{ booksList.length }} グループ
     </v-chip>
-    <v-btn icon @click="reload()">
+    <v-btn icon variant="plain" @click="reload()">
       <v-icon>mdi-reload</v-icon>
     </v-btn>
   </Teleport>
