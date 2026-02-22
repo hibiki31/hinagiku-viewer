@@ -42,6 +42,7 @@ async def create_background_task(
     - rule: ルール適用
     - thumbnail_recreate: サムネイル再作成
     - integrity_check: 整合性チェック
+    - sha1_delete_duplicates: SHA1ハッシュ重複削除
     """
     # 既に実行中のタスクがあるかチェック（完了したプロセスを削除）
     for i in range(len(task_pool) - 1, -1, -1):
@@ -76,6 +77,8 @@ async def create_background_task(
         task_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "thumbnail_recreate", task_id]))
     elif model.task_type == "integrity_check":
         task_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "integrity_check", task_id]))
+    elif model.task_type == "sha1_delete_duplicates":
+        task_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "sha1_delete_duplicates", task_id]))
 
     logger.info(f"タスク開始: {model.task_type} (task_id: {task_id}) by {current_user.id}")
 

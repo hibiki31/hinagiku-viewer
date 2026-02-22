@@ -8,6 +8,7 @@ from tasks.library_fixmetadata import main as task_library_fixmetadata
 from tasks.library_import import main as task_library_import
 from tasks.library_integrity_check import main as task_library_integrity_check
 from tasks.library_rule import main as task_library_rule
+from tasks.library_sha1_delete import main as task_library_sha1_delete
 from tasks.library_sim import main as task_library_sim
 from tasks.library_sim_lsh import main as task_library_sim_lsh
 from tasks.media_cache import main as task_media_cache
@@ -111,3 +112,9 @@ if __name__ == "__main__":
         logger.info(f'ワーカで整合性確認開始 (task_id={task_id})')
         task_library_integrity_check(db=db, task_id=task_id)
         logger.info('ワーカで整合性確認完了')
+
+    if args[1] == "sha1_delete_duplicates":
+        task_id = args[2] if len(args) > 2 else None
+        logger.info(f'ワーカでSHA1重複削除開始 (task_id={task_id})')
+        task_library_sha1_delete(db=db, task_id=task_id)
+        logger.info('ワーカでSHA1重複削除完了')
