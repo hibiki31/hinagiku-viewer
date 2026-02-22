@@ -44,8 +44,7 @@
       single-line
       variant="underlined"
       density="compact"
-      class="flex-grow-1"
-      style="min-width: 120px; max-width: 600px"
+      style="width: clamp(150px, 30vw, 600px)"
     />
     <v-btn icon variant="plain" @click="searchDialogRef?.openDialog()">
       <v-icon>mdi-magnify</v-icon>
