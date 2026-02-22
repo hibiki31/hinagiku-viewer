@@ -1,278 +1,277 @@
-<template>
-  <div class="system-settings">
-    <v-app-bar color="primary" dark density="compact" elevation="4">
-      <v-btn icon @click="goBack">
-        <v-icon>mdi-arrow-left</v-icon>
-      </v-btn>
-      <v-toolbar-title>システム設定</v-toolbar-title>
-      <v-spacer />
-      <v-btn
-        :disabled="!hasChanges || isSaving"
-        :loading="isSaving"
-        icon
-        @click="saveAllChanges"
-      >
-        <v-icon>mdi-content-save</v-icon>
-      </v-btn>
-    </v-app-bar>
+<route lang="json">
+{ "meta": { "layout": "main" } }
+</route>
 
-    <v-main>
-      <v-container>
-        <v-card v-if="!isAdmin" class="mt-4">
+<template>
+  <!-- AppBarへの保存ボタン注入 -->
+  <Teleport to="#appbar-actions">
+    <v-btn
+      v-if="isAdmin"
+      :disabled="!hasChanges || isSaving"
+      :loading="isSaving"
+      icon
+      @click="saveAllChanges"
+    >
+      <v-icon>mdi-content-save</v-icon>
+    </v-btn>
+  </Teleport>
+
+  <v-main>
+    <v-container>
+      <v-card v-if="!isAdmin" class="mt-4">
+        <v-card-text class="text-center py-8">
+          <v-icon size="64" color="error">
+            mdi-lock
+          </v-icon>
+          <div class="text-h6 mt-4">
+            アクセス権限がありません
+          </div>
+          <div class="text-body-2 text-grey mt-2">
+            この機能は管理者のみ使用できます
+          </div>
+        </v-card-text>
+      </v-card>
+
+      <div v-else>
+        <!-- ローディング表示 -->
+        <v-progress-linear
+          v-if="settingsStore.isLoading"
+          indeterminate
+          color="primary"
+          class="mb-4"
+        />
+
+        <!-- 管理タスク -->
+        <v-card class="mt-4">
+          <v-card-title class="bg-primary">
+            <v-icon class="mr-2">mdi-cog-play</v-icon>
+            管理タスク
+          </v-card-title>
+          <v-card-text>
+            <v-list>
+              <v-list-item @click="router.push('/tasks')">
+                <v-list-item-title>タスク実行状況</v-list-item-title>
+                <v-list-item-subtitle>
+                  実行中のタスクや過去のタスク履歴を確認できます。
+                </v-list-item-subtitle>
+                <template #append>
+                  <v-btn
+                    color="primary"
+                    icon="mdi-chevron-right"
+                    variant="text"
+                  ></v-btn>
+                </template>
+              </v-list-item>
+              <v-divider />
+              <v-list-item>
+                <v-list-item-title>サムネイル一括再作成</v-list-item-title>
+                <v-list-item-subtitle>
+                  全ての書籍のサムネイルを再作成します。時間がかかる場合があります。
+                </v-list-item-subtitle>
+                <template #append>
+                  <v-btn
+                    color="primary"
+                    :loading="isRecreatingThumbnails"
+                    :disabled="isRecreatingThumbnails"
+                    @click="recreateThumbnails"
+                  >
+                    <v-icon class="mr-1">mdi-image-refresh</v-icon>
+                    実行
+                  </v-btn>
+                </template>
+              </v-list-item>
+              <v-divider />
+              <v-list-item>
+                <v-list-item-title>ライブラリ整合性チェック</v-list-item-title>
+                <v-list-item-subtitle>
+                  ライブラリとファイルシステムの整合性をチェックします。時間がかかる場合があります。
+                </v-list-item-subtitle>
+                <template #append>
+                  <v-btn
+                    color="primary"
+                    :loading="isRunningIntegrityCheck"
+                    :disabled="isRunningIntegrityCheck"
+                    @click="runIntegrityCheck"
+                  >
+                    <v-icon class="mr-1">mdi-database-check</v-icon>
+                    実行
+                  </v-btn>
+                </template>
+              </v-list-item>
+            </v-list>
+          </v-card-text>
+        </v-card>
+
+        <!-- カテゴリがない場合 -->
+        <v-card v-if="!settingsStore.isLoading && categories.length === 0" class="mt-4">
           <v-card-text class="text-center py-8">
-            <v-icon size="64" color="error">
-              mdi-lock
+            <v-icon size="64" color="grey">
+              mdi-cog-outline
             </v-icon>
             <div class="text-h6 mt-4">
-              アクセス権限がありません
+              設定項目がありません
             </div>
             <div class="text-body-2 text-grey mt-2">
-              この機能は管理者のみ使用できます
+              システム設定が登録されていません
             </div>
           </v-card-text>
         </v-card>
 
-        <div v-else>
-          <!-- ローディング表示 -->
-          <v-progress-linear
-            v-if="settingsStore.isLoading"
-            indeterminate
-            color="primary"
-            class="mb-4"
-          />
+        <!-- カテゴリタブ -->
+        <v-card v-if="categories.length > 0" class="mt-4">
+          <v-tabs v-model="selectedTab" bg-color="primary">
+            <v-tab
+              v-for="category in categories"
+              :key="category"
+              :value="category"
+            >
+              {{ category || '未分類' }}
+            </v-tab>
+          </v-tabs>
 
-          <!-- 管理タスク -->
-          <v-card class="mt-4">
-            <v-card-title class="bg-primary">
-              <v-icon class="mr-2">mdi-cog-play</v-icon>
-              管理タスク
-            </v-card-title>
-            <v-card-text>
-              <v-list>
-                <v-list-item @click="router.push('/tasks')">
-                  <v-list-item-title>タスク実行状況</v-list-item-title>
-                  <v-list-item-subtitle>
-                    実行中のタスクや過去のタスク履歴を確認できます。
-                  </v-list-item-subtitle>
-                  <template #append>
-                    <v-btn
-                      color="primary"
-                      icon="mdi-chevron-right"
-                      variant="text"
-                    ></v-btn>
-                  </template>
-                </v-list-item>
-                <v-divider />
-                <v-list-item>
-                  <v-list-item-title>サムネイル一括再作成</v-list-item-title>
-                  <v-list-item-subtitle>
-                    全ての書籍のサムネイルを再作成します。時間がかかる場合があります。
-                  </v-list-item-subtitle>
-                  <template #append>
-                    <v-btn
-                      color="primary"
-                      :loading="isRecreatingThumbnails"
-                      :disabled="isRecreatingThumbnails"
-                      @click="recreateThumbnails"
-                    >
-                      <v-icon class="mr-1">mdi-image-refresh</v-icon>
-                      実行
-                    </v-btn>
-                  </template>
-                </v-list-item>
-                <v-divider />
-                <v-list-item>
-                  <v-list-item-title>ライブラリ整合性チェック</v-list-item-title>
-                  <v-list-item-subtitle>
-                    ライブラリとファイルシステムの整合性をチェックします。時間がかかる場合があります。
-                  </v-list-item-subtitle>
-                  <template #append>
-                    <v-btn
-                      color="primary"
-                      :loading="isRunningIntegrityCheck"
-                      :disabled="isRunningIntegrityCheck"
-                      @click="runIntegrityCheck"
-                    >
-                      <v-icon class="mr-1">mdi-database-check</v-icon>
-                      実行
-                    </v-btn>
-                  </template>
-                </v-list-item>
-              </v-list>
-            </v-card-text>
-          </v-card>
-
-          <!-- カテゴリがない場合 -->
-          <v-card v-if="!settingsStore.isLoading && categories.length === 0" class="mt-4">
-            <v-card-text class="text-center py-8">
-              <v-icon size="64" color="grey">
-                mdi-cog-outline
-              </v-icon>
-              <div class="text-h6 mt-4">
-                設定項目がありません
-              </div>
-              <div class="text-body-2 text-grey mt-2">
-                システム設定が登録されていません
-              </div>
-            </v-card-text>
-          </v-card>
-
-          <!-- カテゴリタブ -->
-          <v-card v-if="categories.length > 0" class="mt-4">
-            <v-tabs v-model="selectedTab" bg-color="primary">
-              <v-tab
-                v-for="category in categories"
-                :key="category"
-                :value="category"
-              >
-                {{ category || '未分類' }}
-              </v-tab>
-            </v-tabs>
-
-            <v-window v-model="selectedTab">
-              <v-window-item
-                v-for="category in categories"
-                :key="category"
-                :value="category"
-              >
-                <v-card-text>
-                  <v-list>
-                    <template
-                      v-for="setting in getSettingsByCategory(category)"
-                      :key="setting.key"
-                    >
-                      <v-list-item class="px-0">
-                        <div class="setting-item">
-                          <!-- 設定キー・説明 -->
-                          <div class="setting-header mb-2">
-                            <div class="d-flex align-center">
-                              <span class="text-subtitle-1 font-weight-bold">
-                                {{ setting.key }}
-                              </span>
-                              <v-chip
-                                v-if="setting.isPublic"
-                                size="x-small"
-                                color="success"
-                                class="ml-2"
-                              >
-                                公開
-                              </v-chip>
-                              <v-chip
-                                v-else
-                                size="x-small"
-                                color="grey"
-                                class="ml-2"
-                              >
-                                非公開
-                              </v-chip>
-                              <v-chip
-                                size="x-small"
-                                color="info"
-                                class="ml-2"
-                              >
-                                {{ setting.dataType }}
-                              </v-chip>
-                            </div>
-                            <div
-                              v-if="setting.description"
-                              class="text-body-2 text-grey mt-1"
+          <v-window v-model="selectedTab">
+            <v-window-item
+              v-for="category in categories"
+              :key="category"
+              :value="category"
+            >
+              <v-card-text>
+                <v-list>
+                  <template
+                    v-for="setting in getSettingsByCategory(category)"
+                    :key="setting.key"
+                  >
+                    <v-list-item class="px-0">
+                      <div class="setting-item">
+                        <!-- 設定キー・説明 -->
+                        <div class="setting-header mb-2">
+                          <div class="d-flex align-center">
+                            <span class="text-subtitle-1 font-weight-bold">
+                              {{ setting.key }}
+                            </span>
+                            <v-chip
+                              v-if="setting.isPublic"
+                              size="x-small"
+                              color="success"
+                              class="ml-2"
                             >
-                              {{ setting.description }}
-                            </div>
-                          </div>
-
-                          <!-- 入力フィールド -->
-                          <div class="setting-input">
-                            <!-- boolean型 -->
-                            <v-switch
-                              v-if="setting.dataType === 'boolean'"
-                              :model-value="getEditValue(setting.key) === 'true'"
-                              color="primary"
-                              hide-details
-                              @update:model-value="
-                                (value) => updateEditValue(setting.key, value ? 'true' : 'false')
-                              "
-                            />
-
-                            <!-- number型 -->
-                            <v-text-field
-                              v-else-if="setting.dataType === 'number'"
-                              :model-value="getEditValue(setting.key)"
-                              type="number"
-                              variant="outlined"
-                              density="compact"
-                              hide-details
-                              @update:model-value="
-                                (value) => updateEditValue(setting.key, String(value))
-                              "
-                            />
-
-                            <!-- string型（デフォルト） -->
-                            <v-text-field
+                              公開
+                            </v-chip>
+                            <v-chip
                               v-else
-                              :model-value="getEditValue(setting.key)"
-                              variant="outlined"
-                              density="compact"
-                              hide-details
-                              @update:model-value="
-                                (value) => updateEditValue(setting.key, String(value))
-                              "
-                            />
+                              size="x-small"
+                              color="grey"
+                              class="ml-2"
+                            >
+                              非公開
+                            </v-chip>
+                            <v-chip
+                              size="x-small"
+                              color="info"
+                              class="ml-2"
+                            >
+                              {{ setting.dataType }}
+                            </v-chip>
                           </div>
-
-                          <!-- 更新情報 -->
-                          <div class="setting-footer mt-2">
-                            <div class="text-caption text-grey">
-                              最終更新: {{ formatDate(setting.updatedAt) }}
-                              <span v-if="setting.updatedBy">
-                                ({{ setting.updatedBy }})
-                              </span>
-                            </div>
+                          <div
+                            v-if="setting.description"
+                            class="text-body-2 text-grey mt-1"
+                          >
+                            {{ setting.description }}
                           </div>
                         </div>
-                      </v-list-item>
-                      <v-divider />
-                    </template>
-                  </v-list>
-                </v-card-text>
-              </v-window-item>
-            </v-window>
-          </v-card>
 
-          <!-- 保存ボタン（下部固定） -->
-          <v-card
-            v-if="hasChanges"
-            class="save-bar"
-            elevation="8"
-          >
-            <v-card-text class="d-flex align-center justify-space-between py-2">
-              <div>
-                <span class="text-subtitle-2">
-                  {{ changedCount }}件の変更があります
-                </span>
-              </div>
-              <div>
-                <v-btn
-                  variant="text"
-                  @click="resetChanges"
-                >
-                  キャンセル
-                </v-btn>
-                <v-btn
-                  color="primary"
-                  variant="flat"
-                  :loading="isSaving"
-                  @click="saveAllChanges"
-                >
-                  保存
-                </v-btn>
-              </div>
-            </v-card-text>
-          </v-card>
-        </div>
-      </v-container>
-    </v-main>
-  </div>
+                        <!-- 入力フィールド -->
+                        <div class="setting-input">
+                          <!-- boolean型 -->
+                          <v-switch
+                            v-if="setting.dataType === 'boolean'"
+                            :model-value="getEditValue(setting.key) === 'true'"
+                            color="primary"
+                            hide-details
+                            @update:model-value="
+                              (value) => updateEditValue(setting.key, value ? 'true' : 'false')
+                            "
+                          />
+
+                          <!-- number型 -->
+                          <v-text-field
+                            v-else-if="setting.dataType === 'number'"
+                            :model-value="getEditValue(setting.key)"
+                            type="number"
+                            variant="outlined"
+                            density="compact"
+                            hide-details
+                            @update:model-value="
+                              (value) => updateEditValue(setting.key, String(value))
+                            "
+                          />
+
+                          <!-- string型（デフォルト） -->
+                          <v-text-field
+                            v-else
+                            :model-value="getEditValue(setting.key)"
+                            variant="outlined"
+                            density="compact"
+                            hide-details
+                            @update:model-value="
+                              (value) => updateEditValue(setting.key, String(value))
+                            "
+                          />
+                        </div>
+
+                        <!-- 更新情報 -->
+                        <div class="setting-footer mt-2">
+                          <div class="text-caption text-grey">
+                            最終更新: {{ formatDate(setting.updatedAt) }}
+                            <span v-if="setting.updatedBy">
+                              ({{ setting.updatedBy }})
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </v-list-item>
+                    <v-divider />
+                  </template>
+                </v-list>
+              </v-card-text>
+            </v-window-item>
+          </v-window>
+        </v-card>
+
+        <!-- 保存バー（下部固定） -->
+        <v-card
+          v-if="hasChanges"
+          class="save-bar"
+          elevation="8"
+        >
+          <v-card-text class="d-flex align-center justify-space-between py-2">
+            <div>
+              <span class="text-subtitle-2">
+                {{ changedCount }}件の変更があります
+              </span>
+            </div>
+            <div>
+              <v-btn
+                variant="text"
+                @click="resetChanges"
+              >
+                キャンセル
+              </v-btn>
+              <v-btn
+                color="primary"
+                variant="flat"
+                :loading="isSaving"
+                @click="saveAllChanges"
+              >
+                保存
+              </v-btn>
+            </div>
+          </v-card-text>
+        </v-card>
+      </div>
+    </v-container>
+  </v-main>
 </template>
 
 <script setup lang="ts">
@@ -433,19 +432,6 @@ const runIntegrityCheck = async () => {
   }
 }
 
-/**
- * 戻る
- */
-const goBack = () => {
-  if (hasChanges.value) {
-    if (confirm('保存されていない変更があります。破棄しますか？')) {
-      router.push('/')
-    }
-  } else {
-    router.push('/')
-  }
-}
-
 onMounted(async () => {
   // 管理者でない場合は何もしない
   if (!isAdmin.value) {
@@ -467,12 +453,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.system-settings {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
 .setting-item {
   width: 100%;
 }

@@ -1,4 +1,4 @@
-# Active Context - Vue 3 フロントエンド
+ow# Active Context - Vue 3 フロントエンド
 
 ## 重要: プロジェクト全体のコンテキストを参照
 
@@ -193,4 +193,4 @@
 4. 書籍リーダーのBlob取得が素のfetch（openapi-fetchのparseAs非対応のため）
 
 ## 最終更新日
-2026-02-10: メジャーパッケージ更新完了（Vite 7, Vue Router 5, Pinia 3等）
+2026-02-22: ナビゲーションUI/UX最適化完了（共通レイアウト main.vue 新規作成、全主要ページにAppBar・Sidebar統一）

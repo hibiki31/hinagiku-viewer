@@ -1,3 +1,7 @@
+<route lang="json">
+{ "meta": { "layout": "default" } }
+</route>
+
 <template>
   <div class="books" style="height: 100vh">
     <!-- 統一メニューダイアログ -->

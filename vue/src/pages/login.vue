@@ -1,3 +1,7 @@
+<route lang="json">
+{ "meta": { "layout": "default" } }
+</route>
+
 <template>
   <div class="Login">
     <SetupDialog ref="setupDialogRef" />

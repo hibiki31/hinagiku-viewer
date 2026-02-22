@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, aliased
 from auth.router import get_current_user
 from auth.schemas import UserCurrent
 from books.models import BookModel, BookUserMetaDataModel, DuplicationModel
-from books.schemas import BookCacheCreate, LibraryPatch
+from books.schemas import BookCacheCreate, DuplicateListResponse, LibraryPatch
 from mixins.convertor import create_book_page_cache, image_convertor
 from mixins.database import get_db
 from mixins.log import setup_logger
@@ -61,7 +61,7 @@ def get_media_books_cache(
     return {"original_mb": original_size/1024/1024, "convert_mb": convert_size/1024/1024}
 
 
-@app.get("/books/duplicate", summary="重複書籍確認")
+@app.get("/books/duplicate", response_model=DuplicateListResponse, summary="重複書籍確認")
 def get_media_books_duplicate(
         db: Session = Depends(get_db),
         current_user:UserCurrent = Depends(get_current_user),

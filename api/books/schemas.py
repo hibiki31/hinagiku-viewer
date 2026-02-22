@@ -145,6 +145,30 @@ class BookSearchParams(BaseSchema):
     sort_desc: bool = False
 
 
+class DuplicateBook(BaseSchema):
+    """重複グループ内の書籍情報"""
+    uuid: str
+    file: str
+    size: int
+    page: int
+    rate: int | None = None
+    score: int
+
+
+class DuplicateGroup(BaseSchema):
+    """重複書籍グループ"""
+    duplicate_uuid: str
+    books: List[DuplicateBook]
+
+
+class DuplicateListResponse(BaseSchema):
+    """重複書籍一覧レスポンス"""
+    count: int
+    page_size: int
+    offset: int
+    items: List[DuplicateGroup]
+
+
 class BookUpdateResponse(BaseSchema):
     """書籍更新レスポンス"""
     message: str
