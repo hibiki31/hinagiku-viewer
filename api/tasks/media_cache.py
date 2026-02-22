@@ -29,7 +29,7 @@ def main(db: Session, book_uuid: str, to_height: int = 1080, mode: int = 3) -> N
 
     # 変換
     for index, original_image in enumerate(original_images):
-        convert_path = f"{DATA_ROOT}/book_cache/{book_uuid}/{to_height}_{str(index+1).zfill(4)}.jpg"
+        convert_path = f"{DATA_ROOT}/book_cache/{book_uuid}/{to_height}_{str(index+1).zfill(4)}.webp"
         image_convertor(original_image, convert_path, to_height=to_height, quality=85)
 
     # キャッシュの状態を保存

@@ -38,8 +38,8 @@ class DebugTimer:
         return run_time
 
 
-# ZIP内で対象とする画像拡張子
-IMAGE_EXTENSIONS = {".png", ".jpeg", ".jpg"}
+# ZIP内で対象とする画像拡張子（webp含む）
+IMAGE_EXTENSIONS = {".png", ".jpeg", ".jpg", ".webp"}
 
 
 class NotContentZipError(Exception):
@@ -156,12 +156,12 @@ def make_thumbnail(send_book, book_uuid, db: Session):
         cover_path = zip_content[0]
         # Zipから直接メモリに読み込み（レースコンディション回避）
         img_src = Image.open(BytesIO(existing_zip.read(cover_path))).convert('RGB')
-        # PIL ImageオブジェクトをそのままConvertorに渡す
-        image_convertor(src_path=img_src, dst_path=f'{DATA_ROOT}/book_thum/{book_uuid}.jpg', to_height=600, quality=85)
+        # PIL ImageオブジェクトをそのままConvertorに渡す（webp形式で保存）
+        image_convertor(src_path=img_src, dst_path=f'{DATA_ROOT}/book_thum/{book_uuid}.webp', to_height=600, quality=85)
 
     # マルチハッシュを計算
     try:
-        image = Image.open(f'{DATA_ROOT}/book_thum/{book_uuid}.jpg')
+        image = Image.open(f'{DATA_ROOT}/book_thum/{book_uuid}.webp')
         ahash = str(imagehash.average_hash(image, hash_size=16))
         phash = str(imagehash.phash(image, hash_size=16))
         dhash = str(imagehash.dhash(image, hash_size=16))
@@ -206,7 +206,7 @@ def create_book_page_cache(book_uuid: str, page: int, to_height: int, quality: i
         book_uuid: 書籍UUID
         page: ページ番号（1始まり）
         to_height: リサイズ後の高さ
-        quality: JPEG品質（1-100）
+        quality: WebP品質（1-100）
 
     Raises:
         FileNotFoundError: ZIPファイルが存在しない場合
@@ -230,8 +230,8 @@ def create_book_page_cache(book_uuid: str, page: int, to_height: int, quality: i
         img_src = Image.open(BytesIO(existing_zip.read(file_list_in_zip[page - 1]))).convert('RGB')
         timer.lap("ZIPからページ読み込み")
 
-        # image_convertorを使ってリサイズ・保存（重複ロジック排除）
-        dst_path = f"{DATA_ROOT}/book_cache/{book_uuid}/{to_height}_{str(page).zfill(4)}.jpg"
+        # image_convertorを使ってリサイズ・保存（webp形式）
+        dst_path = f"{DATA_ROOT}/book_cache/{book_uuid}/{to_height}_{str(page).zfill(4)}.webp"
         image_convertor(src_path=img_src, dst_path=dst_path, to_height=to_height, quality=quality)
         timer.lap("変換・保存")
 
@@ -240,13 +240,13 @@ def create_book_page_cache(book_uuid: str, page: int, to_height: int, quality: i
 
 def image_convertor(src_path, dst_path, to_height, quality):
     """
-    画像ファイルまたはPIL Imageオブジェクトをリサイズして保存
+    画像ファイルまたはPIL Imageオブジェクトをリサイズして保存（出力形式はdst_pathの拡張子で決定）
 
     Args:
         src_path: ソース画像パス（str/Path）またはPIL Imageオブジェクト
-        dst_path: 保存先パス
+        dst_path: 保存先パス（.webp/.jpg 等、拡張子でフォーマットが決まる）
         to_height: リサイズ後の高さ
-        quality: JPEG品質（1-100）
+        quality: 品質（1-100）
     """
     # PIL Imageオブジェクトまたはパスを受け取る
     if isinstance(src_path, Image.Image):

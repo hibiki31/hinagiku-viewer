@@ -135,7 +135,7 @@ def get_media_books_uuid(
         uuid: str
     ):
     _validate_uuid(uuid)
-    file_path = f"{DATA_ROOT}/book_thum/{uuid}.jpg"
+    file_path = f"{DATA_ROOT}/book_thum/{uuid}.webp"
     if not Path(file_path).exists():
         raise HTTPException(
             status_code=404,
@@ -158,7 +158,7 @@ def media_books_uuid_page(
     if page < 1:
         raise HTTPException(status_code=400, detail="pageは1以上を指定してください")
 
-    cache_file = f"{DATA_ROOT}/book_cache/{uuid}/{height}_{str(page).zfill(4)}.jpg"
+    cache_file = f"{DATA_ROOT}/book_cache/{uuid}/{height}_{str(page).zfill(4)}.webp"
     original_pattern = f"original_{str(page).zfill(4)}*"
 
     if Path(cache_file).exists():
