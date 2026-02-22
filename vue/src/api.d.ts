@@ -987,6 +987,10 @@ export interface components {
              * Format: date-time
              */
             fileDate: string;
+            /** Publicationdate */
+            publicationDate?: string | null;
+            /** Modelnumber */
+            modelNumber?: string | null;
             userData: components["schemas"]["BookUserDataBase"];
         };
         /** BookCacheCreate */
@@ -1067,6 +1071,10 @@ export interface components {
             genre?: string | null;
             /** Libraryid */
             libraryId?: number | null;
+            /** Publicationdate */
+            publicationDate?: string | null;
+            /** Modelnumber */
+            modelNumber?: string | null;
         };
         /**
          * BookStateEnum

@@ -64,9 +64,6 @@
                     @blur="handleTitleChange"
                   />
                 </v-list-item-title>
-                <v-list-item-subtitle class="text-caption">
-                  タイトル
-                </v-list-item-subtitle>
               </v-list-item>
 
               <v-divider class="my-1" />
@@ -153,9 +150,6 @@
                     著者が登録されていません
                   </div>
                 </v-list-item-title>
-                <v-list-item-subtitle class="text-caption">
-                  著者
-                </v-list-item-subtitle>
               </v-list-item>
 
               <!-- 著者追加ダイアログ -->
@@ -211,9 +205,6 @@
                     @blur="handlePublisherChange"
                   />
                 </v-list-item-title>
-                <v-list-item-subtitle class="text-caption">
-                  出版社
-                </v-list-item-subtitle>
               </v-list-item>
 
               <v-divider class="my-1" />
@@ -289,9 +280,6 @@
                     </template>
                   </v-combobox>
                 </v-list-item-title>
-                <v-list-item-subtitle class="text-caption">
-                  タグ
-                </v-list-item-subtitle>
               </v-list-item>
 
               <v-divider class="my-1" />
@@ -321,9 +309,53 @@
                     </span>
                   </div>
                 </v-list-item-title>
-                <v-list-item-subtitle class="text-caption">
-                  評価
-                </v-list-item-subtitle>
+              </v-list-item>
+
+              <v-divider class="my-1" />
+
+              <!-- 出版日 -->
+              <v-list-item class="px-2 py-1">
+                <template #prepend>
+                  <v-avatar color="indigo" size="32">
+                    <v-icon color="white" size="small">
+                      mdi-calendar-today
+                    </v-icon>
+                  </v-avatar>
+                </template>
+                <v-list-item-title>
+                  <v-text-field
+                    v-model="bookData.publicationDate"
+                    type="date"
+                    density="compact"
+                    variant="outlined"
+                    hide-details
+                    placeholder="出版日を入力"
+                    @blur="handlePublicationDateChange"
+                  />
+                </v-list-item-title>
+              </v-list-item>
+
+              <v-divider class="my-1" />
+
+              <!-- 型番 -->
+              <v-list-item class="px-2 py-1">
+                <template #prepend>
+                  <v-avatar color="cyan" size="32">
+                    <v-icon color="white" size="small">
+                      mdi-barcode
+                    </v-icon>
+                  </v-avatar>
+                </template>
+                <v-list-item-title>
+                  <v-text-field
+                    v-model="bookData.modelNumber"
+                    density="compact"
+                    variant="outlined"
+                    hide-details
+                    placeholder="型番を入力"
+                    @blur="handleModelNumberChange"
+                  />
+                </v-list-item-title>
               </v-list-item>
 
               <v-divider class="my-1" />
@@ -349,9 +381,6 @@
                     @update:model-value="handleLibraryChange"
                   />
                 </v-list-item-title>
-                <v-list-item-subtitle class="text-caption">
-                  ライブラリ
-                </v-list-item-subtitle>
               </v-list-item>
             </v-list>
           </v-window-item>
@@ -456,8 +485,25 @@
                 <v-list-item-title>ファイル日付</v-list-item-title>
                 <v-list-item-subtitle>{{ formatDate(bookData.fileDate) }}</v-list-item-subtitle>
               </v-list-item>
+              <v-list-item v-if="bookData.publicationDate">
+                <v-list-item-title>出版日</v-list-item-title>
+                <v-list-item-subtitle>{{ bookData.publicationDate }}</v-list-item-subtitle>
+              </v-list-item>
 
               <v-divider class="my-2" />
+
+              <v-list-subheader v-if="bookData.modelNumber">
+                <v-icon size="small" class="mr-2">
+                  mdi-barcode
+                </v-icon>
+                書籍情報
+              </v-list-subheader>
+              <v-list-item v-if="bookData.modelNumber">
+                <v-list-item-title>型番</v-list-item-title>
+                <v-list-item-subtitle>{{ bookData.modelNumber }}</v-list-item-subtitle>
+              </v-list-item>
+
+              <v-divider v-if="bookData.modelNumber" class="my-2" />
 
               <v-list-subheader>
                 <v-icon size="small" class="mr-2">
@@ -1005,6 +1051,38 @@ const handleTagsChange = async () => {
     emit('search')
   } catch {
     pushNotice('タグの更新に失敗しました', 'error')
+  }
+}
+
+const handlePublicationDateChange = async () => {
+  try {
+    const { error } = await apiClient.PUT('/api/books', {
+      body: {
+        uuids: [bookData.uuid!],
+        publicationDate: bookData.publicationDate || undefined
+      }
+    })
+    if (error) throw error
+    pushNotice('出版日を更新しました', 'success')
+    emit('search')
+  } catch {
+    pushNotice('出版日の更新に失敗しました', 'error')
+  }
+}
+
+const handleModelNumberChange = async () => {
+  try {
+    const { error } = await apiClient.PUT('/api/books', {
+      body: {
+        uuids: [bookData.uuid!],
+        modelNumber: bookData.modelNumber || undefined
+      }
+    })
+    if (error) throw error
+    pushNotice('型番を更新しました', 'success')
+    emit('search')
+  } catch {
+    pushNotice('型番の更新に失敗しました', 'error')
   }
 }
 
