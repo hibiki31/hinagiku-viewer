@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-02-22T16:51:47.902524+00:00",
-  "task_count": 55,
-  "total_cost": 36.5643,
+  "updated_at": "2026-02-22T18:26:26.986230+00:00",
+  "task_count": 59,
+  "total_cost": 37.7322,
   "tasks": [
     {
       "id": "1770721923907",
@@ -661,6 +661,54 @@
       "cache_writes": 113980,
       "cache_reads": 929297,
       "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.66.0"
+    },
+    {
+      "id": "1771779213887",
+      "date": "2026-02-22 16:53:33",
+      "title": "openapi.jsonを確認し、レスポンスが定義されていないエンドポイントを洗い出し、リストアップせよ。",
+      "cost": 0.114,
+      "tokens_in": 60,
+      "tokens_out": 7221,
+      "cache_writes": 48495,
+      "cache_reads": 172516,
+      "model": "claude-haiku-4-5-20251001",
+      "cline_version": "3.66.0"
+    },
+    {
+      "id": "1771779977292",
+      "date": "2026-02-22 17:06:17",
+      "title": "このディレクトリのファイルを確認し、プロジェクトの状態を理解せよ。",
+      "cost": 0.0524,
+      "tokens_in": 71272,
+      "tokens_out": 1475,
+      "cache_writes": 0,
+      "cache_reads": 58519,
+      "model": "glm-4.7",
+      "cline_version": "3.66.0"
+    },
+    {
+      "id": "1771780474257",
+      "date": "2026-02-22 17:14:34",
+      "title": "undocumented-responses.mdを確認し、レスポンスの型定義を実装せよ。既存ソースコードを確認し、適切に実装せよ。",
+      "cost": 0.8504,
+      "tokens_in": 1156788,
+      "tokens_out": 16357,
+      "cache_writes": 0,
+      "cache_reads": 1093842,
+      "model": "glm-4.7",
+      "cline_version": ""
+    },
+    {
+      "id": "1771783653857",
+      "date": "2026-02-22 18:07:33",
+      "title": "SHA1重複削除を実行したところ、以下のエラーが発生していました。分析し対応せよ。",
+      "cost": 0.1511,
+      "tokens_in": 201543,
+      "tokens_out": 4891,
+      "cache_writes": 0,
+      "cache_reads": 176446,
+      "model": "glm-4.7",
       "cline_version": "3.66.0"
     }
   ]

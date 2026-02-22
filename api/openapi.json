@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "HinavAPI",
-    "version": "3.12.0"
+    "version": "3.13.0"
   },
   "servers": [
     {
@@ -2671,6 +2671,29 @@
             "format": "date-time",
             "title": "Filedate"
           },
+          "publicationDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publicationdate"
+          },
+          "modelNumber": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modelnumber"
+          },
           "userData": {
             "$ref": "#/components/schemas/BookUserDataBase"
           }
@@ -2920,6 +2943,29 @@
               }
             ],
             "title": "Libraryid"
+          },
+          "publicationDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publicationdate"
+          },
+          "modelNumber": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Modelnumber"
           }
         },
         "type": "object",
