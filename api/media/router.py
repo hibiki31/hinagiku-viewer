@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, aliased
 from auth.router import get_current_user
 from auth.schemas import UserCurrent
 from books.models import BookModel, BookUserMetaDataModel, DuplicationModel
-from books.schemas import BookCacheCreate, DuplicateListResponse, LibraryPatch
+from books.schemas import BookCacheCreate, BookCacheCreateResponse, BookCacheSize, DuplicateListResponse, LibraryPatch
 from mixins.convertor import create_book_page_cache, image_convertor
 from mixins.database import get_db
 from mixins.log import setup_logger
@@ -43,7 +43,7 @@ def _validate_uuid(uuid: str) -> None:
         raise HTTPException(status_code=400, detail="不正なUUID形式です")
 
 
-@app.get("/books/cache", summary="キャッシュサイズ確認")
+@app.get("/books/cache", response_model=BookCacheSize, summary="キャッシュサイズ確認")
 def get_media_books_cache(
         current_user:UserCurrent = Depends(get_current_user)
     ):
@@ -186,7 +186,7 @@ def media_books_uuid_page(
     )
 
 
-@app.patch("/books", summary="書籍一括変換タスク実行")
+@app.patch("/books", response_model=BookCacheCreateResponse, summary="書籍一括変換タスク実行")
 def patch_media_books_(
         model: BookCacheCreate,
         current_user:UserCurrent = Depends(get_current_user)
@@ -203,7 +203,7 @@ def patch_media_books_(
         w.terminate()
 
     converter_pool.append(subprocess.Popen(["python3", f"{APP_ROOT}/worker.py", "convert", model.uuid, str(model.height)]))
-    return { "status": "ok", "model": model }
+    return { "status": "ok", "uuid": model.uuid, "height": model.height }
 
 
 @app.patch("/library", summary="ライブラリロード・エクスポート（非推奨）", deprecated=True)

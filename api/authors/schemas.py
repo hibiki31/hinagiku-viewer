@@ -56,3 +56,9 @@ class BookAuthorResponse(BaseSchema):
     message: str
     book_uuid: str
     author_id: int
+
+
+class AuthorDeleteResponse(BaseSchema):
+    """著者削除レスポンス"""
+    message: str
+    author_id: int

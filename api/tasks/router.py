@@ -11,7 +11,7 @@ from mixins.database import get_db
 from mixins.log import setup_logger
 from settings import APP_ROOT
 from tasks.models import TaskModel
-from tasks.schemas import TaskCreate, TaskCreateResponse, TaskListResponse, TaskSchema
+from tasks.schemas import TaskCancelResponse, TaskCreate, TaskCreateResponse, TaskListResponse, TaskSchema
 from tasks.utility import create_task
 
 app = APIRouter(
@@ -156,7 +156,7 @@ async def get_task(
     return task
 
 
-@app.delete("/tasks/{task_id}", summary="タスクキャンセル（未実装）")
+@app.delete("/tasks/{task_id}", response_model=TaskCancelResponse, summary="タスクキャンセル（未実装）")
 async def cancel_task(
     task_id: str,
     db: Session = Depends(get_db),
@@ -186,4 +186,4 @@ async def cancel_task(
 
     logger.info(f"タスクキャンセル: {task_id} by {current_user.id}")
 
-    return {"status": "cancelled", "taskId": task_id}
+    return {"message": "タスクをキャンセルしました", "task_id": task_id, "status": "cancelled"}

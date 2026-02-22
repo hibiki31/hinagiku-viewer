@@ -10,7 +10,16 @@ from books.models import AuthorModel, BookModel, books_to_authors
 from mixins.database import get_db
 from mixins.log import setup_logger
 
-from .schemas import *
+from .schemas import (
+    AuthorDeleteResponse,
+    AuthorDetail,
+    AuthorGet,
+    AuthorSearchParams,
+    AuthorUpdate,
+    BookAuthorDelete,
+    BookAuthorPost,
+    PatchAuthor,
+)
 
 app = APIRouter(
     prefix="/api",
@@ -272,7 +281,7 @@ def update_author(
     return author_model
 
 
-@app.delete("/authors/{author_id}", summary="著者削除")
+@app.delete("/authors/{author_id}", response_model=AuthorDeleteResponse, summary="著者削除")
 def delete_author(
         author_id: int,
         db: Session = Depends(get_db),

@@ -48,3 +48,10 @@ class TaskCreateResponse(BaseSchema):
     """タスク作成レスポンス"""
     status: str
     task_id: str
+
+
+class TaskCancelResponse(BaseSchema):
+    """タスクキャンセルレスポンス"""
+    message: str
+    task_id: str
+    status: str

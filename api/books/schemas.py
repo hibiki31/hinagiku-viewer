@@ -179,3 +179,16 @@ class BookDeleteResponse(BaseSchema):
     """書籍削除レスポンス"""
     message: str
     uuid: str
+
+
+class BookCacheSize(BaseSchema):
+    """キャッシュサイズ確認レスポンス"""
+    original_mb: float
+    convert_mb: float
+
+
+class BookCacheCreateResponse(BaseSchema):
+    """書籍一括変換タスク実行レスポンス"""
+    status: str
+    uuid: str
+    height: int

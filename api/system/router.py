@@ -6,8 +6,11 @@ from mixins.database import get_db
 from mixins.log import setup_logger
 from system.models import SystemSettingsModel
 from system.schemas import (
+    SystemSettingBulkUpdateResponse,
     SystemSettingBulkUpdateSchema,
     SystemSettingCreateSchema,
+    SystemSettingDeleteResponse,
+    SystemSettingsCategoryResponse,
     SystemSettingSchema,
     SystemSettingsListResponse,
     SystemSettingValueSchema,
@@ -140,7 +143,7 @@ async def update_setting(
         raise HTTPException(status_code=404, detail=str(e)) from e
 
 
-@app.delete("/settings/{key}", summary="設定削除")
+@app.delete("/settings/{key}", response_model=SystemSettingDeleteResponse, summary="設定削除")
 async def delete_setting(
     key: str,
     db: Session = Depends(get_db),
@@ -162,10 +165,10 @@ async def delete_setting(
 
     logger.info(f"ユーザー {current_user.id} が設定 '{key}' を削除")
 
-    return {"message": f"設定 '{key}' を削除しました"}
+    return {"message": f"設定 '{key}' を削除しました", "key": key}
 
 
-@app.post("/settings/bulk", summary="設定一括更新")
+@app.post("/settings/bulk", response_model=SystemSettingBulkUpdateResponse, summary="設定一括更新")
 async def bulk_update_settings(
     data: SystemSettingBulkUpdateSchema,
     db: Session = Depends(get_db),
@@ -202,7 +205,7 @@ async def bulk_update_settings(
     }
 
 
-@app.get("/settings/category/{category}", summary="カテゴリ別設定取得")
+@app.get("/settings/category/{category}", response_model=SystemSettingsCategoryResponse, summary="カテゴリ別設定取得")
 async def get_settings_by_category_endpoint(
     category: str,
     db: Session = Depends(get_db),
@@ -219,7 +222,7 @@ async def get_settings_by_category_endpoint(
 
     logger.info(f"ユーザー {current_user.id} がカテゴリ '{category}' の設定を取得: {len(settings)}件")
 
-    return settings
+    return {"settings": settings}
 
 
 @app.get("/settings/all/values", summary="全設定取得（型変換済み）")
