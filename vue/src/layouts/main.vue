@@ -5,9 +5,8 @@
     <v-toolbar-title class="text-body-1 font-weight-bold">
       {{ pageTitle }}
     </v-toolbar-title>
-    <v-spacer />
     <!-- ページ固有アクション（各ページからTeleportで注入される） -->
-    <div id="appbar-actions" class="d-flex align-center" />
+    <div id="appbar-actions" class="d-flex align-center flex-grow-1" style="min-width: 0;" />
   </v-app-bar>
 
   <!-- サイドバー -->
