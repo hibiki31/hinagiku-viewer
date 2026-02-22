@@ -10,7 +10,7 @@ from typing import Dict, Optional
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from books.models import BookModel, BookUserMetaDataModel
+from books.models import BookModel
 from mixins.log import setup_logger
 from tasks.library_delete import main as library_delete
 from tasks.utility import update_task_status
@@ -114,15 +114,11 @@ def main(db: Session, task_id: Optional[str] = None) -> Dict[str, int]:
             for book in books_to_delete:
                 total_books_processed += 1
                 try:
-                    # ユーザーメタデータを削除
-                    db.query(BookUserMetaDataModel)\
-                        .filter(BookUserMetaDataModel.book_uuid == book.uuid)\
-                        .delete()
-
                     # 物理ファイルを book_export/deleted に移動
                     library_delete(db, book.uuid, book.import_file_name)
 
                     # DBレコード削除
+                    # BookUserMetaDataModel は DB レベルの CASCADE で自動削除される
                     db.delete(book)
                     db.commit()
 
@@ -130,7 +126,8 @@ def main(db: Session, task_id: Optional[str] = None) -> Dict[str, int]:
                     logger.info(f"削除完了: {book.uuid} ({book.import_file_name})")
 
                 except Exception as e:
-                    logger.error(f"削除エラー {book.uuid}: {e}", exc_info=True)
+                    book_uuid = book.uuid
+                    logger.error(f"削除エラー {book_uuid}: {e}", exc_info=True)
                     db.rollback()
                     error_count += 1
 

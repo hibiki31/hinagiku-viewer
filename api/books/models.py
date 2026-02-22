@@ -120,7 +120,7 @@ class BookModel(Base):
     is_shared = Column(Boolean)
 
     # ユーザ固有データ
-    user_data = relationship('BookUserMetaDataModel',lazy=False)
+    user_data = relationship('BookUserMetaDataModel', lazy=False, passive_deletes='all')
 
     # 処理用
     state = Column(String)
