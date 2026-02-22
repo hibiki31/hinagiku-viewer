@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "HinavAPI",
-    "version": "3.11.0"
+    "version": "3.12.0"
   },
   "servers": [
     {
@@ -688,7 +688,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/BookCacheSize"
+                }
               }
             }
           }
@@ -883,7 +885,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/BookCacheCreateResponse"
+                }
               }
             }
           },
@@ -1420,7 +1424,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorDeleteResponse"
+                }
               }
             }
           },
@@ -1876,7 +1882,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/TaskCancelResponse"
+                }
               }
             }
           },
@@ -2124,7 +2132,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SystemSettingDeleteResponse"
+                }
               }
             }
           },
@@ -2164,7 +2174,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SystemSettingBulkUpdateResponse"
+                }
               }
             }
           },
@@ -2215,7 +2227,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/SystemSettingsCategoryResponse"
+                }
               }
             }
           },
@@ -2287,6 +2301,25 @@
           "is_admin"
         ],
         "title": "AuthValidateResponse"
+      },
+      "AuthorDeleteResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "authorId": {
+            "type": "integer",
+            "title": "Authorid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "authorId"
+        ],
+        "title": "AuthorDeleteResponse",
+        "description": "著者削除レスポンス"
       },
       "AuthorDetail": {
         "properties": {
@@ -2679,6 +2712,49 @@
           "height"
         ],
         "title": "BookCacheCreate"
+      },
+      "BookCacheCreateResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "uuid": {
+            "type": "string",
+            "title": "Uuid"
+          },
+          "height": {
+            "type": "integer",
+            "title": "Height"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "uuid",
+          "height"
+        ],
+        "title": "BookCacheCreateResponse",
+        "description": "書籍一括変換タスク実行レスポンス"
+      },
+      "BookCacheSize": {
+        "properties": {
+          "originalMb": {
+            "type": "number",
+            "title": "Originalmb"
+          },
+          "convertMb": {
+            "type": "number",
+            "title": "Convertmb"
+          }
+        },
+        "type": "object",
+        "required": [
+          "originalMb",
+          "convertMb"
+        ],
+        "title": "BookCacheSize",
+        "description": "キャッシュサイズ確認レスポンス"
       },
       "BookDeleteResponse": {
         "properties": {
@@ -3210,6 +3286,36 @@
         "title": "PatchAuthor",
         "description": "著者更新リクエスト（旧形式・非推奨）"
       },
+      "SystemSettingBulkUpdateResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "updated": {
+            "type": "integer",
+            "title": "Updated"
+          },
+          "errors": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Errors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "updated",
+          "errors"
+        ],
+        "title": "SystemSettingBulkUpdateResponse",
+        "description": "設定一括更新レスポンス"
+      },
       "SystemSettingBulkUpdateSchema": {
         "properties": {
           "settings": {
@@ -3277,6 +3383,25 @@
         ],
         "title": "SystemSettingCreateSchema",
         "description": "設定作成用"
+      },
+      "SystemSettingDeleteResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "key"
+        ],
+        "title": "SystemSettingDeleteResponse",
+        "description": "設定削除レスポンス"
       },
       "SystemSettingSchema": {
         "properties": {
@@ -3360,6 +3485,21 @@
         "title": "SystemSettingValueSchema",
         "description": "設定値のみ（更新用）"
       },
+      "SystemSettingsCategoryResponse": {
+        "properties": {
+          "settings": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Settings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "settings"
+        ],
+        "title": "SystemSettingsCategoryResponse",
+        "description": "カテゴリ別設定取得レスポンス（型変換済み）"
+      },
       "SystemSettingsListResponse": {
         "properties": {
           "settings": {
@@ -3414,6 +3554,30 @@
         ],
         "title": "TagResponse",
         "description": "タグレスポンス"
+      },
+      "TaskCancelResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "taskId": {
+            "type": "string",
+            "title": "Taskid"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "taskId",
+          "status"
+        ],
+        "title": "TaskCancelResponse",
+        "description": "タスクキャンセルレスポンス"
       },
       "TaskCreate": {
         "properties": {
