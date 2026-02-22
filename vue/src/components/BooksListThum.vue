@@ -11,23 +11,24 @@
       :lg="thumbnailCols.lg"
       class="pt-5"
     >
-      <v-card
-        style="overflow: visible"
-        @click="$emit('toReaderPage', item)"
-        @click.middle="$emit('openInNewTab', item)"
-      >
+      <div style="position: relative">
         <div class="text-center" style="position: absolute; z-index: 1; top: -15px">
           <v-icon :color="getBadge(item)" size="small">
             mdi-circle
           </v-icon>
         </div>
-        <v-img
-          :aspect-ratio="thumbnailAspectRatio"
-          cover
-          :src="getCoverURL(item.uuid)"
-          @contextmenu.prevent="$emit('openMenu', item)"
-        />
-      </v-card>
+        <v-card
+          @click="$emit('toReaderPage', item)"
+          @click.middle="$emit('openInNewTab', item)"
+        >
+          <v-img
+            :aspect-ratio="thumbnailAspectRatio"
+            cover
+            :src="getCoverURL(item.uuid)"
+            @contextmenu.prevent="$emit('openMenu', item)"
+          />
+        </v-card>
+      </div>
     </v-col>
   </v-row>
 </template>
