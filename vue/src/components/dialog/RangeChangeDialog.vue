@@ -56,6 +56,42 @@
 
         <v-divider class="mb-4" />
 
+        <!-- 削除 -->
+        <div class="mb-4">
+          <v-switch
+            v-model="deleteBooks"
+            :disabled="isProcessing"
+            color="error"
+            hide-details
+            class="mb-2"
+          >
+            <template #label>
+              <div class="d-flex align-center">
+                <v-icon class="mr-2">mdi-delete</v-icon>
+                <span class="text-body-1 font-weight-medium">書籍を削除</span>
+              </div>
+            </template>
+          </v-switch>
+
+          <v-expand-transition>
+            <v-alert
+              v-if="deleteBooks"
+              type="error"
+              variant="tonal"
+              density="compact"
+              class="mt-2"
+            >
+              <div class="text-body-2">
+                <strong>警告: この操作は取り消せません</strong>
+                <br>
+                書籍ファイル、ユーザーデータ、データベースレコードが全て削除されます。
+              </div>
+            </v-alert>
+          </v-expand-transition>
+        </div>
+
+        <v-divider class="mb-4" />
+
         <!-- ライブラリ変更 -->
         <div class="mb-4">
           <v-switch
@@ -176,14 +212,14 @@
         </v-btn>
         <v-spacer />
         <v-btn
-          :color="targetMode === 'all' ? 'warning' : 'primary'"
+          :color="deleteBooks ? 'error' : (targetMode === 'all' ? 'warning' : 'primary')"
           :disabled="!canSubmit || isProcessing"
           :loading="isProcessing"
           variant="flat"
           @click="submitDialog"
         >
-          <v-icon start>mdi-check-circle</v-icon>
-          {{ targetMode === 'all' ? '全ページを一括変更' : '変更を実行' }}
+          <v-icon start>{{ deleteBooks ? 'mdi-delete' : 'mdi-check-circle' }}</v-icon>
+          {{ deleteBooks ? (targetMode === 'all' ? '全ページを一括削除' : '削除を実行') : (targetMode === 'all' ? '全ページを一括変更' : '変更を実行') }}
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -223,6 +259,9 @@ const changeLibrary = ref(false)
 const queryRate = ref<number | null>(null)
 const changeRate = ref(false)
 
+// 削除
+const deleteBooks = ref(false)
+
 // プログレス
 const processedCount = ref(0)
 const totalProcessCount = ref(0)
@@ -246,7 +285,7 @@ const progressPercentage = computed(() => {
 
 // 実行可能かどうか
 const canSubmit = computed(() => {
-  return changeLibrary.value || changeRate.value
+  return changeLibrary.value || changeRate.value || deleteBooks.value
 })
 
 /**
@@ -257,6 +296,7 @@ const openDialog = async () => {
   targetMode.value = 'current'
   changeLibrary.value = false
   changeRate.value = false
+  deleteBooks.value = false
   queryRate.value = null
   isProcessing.value = false
   processedCount.value = 0
@@ -292,6 +332,23 @@ const closeDialog = () => {
  */
 const processSinglePage = async (uuids: string[]) => {
   const errors: string[] = []
+
+  // 削除処理（削除が有効な場合は他の処理より先に実行）
+  if (deleteBooks.value) {
+    for (const uuid of uuids) {
+      try {
+        const { error } = await apiClient.DELETE('/api/books/{book_uuid}', {
+          params: { path: { book_uuid: uuid } }
+        })
+        if (error) throw new Error('書籍削除エラー')
+      } catch (e) {
+        errors.push(`書籍 ${uuid} の削除に失敗`)
+        console.error(e)
+      }
+    }
+    // 削除の場合は他の処理は実行しない
+    return errors
+  }
 
   if (changeLibrary.value) {
     try {
@@ -433,8 +490,20 @@ const processAllPages = async () => {
 const submitDialog = async () => {
   if (!canSubmit.value || isProcessing.value) return
 
-  // 確認ダイアログ（全ページモードの場合）
-  if (targetMode.value === 'all') {
+  // 削除の確認ダイアログ
+  if (deleteBooks.value) {
+    const targetCount = targetMode.value === 'current' ? currentPageCount.value : totalCount.value
+    const confirmed = confirm(
+      `本当に${targetCount}件の書籍を削除しますか？\n\n` +
+      `この操作は取り消せません。\n` +
+      `書籍ファイル、ユーザーデータ、データベースレコードが全て削除されます。\n\n` +
+      `削除を実行する場合は「OK」を押してください。`
+    )
+    if (!confirmed) return
+  }
+
+  // 確認ダイアログ（全ページモードの場合、削除以外）
+  if (targetMode.value === 'all' && !deleteBooks.value) {
     const confirmed = confirm(
       `本当に全${totalCount.value}件を一括変更しますか？\nこの操作は取り消せません。`
     )

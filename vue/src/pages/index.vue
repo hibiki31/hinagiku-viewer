@@ -120,13 +120,6 @@
       <v-list-subheader>操作</v-list-subheader>
 
       <v-list-item
-        prepend-icon="mdi-export"
-        title="範囲エクスポート"
-        disabled
-        @click="exportDialog = true"
-      />
-
-      <v-list-item
         prepend-icon="mdi-pencil"
         title="範囲変更"
         @click="rangeChangeDialogRef?.openDialog()"
@@ -278,7 +271,6 @@ const unifiedBookInfoDialogRef = ref();
 const rangeChangeDialogRef = ref();
 
 const isLoading = ref(true);
-const exportDialog = ref(false);
 const libraryList = ref<GetLibrary[]>([]);
 
 // 前回の続きを開くか確認するダイアログ
