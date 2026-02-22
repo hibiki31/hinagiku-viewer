@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "HinavAPI",
-    "version": "3.10.3"
+    "version": "3.10.4"
   },
   "servers": [
     {
@@ -739,7 +739,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/DuplicateListResponse"
+                }
               }
             }
           },
@@ -3010,6 +3012,105 @@
           "uuids"
         ],
         "title": "BookUserMetaDataPut"
+      },
+      "DuplicateBook": {
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "title": "Uuid"
+          },
+          "file": {
+            "type": "string",
+            "title": "File"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "rate": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate"
+          },
+          "score": {
+            "type": "integer",
+            "title": "Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uuid",
+          "file",
+          "size",
+          "page",
+          "score"
+        ],
+        "title": "DuplicateBook",
+        "description": "重複グループ内の書籍情報"
+      },
+      "DuplicateGroup": {
+        "properties": {
+          "duplicateUuid": {
+            "type": "string",
+            "title": "Duplicateuuid"
+          },
+          "books": {
+            "items": {
+              "$ref": "#/components/schemas/DuplicateBook"
+            },
+            "type": "array",
+            "title": "Books"
+          }
+        },
+        "type": "object",
+        "required": [
+          "duplicateUuid",
+          "books"
+        ],
+        "title": "DuplicateGroup",
+        "description": "重複書籍グループ"
+      },
+      "DuplicateListResponse": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "pageSize": {
+            "type": "integer",
+            "title": "Pagesize"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DuplicateGroup"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "count",
+          "pageSize",
+          "offset",
+          "items"
+        ],
+        "title": "DuplicateListResponse",
+        "description": "重複書籍一覧レスポンス"
       },
       "GetLibrary": {
         "properties": {

@@ -70,9 +70,6 @@
         hide-details
       />
     </div>
-
-    <v-divider />
-
     <!-- 評価フィルター -->
     <v-list nav density="compact">
       <v-list-subheader>評価フィルター</v-list-subheader>
@@ -117,8 +114,6 @@
         </v-btn-group>
       </v-list-item>
     </v-list>
-
-    <v-divider />
 
     <!-- 操作メニュー -->
     <v-list nav density="comfortable">

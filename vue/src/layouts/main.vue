@@ -17,9 +17,6 @@
 
     <v-divider />
 
-    <!-- ページ固有サイドバーコンテンツ（各ページからTeleportで注入される） -->
-    <div id="sidebar-extra-content" />
-
     <!-- メインナビゲーション -->
     <v-list nav density="comfortable">
       <v-list-subheader>メインメニュー</v-list-subheader>
@@ -62,6 +59,9 @@
         @click="navigateTo('/settings')"
       />
     </v-list>
+
+    <!-- ページ固有サイドバーコンテンツ（各ページからTeleportで注入される） -->
+    <div id="sidebar-extra-content" />
 
     <v-divider />
 
