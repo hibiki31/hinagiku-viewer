@@ -836,6 +836,16 @@ export interface components {
             is_admin: boolean;
         };
         /**
+         * AuthorDeleteResponse
+         * @description 著者削除レスポンス
+         */
+        AuthorDeleteResponse: {
+            /** Message */
+            message: string;
+            /** Authorid */
+            authorId: number;
+        };
+        /**
          * AuthorDetail
          * @description 著者詳細レスポンス
          */
@@ -985,6 +995,28 @@ export interface components {
             uuid: string;
             /** Height */
             height: number;
+        };
+        /**
+         * BookCacheCreateResponse
+         * @description 書籍一括変換タスク実行レスポンス
+         */
+        BookCacheCreateResponse: {
+            /** Status */
+            status: string;
+            /** Uuid */
+            uuid: string;
+            /** Height */
+            height: number;
+        };
+        /**
+         * BookCacheSize
+         * @description キャッシュサイズ確認レスポンス
+         */
+        BookCacheSize: {
+            /** Originalmb */
+            originalMb: number;
+            /** Convertmb */
+            convertMb: number;
         };
         /**
          * BookDeleteResponse
@@ -1176,6 +1208,20 @@ export interface components {
             isFavorite: boolean;
         };
         /**
+         * SystemSettingBulkUpdateResponse
+         * @description 設定一括更新レスポンス
+         */
+        SystemSettingBulkUpdateResponse: {
+            /** Message */
+            message: string;
+            /** Updated */
+            updated: number;
+            /** Errors */
+            errors: {
+                [key: string]: string;
+            }[];
+        };
+        /**
          * SystemSettingBulkUpdateSchema
          * @description 一括更新用
          */
@@ -1208,6 +1254,16 @@ export interface components {
              * @default false
              */
             isPublic: boolean;
+        };
+        /**
+         * SystemSettingDeleteResponse
+         * @description 設定削除レスポンス
+         */
+        SystemSettingDeleteResponse: {
+            /** Message */
+            message: string;
+            /** Key */
+            key: string;
         };
         /**
          * SystemSettingSchema
@@ -1246,6 +1302,16 @@ export interface components {
             value: string;
         };
         /**
+         * SystemSettingsCategoryResponse
+         * @description カテゴリ別設定取得レスポンス（型変換済み）
+         */
+        SystemSettingsCategoryResponse: {
+            /** Settings */
+            settings: {
+                [key: string]: unknown;
+            };
+        };
+        /**
          * SystemSettingsListResponse
          * @description 設定一覧レスポンス
          */
@@ -1272,6 +1338,18 @@ export interface components {
             id: number;
             /** Name */
             name: string;
+        };
+        /**
+         * TaskCancelResponse
+         * @description タスクキャンセルレスポンス
+         */
+        TaskCancelResponse: {
+            /** Message */
+            message: string;
+            /** Taskid */
+            taskId: string;
+            /** Status */
+            status: string;
         };
         /**
          * TaskCreate
@@ -1748,7 +1826,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["BookCacheSize"];
                 };
             };
         };
@@ -1870,7 +1948,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["BookCacheCreateResponse"];
                 };
             };
             /** @description Validation Error */
@@ -2153,7 +2231,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["AuthorDeleteResponse"];
                 };
             };
             /** @description Validation Error */
@@ -2473,7 +2551,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["TaskCancelResponse"];
                 };
             };
             /** @description Validation Error */
@@ -2634,7 +2712,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SystemSettingDeleteResponse"];
                 };
             };
             /** @description Validation Error */
@@ -2667,7 +2745,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SystemSettingBulkUpdateResponse"];
                 };
             };
             /** @description Validation Error */
@@ -2698,7 +2776,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SystemSettingsCategoryResponse"];
                 };
             };
             /** @description Validation Error */
