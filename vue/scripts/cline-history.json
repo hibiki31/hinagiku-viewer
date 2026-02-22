@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-02-15T20:18:24.563944+00:00",
-  "task_count": 54,
-  "total_cost": 31.4892,
+  "updated_at": "2026-02-22T16:49:41.334377+00:00",
+  "task_count": 64,
+  "total_cost": 38.0657,
   "tasks": [
     {
       "id": "1770568553080",
@@ -650,6 +650,126 @@
       "cache_reads": 1282042,
       "model": "claude-sonnet-4-5-20250929",
       "cline_version": "3.57.1"
+    },
+    {
+      "id": "1771186726149",
+      "date": "2026-02-15 20:18:46",
+      "title": "本の削除機能についてUIを実装せよ",
+      "cost": 0.6019,
+      "tokens_in": 100,
+      "tokens_out": 9664,
+      "cache_writes": 78641,
+      "cache_reads": 539032,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.57.1"
+    },
+    {
+      "id": "1771764859945",
+      "date": "2026-02-22 12:54:19",
+      "title": "書籍一覧、システム設定、タスク実行状況、重複リストについて、サイドバー、アプリバーを必須、としてナビゲーションをUI/UXを最適化してください。アプリバー、サイドバーは可能な限り共通化し、ページによって、アプリバー、サイドバーの内容は調整せよ。",
+      "cost": 1.8044,
+      "tokens_in": 200,
+      "tokens_out": 39882,
+      "cache_writes": 196469,
+      "cache_reads": 1456674,
+      "model": "claude-sonnet-4-6",
+      "cline_version": ""
+    },
+    {
+      "id": "1771766846479",
+      "date": "2026-02-22 13:27:26",
+      "title": "src/pages/index.vueの以下の部分では検索バーが実装されていますが、長さが短すぎます。レスポンシブになるよう適切に幅を広げてください。\n<Teleport to=\"#appbar-actions\">\n    <v-text-field\n      v-model=\"queryTitle\"\n      hide-details\n      single-line\n      vari",
+      "cost": 0.4137,
+      "tokens_in": 160,
+      "tokens_out": 8197,
+      "cache_writes": 43321,
+      "cache_reads": 426131,
+      "model": "claude-sonnet-4-6",
+      "cline_version": "3.66.0"
+    },
+    {
+      "id": "1771767454920",
+      "date": "2026-02-22 13:37:34",
+      "title": "src/components/dialog/RangeChangeDialog.vueのUI/UXを抜本的に改善せよ。\nまた、現在表示されている最大60件の一括編集に加え、すべてのページを1ページずつ自動で変更する機能をクライアント側で実装せよ。",
+      "cost": 0.4717,
+      "tokens_in": 60,
+      "tokens_out": 9029,
+      "cache_writes": 81458,
+      "cache_reads": 102026,
+      "model": "claude-sonnet-4-6",
+      "cline_version": "3.66.0"
+    },
+    {
+      "id": "1771767929938",
+      "date": "2026-02-22 13:45:29",
+      "title": "src/components/dialog/RangeChangeDialog.vueのUI/UXを抜本的に改善せよ。\nまた、現在表示されている最大60件の一括編集に加え、すべてのページを1ページずつ自動で変更する機能をクライアント側で実装せよ。",
+      "cost": 0.532,
+      "tokens_in": 120,
+      "tokens_out": 10337,
+      "cache_writes": 55655,
+      "cache_reads": 559716,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.66.0"
+    },
+    {
+      "id": "1771768453223",
+      "date": "2026-02-22 13:54:13",
+      "title": "重複検索一覧のAPIが変更されました。変更に対応してください。また、ページネーション機能を追加せよ。",
+      "cost": 0.7648,
+      "tokens_in": 140,
+      "tokens_out": 8023,
+      "cache_writes": 123605,
+      "cache_reads": 601859,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.66.0"
+    },
+    {
+      "id": "1771769773893",
+      "date": "2026-02-22 14:16:13",
+      "title": "src/components/dialog/RangeChangeDialog.vueで全ページ変更を行うと全体の半分のページで処理が終わってしまう。\nバグを修正せよ。",
+      "cost": 0.2125,
+      "tokens_in": 80,
+      "tokens_out": 4682,
+      "cache_writes": 26585,
+      "cache_reads": 141052,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.66.0"
+    },
+    {
+      "id": "1771776730447",
+      "date": "2026-02-22 16:12:10",
+      "title": "src/components/dialog/RangeChangeDialog.vue で本の削除を実装せよ。サイドバーにある範囲エクスポートは不要となるので削除せよ。",
+      "cost": 0.5488,
+      "tokens_in": 150,
+      "tokens_out": 9239,
+      "cache_writes": 65470,
+      "cache_reads": 547574,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.66.0"
+    },
+    {
+      "id": "1771778289421",
+      "date": "2026-02-22 16:38:09",
+      "title": "重複削除ページを利用しやすく修正したいです。\n1. タイトル情報はAPIが返さないと思うので、表示不要。\n2. ファイル名は長い場合でも省略せずに表示\n3. チェックボックスを入れれるようにし、一括削除できるように",
+      "cost": 0.3242,
+      "tokens_in": 90,
+      "tokens_out": 6579,
+      "cache_writes": 41024,
+      "cache_reads": 237982,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.66.0"
+    },
+    {
+      "id": "1771778499534",
+      "date": "2026-02-22 16:41:39",
+      "title": "src/pages/settings.vueに重複ファイル削除タスクの実施を、他のタスクに倣って実装せよ。API側が更新されているので型ファイルの自動生成をまず行え。",
+      "cost": 0.9025,
+      "tokens_in": 240,
+      "tokens_out": 13652,
+      "cache_writes": 78964,
+      "cache_reads": 1336197,
+      "model": "claude-sonnet-4-5-20250929",
+      "cline_version": "3.66.0"
     }
   ]
 }
