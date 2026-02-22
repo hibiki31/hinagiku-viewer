@@ -464,8 +464,7 @@ const deleteDuplicates = async () => {
   try {
     const { error } = await apiClient.POST('/api/tasks', {
       body: {
-        // NOTE: API型定義にまだ含まれていないが、APIドキュメントには記載されているタスクタイプ
-        taskType: 'sha1_delete_duplicates' as unknown as 'load'
+        taskType: 'sha1_delete_duplicates'
       }
     })
 

@@ -1282,7 +1282,7 @@ export interface components {
              * Tasktype
              * @enum {string}
              */
-            taskType: "load" | "fixmetadata" | "export" | "export_uuid" | "sim_all" | "rule" | "thumbnail_recreate" | "integrity_check";
+            taskType: "load" | "fixmetadata" | "export" | "export_uuid" | "sim_all" | "rule" | "thumbnail_recreate" | "integrity_check" | "sha1_delete_duplicates";
         };
         /**
          * TaskCreateResponse
