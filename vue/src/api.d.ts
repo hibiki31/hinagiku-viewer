@@ -1088,6 +1088,48 @@ export interface components {
             /** Rate */
             rate?: number | null;
         };
+        /**
+         * DuplicateBook
+         * @description 重複グループ内の書籍情報
+         */
+        DuplicateBook: {
+            /** Uuid */
+            uuid: string;
+            /** File */
+            file: string;
+            /** Size */
+            size: number;
+            /** Page */
+            page: number;
+            /** Rate */
+            rate?: number | null;
+            /** Score */
+            score: number;
+        };
+        /**
+         * DuplicateGroup
+         * @description 重複書籍グループ
+         */
+        DuplicateGroup: {
+            /** Duplicateuuid */
+            duplicateUuid: string;
+            /** Books */
+            books: components["schemas"]["DuplicateBook"][];
+        };
+        /**
+         * DuplicateListResponse
+         * @description 重複書籍一覧レスポンス
+         */
+        DuplicateListResponse: {
+            /** Count */
+            count: number;
+            /** Pagesize */
+            pageSize: number;
+            /** Offset */
+            offset: number;
+            /** Items */
+            items: components["schemas"]["DuplicateGroup"][];
+        };
         /** GetLibrary */
         GetLibrary: {
             /** Count */
@@ -1728,7 +1770,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["DuplicateListResponse"];
                 };
             };
             /** @description Validation Error */

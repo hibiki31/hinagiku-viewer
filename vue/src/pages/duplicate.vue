@@ -5,8 +5,8 @@
 <template>
   <!-- AppBarへのアクション注入 -->
   <Teleport to="#appbar-actions">
-    <v-chip v-if="!isLoading && booksList.length > 0" class="mr-2" color="info">
-      {{ booksList.length }} グループ
+    <v-chip v-if="!isLoading && totalCount > 0" class="mr-2" color="info">
+      {{ totalCount }} グループ
     </v-chip>
     <v-btn icon variant="plain" @click="reload()">
       <v-icon>mdi-reload</v-icon>
@@ -44,6 +44,26 @@
 
     <!-- 重複リスト -->
     <v-container v-if="!isLoading && booksList.length > 0" fluid>
+      <!-- ページネーション（上部） -->
+      <v-row class="mb-4" align="center" justify="space-between">
+        <v-col cols="auto">
+          <v-select
+            :model-value="itemsPerPage"
+            :items="[5, 10, 20, 50]"
+            label="表示件数"
+            density="compact"
+            style="width: 120px"
+            hide-details
+            @update:model-value="onItemsPerPageChange"
+          />
+        </v-col>
+        <v-col cols="auto">
+          <div class="text-caption text-grey">
+            全 {{ totalCount }} グループ中 {{ (page - 1) * itemsPerPage + 1 }}-{{ Math.min(page * itemsPerPage, totalCount) }} を表示
+          </div>
+        </v-col>
+      </v-row>
+
       <v-expansion-panels v-model="openPanels" multiple>
         <v-expansion-panel
           v-for="(group, groupIndex) in booksList"
@@ -226,6 +246,18 @@
           </v-expansion-panel-text>
         </v-expansion-panel>
       </v-expansion-panels>
+
+      <!-- ページネーション（下部） -->
+      <v-row v-if="totalCount > itemsPerPage" class="mt-6" justify="center">
+        <v-col cols="auto">
+          <v-pagination
+            :model-value="page"
+            :length="Math.ceil(totalCount / itemsPerPage)"
+            :total-visible="7"
+            @update:model-value="onPageChange"
+          />
+        </v-col>
+      </v-row>
     </v-container>
   </v-main>
 
@@ -292,16 +324,16 @@ import { useTitle } from '@/composables/title'
 // ページタイトル設定
 useTitle('重複リスト')
 
-interface DuplicateBook {
+import type { components } from '@/api'
+
+type ApiDuplicateBook = components['schemas']['DuplicateBook']
+type ApiDuplicateListResponse = components['schemas']['DuplicateListResponse']
+
+interface DuplicateBook extends ApiDuplicateBook {
   duplicate_uuid: string
-  uuid: string
-  size: number
-  rate: number | null
-  file: string
   title?: string | null
   authors?: { id: number; name: string; isFavorite: boolean }[]
   publisher?: { name: string | null; id?: number | null }
-  page: number
   addDate?: string
   lastOpenDate?: string | null
   readTimes?: number | null
@@ -330,6 +362,11 @@ const isLoading = ref(true)
 const booksList = ref<DuplicateGroup[]>([])
 const openPanels = ref<number[]>([])
 
+// ページネーション
+const page = ref(1)
+const itemsPerPage = ref(10)
+const totalCount = ref(0)
+
 const deleteDialog = reactive({
   show: false,
   loading: false,
@@ -351,15 +388,56 @@ const serachDuplicate = async () => {
 const reload = async () => {
   isLoading.value = true
   try {
-    const { data, error } = await apiClient.GET('/media/books/duplicate')
+    const offset = (page.value - 1) * itemsPerPage.value
+    const { data, error } = await apiClient.GET('/media/books/duplicate', {
+      params: {
+        query: {
+          limit: itemsPerPage.value,
+          offset: offset
+        }
+      }
+    })
     if (error) throw error
-    booksList.value = (data as unknown as DuplicateGroup[]) || []
+
+    // 新しいAPI形式に対応
+    if (data && typeof data === 'object' && 'items' in data && 'count' in data) {
+      // ページネーション対応のレスポンス形式
+      const response = data as ApiDuplicateListResponse
+      // APIのduplicateUuidをduplicate_uuidに変換
+      booksList.value = (response.items || []).map(group => ({
+        duplicate_uuid: group.duplicateUuid,
+        books: group.books.map(book => ({
+          ...book,
+          duplicate_uuid: group.duplicateUuid
+        }))
+      }))
+      totalCount.value = response.count || 0
+    } else if (Array.isArray(data)) {
+      // 旧API形式（後方互換性）
+      booksList.value = data as unknown as DuplicateGroup[]
+      totalCount.value = booksList.value.length
+    } else {
+      booksList.value = []
+      totalCount.value = 0
+    }
+
     openPanels.value = booksList.value.map((_, index) => index)
   } catch {
     pushNotice('データの読み込みに失敗しました', 'error')
   } finally {
     isLoading.value = false
   }
+}
+
+const onPageChange = (newPage: number) => {
+  page.value = newPage
+  reload()
+}
+
+const onItemsPerPageChange = (newItemsPerPage: number) => {
+  itemsPerPage.value = newItemsPerPage
+  page.value = 1
+  reload()
 }
 
 const handleRateChange = async (book: DuplicateBook, value: number | string) => {
