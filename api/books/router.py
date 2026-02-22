@@ -120,7 +120,8 @@ async def search_books(
 
         if params.rate is not None:
             if params.rate == 0:
-                query = query.filter(user_data.rate is None)
+                # rate=0は未評価を意味する（メタデータなし or rate IS NULL）
+                query = query.filter(user_data.rate.is_(None))
             else:
                 query = query.filter(user_data.rate == params.rate)
 
