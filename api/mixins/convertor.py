@@ -122,6 +122,11 @@ def make_thumbnail(send_book, book_uuid, db: Session):
 
     Returns:
         tuple: (page_len, ahash, phash, dhash)
+
+    Raises:
+        zipfile.BadZipFile: ZIPファイルが破損している場合
+        NotContentZipError: ZIP内に画像ファイルが存在しない場合
+        Exception: その他のエラー
     """
     import imagehash
 
@@ -129,35 +134,62 @@ def make_thumbnail(send_book, book_uuid, db: Session):
     exclude_filenames_str = get_setting(db, 'thumbnail_exclude_filenames', default='')
     exclude_filenames = [name.strip() for name in exclude_filenames_str.split(',') if name.strip()]
 
-    with zipfile.ZipFile(send_book) as existing_zip:
-        zip_content = list_images_in_zip(existing_zip)
+    try:
+        with zipfile.ZipFile(send_book) as existing_zip:
+            zip_content = list_images_in_zip(existing_zip)
 
-        # 除外ファイルをフィルタリング
-        if exclude_filenames:
-            filtered_content = []
-            for file_path in zip_content:
-                file_name = Path(file_path).name
-                # ファイル名に除外文字列が含まれていないかチェック
-                should_exclude = False
-                for exclude_name in exclude_filenames:
-                    if exclude_name in file_name:
-                        should_exclude = True
-                        logger.debug(f"サムネイル候補から除外: {file_name} (パターン: {exclude_name})")
-                        break
-                if not should_exclude:
-                    filtered_content.append(file_path)
-            zip_content = filtered_content
+            # 除外ファイルをフィルタリング
+            if exclude_filenames:
+                filtered_content = []
+                for file_path in zip_content:
+                    file_name = Path(file_path).name
+                    # ファイル名に除外文字列が含まれていないかチェック
+                    should_exclude = False
+                    for exclude_name in exclude_filenames:
+                        if exclude_name in file_name:
+                            should_exclude = True
+                            logger.debug(f"サムネイル候補から除外: {file_name} (パターン: {exclude_name})")
+                            break
+                    if not should_exclude:
+                        filtered_content.append(file_path)
+                zip_content = filtered_content
 
-        # ページ数取得（list_images_in_zipでソート済み）
-        page_len = len(zip_content)
-        # サムネイル作成
-        if page_len == 0:
-            raise NotContentZipError
-        cover_path = zip_content[0]
-        # Zipから直接メモリに読み込み（レースコンディション回避）
-        img_src = Image.open(BytesIO(existing_zip.read(cover_path))).convert('RGB')
-        # PIL ImageオブジェクトをそのままConvertorに渡す（webp形式で保存）
-        image_convertor(src_path=img_src, dst_path=f'{DATA_ROOT}/book_thum/{book_uuid}.webp', to_height=600, quality=85)
+            # ページ数取得（list_images_in_zipでソート済み）
+            page_len = len(zip_content)
+            # サムネイル作成
+            if page_len == 0:
+                logger.warning(f"ZIP内に画像ファイルが存在しません: {book_uuid}")
+                raise NotContentZipError(f"ZIP内に画像ファイルが存在しません (UUID: {book_uuid})")
+
+            cover_path = zip_content[0]
+            logger.debug(f"サムネイル作成対象: {book_uuid}, 表紙: {cover_path}, 総ページ数: {page_len}")
+
+            # Zipから直接メモリに読み込み（レースコンディション回避）
+            try:
+                img_src = Image.open(BytesIO(existing_zip.read(cover_path))).convert('RGB')
+            except Exception as img_error:
+                logger.error(f"画像読み込み失敗: {book_uuid}, ファイル: {cover_path}, エラー: {type(img_error).__name__}: {img_error}")
+                raise
+
+            # PIL ImageオブジェクトをそのままConvertorに渡す（webp形式で保存）
+            try:
+                image_convertor(src_path=img_src, dst_path=f'{DATA_ROOT}/book_thum/{book_uuid}.webp', to_height=600, quality=85)
+            except Exception as conv_error:
+                logger.error(f"画像変換失敗: {book_uuid}, エラー: {type(conv_error).__name__}: {conv_error}")
+                raise
+
+    except zipfile.BadZipFile as e:
+        logger.error(f"ZIPファイルが破損しています: {book_uuid}, パス: {send_book}, エラー: {e}")
+        raise
+    except zipfile.LargeZipFile as e:
+        logger.error(f"ZIPファイルが大きすぎます: {book_uuid}, パス: {send_book}, エラー: {e}")
+        raise
+    except NotContentZipError:
+        # 再スロー
+        raise
+    except Exception as e:
+        logger.error(f"サムネイル作成中の予期せぬエラー: {book_uuid}, パス: {send_book}, エラー種類: {type(e).__name__}, 詳細: {e!s}", exc_info=True)
+        raise
 
     # マルチハッシュを計算
     try:
@@ -168,7 +200,7 @@ def make_thumbnail(send_book, book_uuid, db: Session):
         logger.debug(f"ハッシュ計算完了 {book_uuid}: ahash={ahash}, phash={phash}, dhash={dhash}")
         return page_len, ahash, phash, dhash
     except Exception as e:
-        logger.warning(f"ハッシュ計算失敗 {book_uuid}: {e}")
+        logger.warning(f"ハッシュ計算失敗 {book_uuid}: {type(e).__name__}: {e!s}")
         return page_len, None, None, None
 
 

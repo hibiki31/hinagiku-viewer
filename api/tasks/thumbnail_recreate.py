@@ -70,12 +70,17 @@ def process_single_book(book_data: dict, total: int, progress_lock: threading.Lo
         return {"uuid": book_uuid, "success": True, "page_len": page_len}
 
     except Exception as e:
-        logger.error(f"[{index}/{total}] サムネイル再作成失敗: {book_uuid} - {e}")
+        logger.error(
+            f"[{index}/{total}] サムネイル再作成失敗: {book_uuid} - "
+            f"エラー種類: {type(e).__name__}, "
+            f"詳細: {str(e) if str(e) else '詳細なし'}",
+            exc_info=True
+        )
         db.rollback()
         with progress_lock:
             counters["error_count"] += 1
             counters["processed_count"] += 1
-        return {"uuid": book_uuid, "success": False, "error": str(e)}
+        return {"uuid": book_uuid, "success": False, "error": f"{type(e).__name__}: {str(e) if str(e) else '詳細なし'}"}
 
     finally:
         db.close()
