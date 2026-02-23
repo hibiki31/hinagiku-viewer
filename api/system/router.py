@@ -192,16 +192,14 @@ async def bulk_update_settings(
 
     logger.info(f"ユーザー {current_user.id} が {updated_count}件の設定を一括更新")
 
+    message = f"{updated_count}件の設定を更新しました"
     if errors:
-        return {
-            "message": f"{updated_count}件の設定を更新しました（エラー: {len(errors)}件）",
-            "updated": updated_count,
-            "errors": errors
-        }
+        message += f"（エラー: {len(errors)}件）"
 
     return {
-        "message": f"{updated_count}件の設定を更新しました",
-        "updated": updated_count
+        "message": message,
+        "updated": updated_count,
+        "errors": errors
     }
 
 
