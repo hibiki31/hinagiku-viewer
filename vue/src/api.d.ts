@@ -299,11 +299,50 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 重複書籍確認 */
+        /**
+         * 重複書籍確認
+         * @description 重複書籍の一覧を返す。
+         *
+         *     `duplicate_exclusion` テーブルに登録された除外ペアは結果から除外される。
+         *     除外はペアの順序（uuid_1 < uuid_2）に関わらず両方向でチェックする。
+         */
         get: operations["get_media_books_duplicate_media_books_duplicate_get"];
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/books/duplicate/exclude": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 重複除外ペア登録
+         * @description AとBは重複でないと判断したペアを除外リストに登録する。
+         *
+         *     登録されたペアは `GET /media/books/duplicate` の結果から除外される。
+         *     UUIDは辞書順で正規化（小さい方が uuid_1）して格納するため、
+         *     (A, B) と (B, A) は同一ペアとして扱われる。
+         *
+         *     既に登録済みの場合は何もせず正常応答を返す。
+         */
+        post: operations["post_media_books_duplicate_exclude_media_books_duplicate_exclude_post"];
+        /**
+         * 重複除外ペア解除
+         * @description 除外リストからペアを解除する。
+         *
+         *     解除後は `GET /media/books/duplicate` の結果に再び表示される。
+         *     登録されていないペアを指定した場合は 404 を返す。
+         */
+        delete: operations["delete_media_books_duplicate_exclude_media_books_duplicate_exclude_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1148,6 +1187,28 @@ export interface components {
             score: number;
         };
         /**
+         * DuplicateExclusionCreate
+         * @description 重複除外ペア登録リクエスト
+         */
+        DuplicateExclusionCreate: {
+            /** Bookuuid1 */
+            bookUuid1: string;
+            /** Bookuuid2 */
+            bookUuid2: string;
+        };
+        /**
+         * DuplicateExclusionResponse
+         * @description 重複除外ペア登録/削除レスポンス
+         */
+        DuplicateExclusionResponse: {
+            /** Message */
+            message: string;
+            /** Bookuuid1 */
+            bookUuid1: string;
+            /** Bookuuid2 */
+            bookUuid2: string;
+        };
+        /**
          * DuplicateGroup
          * @description 重複書籍グループ
          */
@@ -1858,6 +1919,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DuplicateListResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_media_books_duplicate_exclude_media_books_duplicate_exclude_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DuplicateExclusionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DuplicateExclusionResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_media_books_duplicate_exclude_media_books_duplicate_exclude_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DuplicateExclusionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DuplicateExclusionResponse"];
                 };
             };
             /** @description Validation Error */

@@ -81,7 +81,7 @@
           class="mb-2"
         >
           <v-expansion-panel-title>
-            <div class="d-flex align-center ga-3">
+            <div class="d-flex align-center ga-3 flex-wrap flex-grow-1">
               <v-checkbox
                 :model-value="isGroupAllSelected(group)"
                 :indeterminate="isGroupPartiallySelected(group)"
@@ -102,6 +102,17 @@
               <v-chip size="small" color="grey-lighten-1">
                 {{ group.duplicate_uuid.slice(0, 8) }}
               </v-chip>
+              <v-spacer />
+              <v-btn
+                size="small"
+                variant="tonal"
+                color="secondary"
+                prepend-icon="mdi-link-off"
+                class="mr-2"
+                @click.stop="confirmExcludeGroup(group)"
+              >
+                重複でないとマーク
+              </v-btn>
             </div>
           </v-expansion-panel-title>
 
@@ -276,6 +287,53 @@
       </v-row>
     </v-container>
   </v-main>
+
+  <!-- 重複除外確認ダイアログ -->
+  <v-dialog v-model="excludeGroupDialog.show" max-width="560">
+    <v-card>
+      <v-card-title class="d-flex align-center bg-secondary text-white">
+        <v-icon class="mr-2">mdi-link-off</v-icon>
+        重複でないとマーク
+      </v-card-title>
+      <v-card-text class="pt-4">
+        <div class="mb-3">
+          <strong>このグループの本を「重複でない」として除外しますか？</strong>
+        </div>
+        <v-alert type="info" variant="tonal" density="compact" class="mb-3">
+          グループ内の全ペア（{{ excludeGroupDialog.pairCount }} ペア）を除外リストに登録します。<br>
+          除外後は重複リストに表示されなくなります。
+        </v-alert>
+        <v-list density="compact" class="bg-grey-lighten-4 rounded">
+          <v-list-item
+            v-for="book in excludeGroupDialog.books"
+            :key="book.uuid"
+            :subtitle="book.file"
+          >
+            <template #prepend>
+              <v-icon size="small" color="primary">mdi-book</v-icon>
+            </template>
+            <template #title>
+              {{ book.title || '（タイトルなし）' }}
+            </template>
+          </v-list-item>
+        </v-list>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <v-btn variant="text" @click="excludeGroupDialog.show = false">
+          キャンセル
+        </v-btn>
+        <v-btn
+          color="secondary"
+          variant="flat"
+          :loading="excludeGroupDialog.loading"
+          @click="executeExcludeGroup"
+        >
+          除外する
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 
   <!-- 一括削除確認ダイアログ -->
   <v-dialog v-model="bulkDeleteDialog.show" max-width="600">
@@ -603,6 +661,56 @@ const isRecommended = (book: DuplicateBook, books: DuplicateBook[]): boolean => 
 const openBook = (uuid: string) => {
   const url = router.resolve({ path: `/books/${uuid}` }).href
   window.open(url, '_blank')
+}
+
+// 重複除外ダイアログ
+const excludeGroupDialog = reactive({
+  show: false,
+  loading: false,
+  group: null as DuplicateGroup | null,
+  books: [] as DuplicateBook[],
+  pairCount: 0
+})
+
+const confirmExcludeGroup = (group: DuplicateGroup) => {
+  const n = group.books.length
+  excludeGroupDialog.group = group
+  excludeGroupDialog.books = group.books
+  excludeGroupDialog.pairCount = (n * (n - 1)) / 2
+  excludeGroupDialog.show = true
+}
+
+const executeExcludeGroup = async () => {
+  if (!excludeGroupDialog.group) return
+  excludeGroupDialog.loading = true
+  try {
+    const books = excludeGroupDialog.group.books
+    // 全ペアの組み合わせを生成して除外登録
+    const pairs: { bookUuid1: string; bookUuid2: string }[] = []
+    for (let i = 0; i < books.length; i++) {
+      for (let j = i + 1; j < books.length; j++) {
+        pairs.push({ bookUuid1: books[i].uuid, bookUuid2: books[j].uuid })
+      }
+    }
+    const results = await Promise.allSettled(
+      pairs.map(pair =>
+        apiClient.POST('/media/books/duplicate/exclude', { body: pair })
+      )
+    )
+    const failCount = results.filter(r => r.status === 'rejected').length
+    if (failCount > 0) {
+      pushNotice(`一部の除外登録に失敗しました（${failCount}件失敗）`, 'warn')
+    } else {
+      pushNotice('重複でないとマークしました', 'success')
+    }
+    excludeGroupDialog.show = false
+    excludeGroupDialog.group = null
+    await reload()
+  } catch {
+    pushNotice('除外登録に失敗しました', 'error')
+  } finally {
+    excludeGroupDialog.loading = false
+  }
 }
 
 const confirmDelete = (book: DuplicateBook) => {

@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "HinavAPI",
-    "version": "3.14.0"
+    "version": "3.15.0"
   },
   "servers": [
     {
@@ -708,6 +708,7 @@
           "Media"
         ],
         "summary": "重複書籍確認",
+        "description": "重複書籍の一覧を返す。\n\n`duplicate_exclusion` テーブルに登録された除外ペアは結果から除外される。\n除外はペアの順序（uuid_1 < uuid_2）に関わらず両方向でチェックする。",
         "operationId": "get_media_books_duplicate_media_books_duplicate_get",
         "security": [
           {
@@ -758,6 +759,98 @@
             }
           }
         }
+      }
+    },
+    "/media/books/duplicate/exclude": {
+      "post": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "重複除外ペア登録",
+        "description": "AとBは重複でないと判断したペアを除外リストに登録する。\n\n登録されたペアは `GET /media/books/duplicate` の結果から除外される。\nUUIDは辞書順で正規化（小さい方が uuid_1）して格納するため、\n(A, B) と (B, A) は同一ペアとして扱われる。\n\n既に登録済みの場合は何もせず正常応答を返す。",
+        "operationId": "post_media_books_duplicate_exclude_media_books_duplicate_exclude_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DuplicateExclusionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DuplicateExclusionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Media"
+        ],
+        "summary": "重複除外ペア解除",
+        "description": "除外リストからペアを解除する。\n\n解除後は `GET /media/books/duplicate` の結果に再び表示される。\n登録されていないペアを指定した場合は 404 を返す。",
+        "operationId": "delete_media_books_duplicate_exclude_media_books_duplicate_exclude_delete",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DuplicateExclusionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DuplicateExclusionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/media/books/{uuid}": {
@@ -3179,6 +3272,49 @@
         ],
         "title": "DuplicateBook",
         "description": "重複グループ内の書籍情報"
+      },
+      "DuplicateExclusionCreate": {
+        "properties": {
+          "bookUuid1": {
+            "type": "string",
+            "title": "Bookuuid1"
+          },
+          "bookUuid2": {
+            "type": "string",
+            "title": "Bookuuid2"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bookUuid1",
+          "bookUuid2"
+        ],
+        "title": "DuplicateExclusionCreate",
+        "description": "重複除外ペア登録リクエスト"
+      },
+      "DuplicateExclusionResponse": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "bookUuid1": {
+            "type": "string",
+            "title": "Bookuuid1"
+          },
+          "bookUuid2": {
+            "type": "string",
+            "title": "Bookuuid2"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message",
+          "bookUuid1",
+          "bookUuid2"
+        ],
+        "title": "DuplicateExclusionResponse",
+        "description": "重複除外ペア登録/削除レスポンス"
       },
       "DuplicateGroup": {
         "properties": {
