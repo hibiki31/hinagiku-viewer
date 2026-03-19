@@ -192,7 +192,7 @@ async def search_books(
             BookModel.authors
         ).order_by(AuthorModel.name.desc(), BookModel.title)
 
-    count = query.count()
+    count = query.order_by(None).count()
 
     if params.limit != 0:
         query = query.limit(params.limit).offset(params.offset)
