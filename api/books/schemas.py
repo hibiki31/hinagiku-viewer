@@ -173,6 +173,19 @@ class DuplicateListResponse(BaseSchema):
     items: List[DuplicateGroup]
 
 
+class DuplicateExclusionCreate(BaseSchema):
+    """重複除外ペア登録リクエスト"""
+    book_uuid_1: str
+    book_uuid_2: str
+
+
+class DuplicateExclusionResponse(BaseSchema):
+    """重複除外ペア登録/削除レスポンス"""
+    message: str
+    book_uuid_1: str
+    book_uuid_2: str
+
+
 class BookUpdateResponse(BaseSchema):
     """書籍更新レスポンス"""
     message: str

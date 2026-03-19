@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, Numeric, String, Table
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, Numeric, String, Table, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from mixins.database import Base
@@ -167,3 +167,19 @@ class DuplicateSettingsModel(Base):
     lsh_bands = Column(Integer, nullable=False, default=16)
     lsh_band_size = Column(Integer, nullable=False, default=16)
     updated_at = Column(DateTime, nullable=False)
+
+
+class DuplicateExclusionModel(Base):
+    """重複除外ペアテーブル
+
+    AとBが重複でないと判断した場合に登録し、重複リストから除外するために使用する。
+    book_uuid_1 < book_uuid_2 になるよう正規化して格納することで重複登録を防ぐ。
+    """
+    __tablename__ = 'duplicate_exclusion'
+    # 正規化: uuid の辞書順で小さい方を book_uuid_1 に格納
+    book_uuid_1 = Column(String, ForeignKey('books.uuid', onupdate='CASCADE', ondelete='CASCADE'), primary_key=True)
+    book_uuid_2 = Column(String, ForeignKey('books.uuid', onupdate='CASCADE', ondelete='CASCADE'), primary_key=True)
+    created_at = Column(DateTime, nullable=False)
+    __table_args__ = (
+        UniqueConstraint('book_uuid_1', 'book_uuid_2', name='uq_duplicate_exclusion'),
+    )

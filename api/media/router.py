@@ -1,16 +1,26 @@
 import re
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session, aliased
 
 from auth.router import get_current_user
 from auth.schemas import UserCurrent
-from books.models import BookModel, BookUserMetaDataModel, DuplicationModel
-from books.schemas import BookCacheCreate, BookCacheCreateResponse, BookCacheSize, DuplicateListResponse, LibraryPatch
+from books.models import BookModel, BookUserMetaDataModel, DuplicateExclusionModel, DuplicationModel
+from books.schemas import (
+    BookCacheCreate,
+    BookCacheCreateResponse,
+    BookCacheSize,
+    DuplicateExclusionCreate,
+    DuplicateExclusionResponse,
+    DuplicateListResponse,
+    LibraryPatch,
+)
 from mixins.convertor import create_book_page_cache, image_convertor
 from mixins.database import get_db
 from mixins.log import setup_logger
@@ -64,15 +74,34 @@ def get_media_books_cache(
 @app.get("/books/duplicate", response_model=DuplicateListResponse, summary="重複書籍確認")
 def get_media_books_duplicate(
         db: Session = Depends(get_db),
-        current_user:UserCurrent = Depends(get_current_user),
+        current_user: UserCurrent = Depends(get_current_user),
         limit: int = 25,
         offset: int = 0,
     ):
+    """
+    重複書籍の一覧を返す。
 
+    `duplicate_exclusion` テーブルに登録された除外ペアは結果から除外される。
+    除外はペアの順序（uuid_1 < uuid_2）に関わらず両方向でチェックする。
+    """
     book_model_1 = aliased(BookModel)
     book1_userdata = aliased(BookUserMetaDataModel)
     book_model_2 = aliased(BookModel)
     book2_userdata = aliased(BookUserMetaDataModel)
+
+    # 除外ペアに該当するレコードをサブクエリで除外（両方向チェック）
+    exclusion_exists = db.query(DuplicateExclusionModel).filter(
+        or_(
+            and_(
+                DuplicateExclusionModel.book_uuid_1 == DuplicationModel.book_uuid_1,
+                DuplicateExclusionModel.book_uuid_2 == DuplicationModel.book_uuid_2,
+            ),
+            and_(
+                DuplicateExclusionModel.book_uuid_1 == DuplicationModel.book_uuid_2,
+                DuplicateExclusionModel.book_uuid_2 == DuplicationModel.book_uuid_1,
+            ),
+        )
+    ).exists()
 
     # duplication_idでソートして順序を固定する
     duplication_books = db.query(
@@ -89,13 +118,15 @@ def get_media_books_duplicate(
         book1_userdata.rate,
         book2_userdata.rate,
     ).outerjoin(
-        book_model_1, book_model_1.uuid==DuplicationModel.book_uuid_1
+        book_model_1, book_model_1.uuid == DuplicationModel.book_uuid_1
     ).outerjoin(
-        book_model_2, book_model_2.uuid==DuplicationModel.book_uuid_2
+        book_model_2, book_model_2.uuid == DuplicationModel.book_uuid_2
     ).outerjoin(
-        book1_userdata, book_model_1.uuid==book1_userdata.book_uuid
+        book1_userdata, book_model_1.uuid == book1_userdata.book_uuid
     ).outerjoin(
-        book2_userdata, book_model_2.uuid==book2_userdata.book_uuid
+        book2_userdata, book_model_2.uuid == book2_userdata.book_uuid
+    ).filter(
+        ~exclusion_exists  # 除外ペアを除く
     ).order_by(DuplicationModel.duplication_id)
 
     res = {}
@@ -127,6 +158,79 @@ def get_media_books_duplicate(
         "offset": offset,
         "items": res_list[offset:offset + limit],
     }
+
+
+@app.post("/books/duplicate/exclude", response_model=DuplicateExclusionResponse, summary="重複除外ペア登録")
+def post_media_books_duplicate_exclude(
+        model: DuplicateExclusionCreate,
+        db: Session = Depends(get_db),
+        current_user: UserCurrent = Depends(get_current_user),
+    ):
+    """
+    AとBは重複でないと判断したペアを除外リストに登録する。
+
+    登録されたペアは `GET /media/books/duplicate` の結果から除外される。
+    UUIDは辞書順で正規化（小さい方が uuid_1）して格納するため、
+    (A, B) と (B, A) は同一ペアとして扱われる。
+
+    既に登録済みの場合は何もせず正常応答を返す。
+    """
+    uuid_1, uuid_2 = sorted([model.book_uuid_1, model.book_uuid_2])
+
+    # 既に登録済みか確認
+    existing = db.query(DuplicateExclusionModel).filter(
+        DuplicateExclusionModel.book_uuid_1 == uuid_1,
+        DuplicateExclusionModel.book_uuid_2 == uuid_2,
+    ).one_or_none()
+
+    if existing is None:
+        exclusion = DuplicateExclusionModel(
+            book_uuid_1=uuid_1,
+            book_uuid_2=uuid_2,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(exclusion)
+        db.commit()
+        logger.info(f"重複除外ペア登録: {uuid_1} <-> {uuid_2}, user={current_user.id}")
+
+    return DuplicateExclusionResponse(
+        message="除外ペアを登録しました" if existing is None else "既に登録済みです",
+        book_uuid_1=uuid_1,
+        book_uuid_2=uuid_2,
+    )
+
+
+@app.delete("/books/duplicate/exclude", response_model=DuplicateExclusionResponse, summary="重複除外ペア解除")
+def delete_media_books_duplicate_exclude(
+        model: DuplicateExclusionCreate,
+        db: Session = Depends(get_db),
+        current_user: UserCurrent = Depends(get_current_user),
+    ):
+    """
+    除外リストからペアを解除する。
+
+    解除後は `GET /media/books/duplicate` の結果に再び表示される。
+    登録されていないペアを指定した場合は 404 を返す。
+    """
+    uuid_1, uuid_2 = sorted([model.book_uuid_1, model.book_uuid_2])
+
+    existing = db.query(DuplicateExclusionModel).filter(
+        DuplicateExclusionModel.book_uuid_1 == uuid_1,
+        DuplicateExclusionModel.book_uuid_2 == uuid_2,
+    ).one_or_none()
+
+    if existing is None:
+        raise HTTPException(status_code=404, detail="指定されたペアは除外リストに登録されていません")
+
+    db.delete(existing)
+    db.commit()
+    logger.info(f"重複除外ペア解除: {uuid_1} <-> {uuid_2}, user={current_user.id}")
+
+    return DuplicateExclusionResponse(
+        message="除外ペアを解除しました",
+        book_uuid_1=uuid_1,
+        book_uuid_2=uuid_2,
+    )
 
 
 
