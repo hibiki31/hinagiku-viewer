@@ -32,7 +32,16 @@ def get_db_url():
 
 
 Engine = create_engine(
-    get_db_url(), connect_args={}
+    get_db_url(),
+    connect_args={},
+    # 接続プールサイズを拡張
+    # Gunicornワーカー数 = (2×CPU数)+1 に合わせて余裕を持たせる
+    pool_size=20,
+    max_overflow=10,
+    # 切断検知: 長時間アイドル後の接続ロスト対策
+    pool_pre_ping=True,
+    # 接続を1時間でリサイクル（PostgreSQLのidle timeout対策）
+    pool_recycle=3600,
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=Engine)

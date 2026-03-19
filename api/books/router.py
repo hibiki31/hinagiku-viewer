@@ -4,7 +4,7 @@ from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, aliased
 
 from auth.router import get_current_user
@@ -184,13 +184,26 @@ async def search_books(
         query = query.order_by(user_data.last_open_date)
 
     elif params.sort_key == "authors" and not params.sort_desc:
-        query = query.outerjoin(
-            BookModel.authors
-        ).order_by(AuthorModel.name, BookModel.title)
+        # 相関サブクエリで著者名最小値を取得してソート
+        # outerjoin方式では1書籍に著者N人分の重複行が発生するため、
+        # JOINを使わずスカラーサブクエリでソートキーを取得する
+        author_sort_subq = (
+            select(func.min(AuthorModel.name))
+            .join(books_to_authors, AuthorModel.id == books_to_authors.c.author_id)
+            .where(books_to_authors.c.book_uuid == BookModel.uuid)
+            .correlate(BookModel)
+            .scalar_subquery()
+        )
+        query = query.order_by(author_sort_subq.nulls_last(), BookModel.title)
     elif params.sort_key == "authors" and params.sort_desc:
-        query = query.outerjoin(
-            BookModel.authors
-        ).order_by(AuthorModel.name.desc(), BookModel.title)
+        author_sort_subq = (
+            select(func.min(AuthorModel.name))
+            .join(books_to_authors, AuthorModel.id == books_to_authors.c.author_id)
+            .where(books_to_authors.c.book_uuid == BookModel.uuid)
+            .correlate(BookModel)
+            .scalar_subquery()
+        )
+        query = query.order_by(author_sort_subq.desc().nulls_last(), BookModel.title)
 
     count = query.order_by(None).count()
 
