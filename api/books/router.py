@@ -146,30 +146,31 @@ async def search_books(
 
         elif params.full_text is not None:
             ft = f'%{params.full_text}%'
-            # 著者・タグはEXISTSサブクエリで検索（OUTERJOINの直積問題を回避）
-            # OUTERJOIN方式では著者数×タグ数の直積行が発生しDISTINCTが重くなる
-            # EXISTSはbook_to_author/tag_to_bookのインデックスで高速に評価される
-            author_exists = (
-                db.query(AuthorModel.id)
-                .join(books_to_authors, AuthorModel.id == books_to_authors.c.author_id)
-                .filter(books_to_authors.c.book_uuid == BookModel.uuid)
+            # UNION + IN サブクエリ方式: 各テーブルを独立してILIKE検索しUUIDをUNION
+            # - 直積問題ゼロ（各JOINが独立したサブクエリ内で完結）
+            # - N+1問題ゼロ（セット指向で一括処理）
+            # - 各ILIKEが専用のpg_trgm GINインデックスを使用
+            # - UNION自体が重複UUIDを排除するためDISTINCT不要
+            title_uuids = (
+                db.query(BookModel.uuid)
+                .filter(BookModel.title.ilike(ft))
+            )
+            filename_uuids = (
+                db.query(BookModel.uuid)
+                .filter(BookModel.import_file_name.ilike(ft))
+            )
+            author_uuids = (
+                db.query(BookModel.uuid)
+                .join(BookModel.authors)
                 .filter(AuthorModel.name.ilike(ft))
-                .exists()
             )
-            tag_exists = (
-                db.query(TagsModel.id)
-                .join(books_to_tags, TagsModel.id == books_to_tags.c.tags_id)
-                .filter(books_to_tags.c.book_uuid == BookModel.uuid)
+            tag_uuids = (
+                db.query(BookModel.uuid)
+                .join(BookModel.tags)
                 .filter(TagsModel.name.ilike(ft))
-                .exists()
             )
-            query = query.filter(or_(
-                BookModel.title.ilike(ft),
-                BookModel.import_file_name.ilike(ft),
-                author_exists,
-                tag_exists,
-            ))
-            # DISTINCT不要（JOINによる重複行が発生しない）
+            all_uuids = title_uuids.union(filename_uuids).union(author_uuids).union(tag_uuids)
+            query = query.filter(BookModel.uuid.in_(all_uuids))
 
         if params.file_name_like is not None:
             query = query.filter(BookModel.import_file_name.like(f'%{params.file_name_like}%'))
