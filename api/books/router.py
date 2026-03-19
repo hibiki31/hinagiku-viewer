@@ -145,16 +145,31 @@ async def search_books(
             query = query.filter(BookModel.state == params.state)
 
         elif params.full_text is not None:
-            query = query.outerjoin(
-                BookModel.authors
-            ).outerjoin(
-                BookModel.tags
-            ).filter(or_(
-                BookModel.title.ilike(f'%{params.full_text}%'),
-                BookModel.import_file_name.ilike(f'%{params.full_text}%'),
-                AuthorModel.name.ilike(f'%{params.full_text}%'),
-                TagsModel.name.ilike(f'%{params.full_text}%')
-            )).distinct()
+            ft = f'%{params.full_text}%'
+            # 著者・タグはEXISTSサブクエリで検索（OUTERJOINの直積問題を回避）
+            # OUTERJOIN方式では著者数×タグ数の直積行が発生しDISTINCTが重くなる
+            # EXISTSはbook_to_author/tag_to_bookのインデックスで高速に評価される
+            author_exists = (
+                db.query(AuthorModel.id)
+                .join(books_to_authors, AuthorModel.id == books_to_authors.c.author_id)
+                .filter(books_to_authors.c.book_uuid == BookModel.uuid)
+                .filter(AuthorModel.name.ilike(ft))
+                .exists()
+            )
+            tag_exists = (
+                db.query(TagsModel.id)
+                .join(books_to_tags, TagsModel.id == books_to_tags.c.tags_id)
+                .filter(books_to_tags.c.book_uuid == BookModel.uuid)
+                .filter(TagsModel.name.ilike(ft))
+                .exists()
+            )
+            query = query.filter(or_(
+                BookModel.title.ilike(ft),
+                BookModel.import_file_name.ilike(ft),
+                author_exists,
+                tag_exists,
+            ))
+            # DISTINCT不要（JOINによる重複行が発生しない）
 
         if params.file_name_like is not None:
             query = query.filter(BookModel.import_file_name.like(f'%{params.file_name_like}%'))
