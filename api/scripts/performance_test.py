@@ -396,7 +396,7 @@ def _color_status(success_rate: float) -> str:
     return _RED
 
 
-def print_report(results: list[RequestResult], total_duration_s: float) -> None:
+def print_report(results: list[RequestResult], total_duration_s: float, api_version: str = "") -> None:
     """シナリオ別の統計レポートを表示する"""
     print()
     print(f"{_BOLD}{'=' * 70}{_RESET}")
@@ -463,6 +463,8 @@ def print_report(results: list[RequestResult], total_duration_s: float) -> None:
             f"p90={_percentile(all_durations, 90):.1f} | "
             f"p99={_percentile(all_durations, 99):.1f}"
         )
+    if api_version:
+        print(f"  対象APIバージョン: {_CYAN}{api_version}{_RESET}")
     print(f"{'=' * 70}")
 
 
@@ -513,6 +515,17 @@ def save_json_report(results: list[RequestResult], path: Path, total_duration_s:
 
 
 # ============================= 準備処理 =============================
+
+
+def fetch_api_version(base_url: str) -> str:
+    """APIバージョンを取得する（認証不要）"""
+    try:
+        resp = httpx.get(f"{base_url}/api/version", timeout=HTTP_TIMEOUT)
+        if resp.status_code == 200:
+            return resp.json().get("version", "不明")
+    except Exception:
+        pass
+    return "取得失敗"
 
 
 def login(base_url: str, username: str, password: str) -> str:
@@ -657,9 +670,13 @@ def main() -> None:
     username: str = args.username or env.get("username", "test")
     password: str = args.password or env.get("password", "test")
 
+    # --- APIバージョン取得（認証不要）---
+    api_version = fetch_api_version(base_url)
+
     print(f"{_BOLD}===== APIパフォーマンステスト ====={_RESET}")
-    print(f"  対象URL   : {base_url}")
-    print(f"  ユーザー  : {username}")
+    print(f"  対象URL     : {base_url}")
+    print(f"  APIバージョン: {_CYAN}{api_version}{_RESET}")
+    print(f"  ユーザー    : {username}")
     print(f"  クライアント数: {args.clients}")
 
     # --- 認証 ---
@@ -749,7 +766,7 @@ def main() -> None:
     total_duration = time.perf_counter() - start_time
 
     # --- レポート出力 ---
-    print_report(all_results, total_duration)
+    print_report(all_results, total_duration, api_version)
 
     # --- JSON出力（オプション）---
     if args.output:
