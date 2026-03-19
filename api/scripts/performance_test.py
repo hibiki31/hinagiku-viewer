@@ -533,10 +533,22 @@ def fetch_replay_data(base_url: str, headers: dict) -> ReplayData:
     resp = httpx.get(f"{base_url}/api/libraries", headers=headers, timeout=HTTP_TIMEOUT)
     resp.raise_for_status()
     libraries = resp.json()
-    library_ids = [lib["id"] for lib in libraries] if libraries else [1]
-    print(f"  ライブラリ数: {len(library_ids)} 件")
+    print(f"  ライブラリ数: {len(libraries)} 件")
 
-    # 書籍一覧取得（最初のライブラリから）
+    # 一番本が多いライブラリを選択
+    if libraries:
+        best_library = max(libraries, key=lambda lib: lib.get("count", 0))
+        library_ids = [best_library["id"]]
+        print(
+            f"  使用ライブラリ: ID={best_library['id']} "
+            f"名前={best_library.get('name', '')} "
+            f"({best_library.get('count', 0)} 冊)"
+        )
+    else:
+        library_ids = [1]
+        print("  ライブラリが見つかりません。デフォルトID=1を使用します。")
+
+    # 書籍一覧取得（最も本が多いライブラリから）
     lib_id = library_ids[0]
     resp = httpx.get(
         f"{base_url}/api/books",
@@ -709,11 +721,10 @@ def main() -> None:
         for i in range(args.clients)
     ]
 
-    # 割り当て内容を表示
+    # 割り当て内容を表示（書籍名は表示しない）
     for i, books_assigned in enumerate(client_book_assignments):
-        titles = ", ".join(b.get("title", b["uuid"][:8]) or b["uuid"][:8] for b in books_assigned)
         total_pages = sum(b.get("page", 0) for b in books_assigned)
-        print(f"  クライアント {i + 1:02d}: {titles} (計 {total_pages} ページ)")
+        print(f"  クライアント {i + 1:02d}: {len(books_assigned)} 冊 (計 {total_pages} ページ)")
 
     # --- 並列実行 ---
     print(f"\n[3/3] {args.clients} クライアントで並列実行中...")
