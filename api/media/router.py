@@ -1,5 +1,6 @@
 import re
 import subprocess
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
@@ -45,6 +46,19 @@ CACHE_MAX_AGE = 604800
 
 converter_pool = []
 library_pool = []
+
+# ページ変換の重複実行防止ロック
+# キー: "{uuid}_{height}_{page}" → 同一ページへの同時変換を1回に抑制
+_page_conversion_locks: dict[str, threading.Lock] = {}
+_page_conversion_locks_mutex = threading.Lock()
+
+
+def _get_page_conversion_lock(key: str) -> threading.Lock:
+    """変換キーに対応するLockを返す（なければ新規作成）"""
+    with _page_conversion_locks_mutex:
+        if key not in _page_conversion_locks:
+            _page_conversion_locks[key] = threading.Lock()
+        return _page_conversion_locks[key]
 
 
 def _validate_uuid(uuid: str) -> None:
@@ -265,21 +279,29 @@ def media_books_uuid_page(
     cache_file = f"{DATA_ROOT}/book_cache/{uuid}/{height}_{str(page).zfill(4)}.webp"
     original_pattern = f"original_{str(page).zfill(4)}*"
 
+    # キャッシュが存在すれば即返却（ロック不要）
     if Path(cache_file).exists():
         logger.debug(f"完全キャッシュから読み込み {uuid} p.{page}")
     else:
-        # Path.globでマッチするファイルを検索
-        matched_files = list(Path(f"{DATA_ROOT}/book_cache/{uuid}").glob(original_pattern))
-        if matched_files:
-            logger.debug(f"部分キャッシュから読み込み {uuid} p.{page}")
-            image_convertor(str(matched_files[0]), cache_file, to_height=height, quality=85)
-        else:
-            try:
-                create_book_page_cache(uuid, page, height, 85)
-            except FileNotFoundError:
-                raise HTTPException(
-                    status_code=404, detail="書籍のZIPファイルが見つかりません"
-                ) from None
+        # 同一ページへの同時変換を防ぐロックを取得
+        # ロック取得後に再度キャッシュ存在確認（他スレッドが先に変換完了している場合がある）
+        lock_key = f"{uuid}_{height}_{page}"
+        with _get_page_conversion_lock(lock_key):
+            if Path(cache_file).exists():
+                logger.debug(f"ロック待機後にキャッシュを確認 {uuid} p.{page}")
+            else:
+                # Path.globでマッチするファイルを検索
+                matched_files = list(Path(f"{DATA_ROOT}/book_cache/{uuid}").glob(original_pattern))
+                if matched_files:
+                    logger.debug(f"部分キャッシュから読み込み {uuid} p.{page}")
+                    image_convertor(str(matched_files[0]), cache_file, to_height=height, quality=85)
+                else:
+                    try:
+                        create_book_page_cache(uuid, page, height, 85)
+                    except FileNotFoundError:
+                        raise HTTPException(
+                            status_code=404, detail="書籍のZIPファイルが見つかりません"
+                        ) from None
 
     if not Path(cache_file).exists():
         raise HTTPException(status_code=500, detail="キャッシュファイルの生成に失敗しました")

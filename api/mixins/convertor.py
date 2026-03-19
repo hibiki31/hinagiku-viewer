@@ -294,7 +294,8 @@ def image_convertor(src_path, dst_path, to_height, quality):
         new_height = int(to_height)
         new_width = int(to_height / height * width)
 
-    new_img = img.resize((new_width, new_height), Image.LANCZOS)
+    # BICUBIC: LANCZOSより20〜40%高速で、WebP配信では品質差が知覚しにくい
+    new_img = img.resize((new_width, new_height), Image.BICUBIC)
     # Tempで保存
     dst_path_obj = Path(dst_path)
     temp_file = dst_path_obj.stem
