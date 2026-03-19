@@ -467,6 +467,7 @@ const nowLoading = ref(0)
 const pageMove = ref(false)
 const pageBlob = ref<(string | null)[]>([])
 const isCompletedRead = ref(false)
+const loadingPages = new Set<number>()
 const cachePageItems = [2, 4, 8, 16, 32, 64]
 const loadSizeB = ref(0)
 const loadSizeMB = ref(0)
@@ -567,9 +568,10 @@ const getDLoadingPage = async () => {
   const mulchLoad = settings.mulchLoad
   let pageOffset: number | null = null
 
-  // ロードされてないpageを取得
+  // ロードされてないpage（かつ現在ロード中でないpage）を取得
   for (let i = 0; i < cachePage; i++) {
-    if (pageBlob.value[nowPage.value - 1 + i] == null) {
+    const checkIdx = nowPage.value - 1 + i
+    if (pageBlob.value[checkIdx] == null && !loadingPages.has(checkIdx + 1)) {
       pageOffset = i
       break
     }
@@ -594,6 +596,7 @@ const getDLoadingPage = async () => {
   }
 
   nowLoading.value += 1
+  loadingPages.add(page)
 
   // 画面サイズで表示がONの場合はウィンドウの高さを使用、OFFの場合はカスタム高さを使用
   let heightParam = settings.showWindwSize
@@ -619,11 +622,13 @@ const getDLoadingPage = async () => {
     loadSizeMB.value = Math.round(loadSizeB.value / 10000) / 100
     const blob = await response.blob()
     pageBlob.value[page - 1] = window.URL.createObjectURL(blob)
+    loadingPages.delete(page)
     nowLoading.value -= 1
     getDLoadingPage()
   } catch (error) {
     console.log(error)
     pushNotice('エラーが発生したので再試行します', 'error')
+    loadingPages.delete(page)
     pageBlob.value[page - 1] = null
     nowLoading.value -= 1
     setTimeout(getDLoadingPage, 1000)
@@ -803,7 +808,8 @@ watch(nowPage, () => {
 watch(
   () => [settings.customHeight, settings.showWindwSize],
   () => {
-    // 既存の画像をクリア
+    // 既存の画像とロード中状態をクリア
+    loadingPages.clear()
     pageBlob.value = pageBlob.value.map(() => null)
     // 現在のページから再読み込み
     getDLoadingPage()
